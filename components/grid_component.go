@@ -1,9 +1,10 @@
 package components
 
 import (
+	"strconv"
+	
 	"github.com/gouniverse/hb"
 	"github.com/samber/lo"
-	"github.com/spf13/cast"
 )
 
 // GridConfig holds configuration for the Grid component
@@ -51,7 +52,7 @@ func NewGrid(config GridConfig) hb.TagInterface {
 
 		// Create column
 		col := hb.Div().
-			Class("col-md-"+cast.ToString(width)).
+			Class("col-md-"+strconv.Itoa(width)).
 			ClassIf(!lo.IsEmpty(column.Class), column.Class).
 			StyleIf(!lo.IsEmpty(column.Style), column.Style).
 			HTML(column.Content)

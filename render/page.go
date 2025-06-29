@@ -61,20 +61,20 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	}
 
 	// Add custom scripts
-	body = body.Child(hb.NewTag("script").Text(dashboardScript(d)))
+	body = body.Child(hb.Script(dashboardScript(d)))
 
 	// Create the complete HTML document
-	html := hb.NewTag("html").Attr("lang", "en")
-	html = html.Child(head)
-	html = html.Child(body)
+	html := hb.NewTag("html").Attr("lang", "en").
+		Child(head).
+		Child(body)
 
 	// Add DOCTYPE and render the HTML
 	doctype := hb.NewHTML("<!DOCTYPE html>")
 
 	// Create the final wrapper
-	wrapper := hb.Wrap()
-	wrapper = wrapper.Child(doctype)
-	wrapper = wrapper.Child(html)
+	wrapper := hb.Wrap().
+		Child(doctype).
+		Child(html)
 
 	return wrapper
 }
@@ -91,13 +91,13 @@ func renderFavicon(d model.DashboardRenderer) *hb.Tag {
 // renderTablerCSSLinks generates the Tabler CSS link tags
 func renderTablerCSSLinks(isDarkTheme bool) []*hb.Tag {
 	links := []*hb.Tag{
-		hb.NewLink().Attr("href", "https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css").Attr("rel", "stylesheet"),
-		hb.NewLink().Attr("href", "https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css").Attr("rel", "stylesheet"),
+		hb.NewLink().Href("https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css").Rel("stylesheet"),
+		hb.NewLink().Href("https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css").Rel("stylesheet"),
 	}
 
 	if isDarkTheme {
 		links = append(links,
-			hb.NewLink().Attr("href", "https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler-dark.min.css").Attr("rel", "stylesheet"),
+			hb.NewLink().Href("https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler-dark.min.css").Rel("stylesheet"),
 		)
 	}
 
@@ -107,7 +107,7 @@ func renderTablerCSSLinks(isDarkTheme bool) []*hb.Tag {
 // renderTablerJSScripts generates the Tabler JS script tags
 func renderTablerJSScripts() []*hb.Tag {
 	return []*hb.Tag{
-		hb.NewScript("https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"),
+		hb.NewTag("script").Attr("src", "https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"),
 	}
 }
 

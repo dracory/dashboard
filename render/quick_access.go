@@ -32,10 +32,11 @@ func RenderQuickAccessMenu(d model.DashboardRenderer) *hb.Tag {
 			badge = hb.NewHTML("")
 		}
 
-		itemTag := hb.A().Href(menuItem.URL).Class("dropdown-item")
-		itemTag = itemTag.Child(icon)
-		itemTag = itemTag.Child(hb.Text(menuItem.Text))
-		itemTag = itemTag.Child(badge)
+		itemTag := hb.A().Href(menuItem.URL).
+			Class("dropdown-item").
+			Child(icon).
+			Child(hb.Text(menuItem.Text)).
+			Child(badge)
 
 		if menuItem.NewWindow {
 			itemTag.Target("_blank")

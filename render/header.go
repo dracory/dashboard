@@ -40,21 +40,24 @@ func renderTopNavbar(d model.DashboardRenderer) *hb.Tag {
 	}
 
 	// Create navbar toggle button
-	navbarToggler := hb.Button().Class("navbar-toggler")
-	navbarToggler = navbarToggler.Attr("type", "button")
-	navbarToggler = navbarToggler.Attr("data-bs-toggle", "collapse")
-	navbarToggler = navbarToggler.Attr("data-bs-target", "#navbar-menu")
-	navbarToggler = navbarToggler.Child(hb.Span().Class("navbar-toggler-icon"))
+	navbarToggler := hb.Button().Class("navbar-toggler").
+		Attr("type", "button").
+		Attr("data-bs-toggle", "collapse").
+		Attr("data-bs-target", "#navbar-menu").
+		Child(hb.Span().Class("navbar-toggler-icon"))
 
 	// Create brand logo container
-	brandContainer := hb.H1().Class("navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3")
-	brandContainer = brandContainer.Child(hb.A().Href(".").Child(logo))
+	brandContainer := hb.H1().
+		Class("navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3").
+		Child(logo)
 
 	// Create user menu container
-	userMenuContainer := hb.Div().Class("navbar-nav flex-row order-md-last")
-	userMenuContainer = userMenuContainer.Child(userDropdown)
-	userMenuContainer = userMenuContainer.Child(themeSwitcher)
-	userMenuContainer = userMenuContainer.Child(quickAccess)
+	userMenuContainer := hb.Div().
+		Class("navbar-nav flex-row order-md-last").
+		Child(userDropdown).
+		Child(hb.Div().Class("dropdown-divider")).
+		Child(themeSwitcher).
+		Child(quickAccess)
 
 	// Create container
 	container := hb.Div().Class("container-xl")
@@ -168,11 +171,8 @@ func RenderMainMenuItems(d model.DashboardRenderer) *hb.Tag {
 				subLink = subLink.Child(subIcon)
 				subLink = subLink.Child(hb.Text(subItem.Text))
 
-				// Create submenu list item
-				subMenuItem := hb.Li().Child(subLink)
-
-				// Add to submenu wrapper
-				subMenuItems = subMenuItems.Child(subMenuItem)
+				// Add to submenu wrapper directly without wrapping in Li
+				subMenuItems = subMenuItems.Child(subLink)
 			}
 
 			// Create dropdown toggle link

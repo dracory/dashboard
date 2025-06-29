@@ -101,23 +101,29 @@ func RenderUserDropdown(d model.DashboardRenderer) *hb.Tag {
 	}
 
 	// Create user menu trigger with avatar
-	userMenuTrigger := hb.A().Href("#").Class("nav-link d-flex lh-1 text-reset p-0")
-	userMenuTrigger = userMenuTrigger.Attr("data-bs-toggle", "dropdown")
-	userMenuTrigger = userMenuTrigger.Attr("aria-label", "Open user menu")
+	userMenuTrigger := hb.A().
+		Href("#").
+		Class("nav-link d-flex lh-1 text-reset p-0").
+		Attr("data-bs-toggle", "dropdown").
+		Attr("aria-label", "Open user menu")
 
 	// Create user info section
-	userInfo := hb.Div().Class("d-none d-xl-block ps-2")
-	userInfo = userInfo.Child(hb.Div().Text(user.Name))
-	userInfo = userInfo.Child(hb.Div().Class("mt-1 small text-muted").Text(user.Email))
+	userInfo := hb.Div().
+		Class("d-none d-xl-block ps-2").
+		Child(hb.Div().Text(user.Name)).
+		Child(hb.Div().Class("mt-1 small text-muted").Text(user.Email))
 
 	// Add avatar and user info to the trigger
 	userMenuTrigger = userMenuTrigger.Child(avatar)
 	userMenuTrigger = userMenuTrigger.Child(userInfo)
 
 	// Create dropdown container
-	dropdownContainer := hb.Div().Class("nav-item dropdown")
-	dropdownContainer = dropdownContainer.Child(userMenuTrigger)
-	dropdownContainer = dropdownContainer.Child(hb.Div().Class("dropdown-menu dropdown-menu-end dropdown-menu-arrow").Child(userMenuItems))
+	dropdownContainer := hb.Div().
+		Class("nav-item dropdown").
+		Child(userMenuTrigger).
+		Child(hb.Div().
+			Class("dropdown-menu dropdown-menu-end dropdown-menu-arrow").
+			Child(userMenuItems))
 
 	return dropdownContainer
 }

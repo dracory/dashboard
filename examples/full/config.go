@@ -140,14 +140,15 @@ func createUserMenu() []dashboard.MenuItem {
 			URL:  "/settings",
 		},
 		{
-			Icon:  "ti ti-mail",
-			Text:  "Messages",
-			URL:      "#",
+			Icon:      "ti ti-mail",
+			Text:      "Messages",
+			URL:       "#",
 			BadgeText: "5",
 		},
 		{
-			Text: "───────────────",
-			URL: "#",
+			Text: "",
+			URL:  "#",
+			Icon: "dropdown-divider", // Using Icon field to indicate this is a divider
 		},
 		{
 			Icon: "ti ti-logout",

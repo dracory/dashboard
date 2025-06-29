@@ -19,13 +19,29 @@ func dashboardContent() string {
 	// Create recent activity section
 	activitySection := createActivitySection()
 	
+	// Create welcome card with user notifications
+	welcomeCardHTML := components.NewCard(components.CardConfig{
+		Content: `
+			<div class="row">
+				<div class="col-md-6">
+					<h3 class="mb-1">Welcome back, Admin</h3>
+					<p class="text-muted">You have 5 new messages and 2 new notifications.</p>
+				</div>
+				<div class="col-md-6 text-end">
+					<img src="https://preview.tabler.io/static/illustrations/undraw_welcome_3gvl.svg" alt="Welcome illustration" class="img-fluid" style="max-height: 150px;">
+				</div>
+			</div>
+		`,
+		Margin: 15,
+	}).ToHTML()
+
 	// Combine all sections
-	return welcomeSection + statsSection + chartsSection + activitySection
+	return welcomeSection + welcomeCardHTML + statsSection + chartsSection + activitySection
 }
 
-// createWelcomeSection creates the welcome section
+// createWelcomeSection creates the welcome section with user notifications
 func createWelcomeSection() string {
-	// Create page header
+	// Create page header with overview title
 	pageHeader := hb.Div().
 		Class("page-header d-print-none").
 		AddChild(
@@ -38,14 +54,14 @@ func createWelcomeSection() string {
 							hb.Div().
 								Class("col").
 								AddChild(
+									hb.Div().
+										Class("page-pretitle").
+										Text("OVERVIEW"),
+								).
+								AddChild(
 									hb.H2().
 										Class("page-title").
 										Text("Dashboard"),
-								).
-								AddChild(
-									hb.Div().
-										Class("text-muted mt-1").
-										Text("Welcome to your admin dashboard"),
 								),
 						).
 						AddChild(
@@ -96,144 +112,231 @@ func createWelcomeSection() string {
 	return pageHeader.ToHTML()
 }
 
-// createStatsSection creates the statistics section
+// createStatsSection creates the statistics section with modern cards layout
 func createStatsSection() string {
-	// Create stats cards
-	statsCard1 := components.NewCard(components.CardConfig{
-		Content: `
-			<div class="d-flex align-items-center">
-				<div class="subheader">Sales</div>
-				<div class="ms-auto lh-1">
-					<div class="dropdown">
-						<a class="dropdown-toggle text-muted" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Last 7 days</a>
-						<div class="dropdown-menu dropdown-menu-end">
-							<a class="dropdown-item active" href="#">Last 7 days</a>
-							<a class="dropdown-item" href="#">Last 30 days</a>
-							<a class="dropdown-item" href="#">Last 3 months</a>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="h1 mb-3">$4,300</div>
-			<div class="d-flex mb-2">
-				<div>Conversion rate</div>
-				<div class="ms-auto">
-					<span class="text-green d-inline-flex align-items-center lh-1">
-						7% <i class="ti ti-trending-up"></i>
-					</span>
-				</div>
-			</div>
-			<div class="progress progress-sm">
-				<div class="progress-bar bg-primary" style="width: 75%" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" aria-label="75% Complete">
-					<span class="visually-hidden">75% Complete</span>
-				</div>
-			</div>
-		`,
-		Margin: 15,
-	})
-	
-	statsCard2 := components.NewCard(components.CardConfig{
-		Content: `
-			<div class="d-flex align-items-center">
-				<div class="subheader">Revenue</div>
-				<div class="ms-auto lh-1">
-					<div class="dropdown">
-						<a class="dropdown-toggle text-muted" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Last 7 days</a>
-						<div class="dropdown-menu dropdown-menu-end">
-							<a class="dropdown-item active" href="#">Last 7 days</a>
-							<a class="dropdown-item" href="#">Last 30 days</a>
-							<a class="dropdown-item" href="#">Last 3 months</a>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="d-flex align-items-baseline">
-				<div class="h1 mb-0 me-2">$8,942</div>
-				<div class="me-auto">
-					<span class="text-green d-inline-flex align-items-center lh-1">
-						8% <i class="ti ti-trending-up"></i>
-					</span>
-				</div>
-			</div>
-		`,
-		Margin: 15,
-	})
-	
-	statsCard3 := components.NewCard(components.CardConfig{
-		Content: `
-			<div class="d-flex align-items-center">
-				<div class="subheader">New clients</div>
-				<div class="ms-auto lh-1">
-					<div class="dropdown">
-						<a class="dropdown-toggle text-muted" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Last 7 days</a>
-						<div class="dropdown-menu dropdown-menu-end">
-							<a class="dropdown-item active" href="#">Last 7 days</a>
-							<a class="dropdown-item" href="#">Last 30 days</a>
-							<a class="dropdown-item" href="#">Last 3 months</a>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="d-flex align-items-baseline">
-				<div class="h1 mb-3">6,782</div>
-				<div class="me-auto">
-					<span class="text-yellow d-inline-flex align-items-center lh-1">
-						0% <i class="ti ti-minus"></i>
-					</span>
-				</div>
-			</div>
-			<div class="progress progress-sm">
-				<div class="progress-bar bg-primary" style="width: 45%" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" aria-label="45% Complete">
-					<span class="visually-hidden">45% Complete</span>
-				</div>
-			</div>
-		`,
-		Margin: 15,
-	})
-	
-	statsCard4 := components.NewCard(components.CardConfig{
-		Content: `
-			<div class="d-flex align-items-center">
-				<div class="subheader">Active users</div>
-				<div class="ms-auto lh-1">
-					<div class="dropdown">
-						<a class="dropdown-toggle text-muted" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Last 7 days</a>
-						<div class="dropdown-menu dropdown-menu-end">
-							<a class="dropdown-item active" href="#">Last 7 days</a>
-							<a class="dropdown-item" href="#">Last 30 days</a>
-							<a class="dropdown-item" href="#">Last 3 months</a>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="d-flex align-items-baseline">
-				<div class="h1 mb-3">2,986</div>
-				<div class="me-auto">
-					<span class="text-red d-inline-flex align-items-center lh-1">
-						-2% <i class="ti ti-trending-down"></i>
-					</span>
-				</div>
-			</div>
-			<div class="progress progress-sm">
-				<div class="progress-bar bg-danger" style="width: 75%" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" aria-label="75% Complete">
-					<span class="visually-hidden">75% Complete</span>
-				</div>
-			</div>
-		`,
-		Margin: 15,
-	})
-	
-	// Create statistics grid
-	statsGrid := components.NewGrid(components.GridConfig{
-		Columns: []components.GridColumn{
-			{Content: statsCard1.ToHTML(), Width: 3},
-			{Content: statsCard2.ToHTML(), Width: 3},
-			{Content: statsCard3.ToHTML(), Width: 3},
-			{Content: statsCard4.ToHTML(), Width: 3},
-		},
-	})
-	
-	return statsGrid.ToHTML()
+	// Create a container for the stats cards with row and columns
+	statsContainer := hb.Div().
+		Class("container-xl").
+		AddChild(
+			hb.Div().
+				Class("row row-deck row-cards").
+				AddChild(
+					// First column - Today's sales with growth rate
+					hb.Div().
+						Class("col-sm-6 col-lg-3").
+						AddChild(
+							hb.Div().
+								Class("card").
+								AddChild(
+									hb.Div().
+										Class("card-body").
+										AddChild(
+											hb.Div().
+												Class("d-flex align-items-center").
+												AddChild(
+													hb.Div().
+														Class("subheader").
+														Text("TODAY'S SALES"),
+												),
+										).
+										AddChild(
+											hb.Div().
+												Class("d-flex align-items-baseline").
+												AddChild(
+													hb.Div().
+														Class("h1 mb-0 me-2").
+														Text("6,782"),
+												).
+												AddChild(
+													hb.Div().
+														Class("text-success d-inline-flex align-items-center lh-1").
+														HTML("7% <i class='ti ti-trending-up ms-1'></i>"),
+												),
+										),
+								),
+						),
+				).
+				AddChild(
+					// Second column - Growth rate
+					hb.Div().
+						Class("col-sm-6 col-lg-3").
+						AddChild(
+							hb.Div().
+								Class("card").
+								AddChild(
+									hb.Div().
+										Class("card-body").
+										AddChild(
+											hb.Div().
+												Class("d-flex align-items-center").
+												AddChild(
+													hb.Div().
+														Class("subheader").
+														Text("GROWTH RATE"),
+												),
+										).
+										AddChild(
+											hb.Div().
+												Class("d-flex align-items-baseline").
+												AddChild(
+													hb.Div().
+														Class("h1 mb-0 me-2").
+														Text("78.4%"),
+												).
+												AddChild(
+													hb.Div().
+														Class("text-danger d-inline-flex align-items-center lh-1").
+														HTML("-1% <i class='ti ti-trending-down ms-1'></i>"),
+												),
+										),
+								),
+						),
+				).
+				AddChild(
+					// Total users column
+					hb.Div().
+						Class("col-sm-6 col-lg-3").
+						AddChild(
+							hb.Div().
+								Class("card").
+								AddChild(
+									hb.Div().
+										Class("card-body").
+										AddChild(
+											hb.Div().
+												Class("d-flex align-items-center").
+												AddChild(
+													hb.Div().
+														Class("subheader").
+														Text("TOTAL USERS"),
+												),
+										).
+										AddChild(
+											hb.Div().
+												Class("d-flex align-items-baseline").
+												AddChild(
+													hb.Div().
+														Class("h1 mb-0 me-2").
+														Text("75,782"),
+												).
+												AddChild(
+													hb.Div().
+														Class("text-success d-inline-flex align-items-center lh-1").
+														HTML("2% <i class='ti ti-trending-up ms-1'></i>"),
+												),
+										).
+										AddChild(
+											hb.Div().
+												Class("text-muted mt-1").
+												Text("24,635 users increased from last month"),
+										),
+								),
+						),
+				).
+				AddChild(
+					// Active users column
+					hb.Div().
+						Class("col-sm-6 col-lg-3").
+						AddChild(
+							hb.Div().
+								Class("card").
+								AddChild(
+									hb.Div().
+										Class("card-body").
+										AddChild(
+											hb.Div().
+												Class("d-flex align-items-center").
+												AddChild(
+													hb.Div().
+														Class("subheader").
+														Text("ACTIVE USERS"),
+												),
+										).
+										AddChild(
+											hb.Div().
+												Class("d-flex align-items-baseline").
+												AddChild(
+													hb.Div().
+														Class("h1 mb-0 me-2").
+														Text("25,782"),
+												).
+												AddChild(
+													hb.Div().
+														Class("text-danger d-inline-flex align-items-center lh-1").
+														HTML("-1% <i class='ti ti-trending-down ms-1'></i>"),
+												),
+										),
+								),
+						),
+				),
+		).
+		AddChild(
+			hb.Div().
+				Class("row row-deck row-cards mt-3").
+				AddChild(
+					hb.Div().
+						Class("col-lg-6").
+						AddChild(
+							hb.Div().
+								Class("card").
+								AddChild(
+									hb.Div().
+										Class("card-body").
+										AddChild(
+											hb.Div().
+												Class("d-flex align-items-center").
+												AddChild(
+													hb.Div().
+														Class("subheader").
+														Text("ACTIVE SUBSCRIPTIONS"),
+												),
+										).
+										AddChild(
+											hb.Div().
+												Class("d-flex").
+												AddChild(
+													hb.Div().
+														Class("col-6").
+														AddChild(
+															hb.Div().
+																Class("d-flex align-items-baseline").
+																AddChild(
+																	hb.Div().
+																		Class("h1 mb-0 me-2").
+																		Text("2,986"),
+																).
+																AddChild(
+																	hb.Div().
+																		Class("text-success d-inline-flex align-items-center lh-1").
+																		HTML("4% <i class='ti ti-trending-up ms-1'></i>"),
+																),
+														),
+												).
+												AddChild(
+													hb.Div().
+														Class("text-muted mt-1").
+														Text("Last 7 days"),
+												),
+										).
+										AddChild(
+											hb.Div().
+												Class("col-6").
+												AddChild(
+													hb.Div().
+														Class("chart-container").
+														HTML(`
+															<div class="chart-circle" style="height: 120px; width: 120px;">
+																<div class="chart-circle-value">78%</div>
+															</div>
+														`),
+												),
+										),
+								),
+						),
+				),
+		)
+
+	return statsContainer.ToHTML()
 }
 
 // createChartsSection creates the charts section

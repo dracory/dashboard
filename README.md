@@ -8,6 +8,7 @@ A modern, responsive dashboard implementation using the [Tabler](https://github.
 - **Responsive Design**: Works on all screen sizes and devices
 - **Theme Switching**: Support for light and dark themes
 - **Customizable Navigation**: Configure main menu, user menu, and quick access menu
+- **Component-Based Rendering**: Modular rendering system using the gouniverse/hb HTML builder
 - **Flexible Layout**: Various layout components (cards, grids, tabs, shadow boxes)
 - **User Management**: Built-in user authentication UI components
 
@@ -67,60 +68,79 @@ func main() {
 }
 ```
 
+### Architecture
+
+The dashboard uses a component-based rendering architecture with these key packages:
+
+- **dashboard**: Core dashboard configuration and implementation
+- **model**: Shared interfaces and types to avoid import cycles
+- **render**: Component-based rendering logic using gouniverse/hb
+
 ### Components
 
-The dashboard includes several UI components:
+The dashboard includes several UI components rendered using the gouniverse/hb HTML builder:
 
-#### Card Component
+#### Header Components
 
-```go
-card := components.NewCard(components.CardConfig{
-    Title:   "Card Title",
-    Content: "<p>Card content</p>",
-    Margin:  15,
-})
-```
+- Top navbar with logo and user menu
+- Main menu with customizable items
+- User dropdown with profile information
+- Theme switcher for light/dark mode
+- Quick access menu for frequently used actions
 
-#### Grid Component
+#### Content Components
 
 ```go
-grid := components.NewGrid(components.GridConfig{
-    Columns: []components.GridColumn{
-        {Content: "Column 1 content", Width: 4},
-        {Content: "Column 2 content", Width: 4},
-        {Content: "Column 3 content", Width: 4},
-    },
-})
+// Example of creating content with cards
+content := `
+<div class="row">
+  <div class="col-md-4">
+    <div class="card" style="margin: 15px;">
+      <div class="card-header">Users</div>
+      <div class="card-body">
+        <h3>1,234</h3>
+        <p>Total users</p>
+      </div>
+    </div>
+  </div>
+</div>
+`
+
+// Set the content in the dashboard config
+config := dashboard.Config{
+    Content: content,
+    // other config options...
+}
 ```
 
 #### Tab Component
 
 ```go
-tabs := components.NewTab(components.TabConfig{
-    Tabs: []components.Tab{
-        {
-            ID:      "tab1",
-            Title:   "Tab 1",
-            Content: "<p>Tab 1 content</p>",
-            Active:  true,
-        },
-        {
-            ID:      "tab2",
-            Title:   "Tab 2",
-            Content: "<p>Tab 2 content</p>",
-        },
-    },
-})
-```
-
-#### Shadow Box Component
-
-```go
-shadowBox := components.NewShadowBox(components.ShadowBoxConfig{
-    Content:     "<p>Content in a shadow box</p>",
-    ShadowLevel: 2,
-    Padding:     15,
-})
+// Example of creating tabs in your content
+tabsHTML := `
+<div class="tab-container mt-3 mb-3" id="tab-example">
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <a class="nav-link active" data-bs-toggle="tab" href="#overview" role="tab">
+        <i class="ti ti-chart-bar me-2"></i>Overview
+      </a>
+    </li>
+    <li class="nav-item" role="presentation">
+      <a class="nav-link" data-bs-toggle="tab" href="#details" role="tab">
+        <i class="ti ti-list me-2"></i>Details
+      </a>
+    </li>
+  </ul>
+  <div class="tab-content">
+    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+      <p>Overview content</p>
+    </div>
+    <div class="tab-pane fade" id="details" role="tabpanel">
+      <p>Details content</p>
+    </div>
+  </div>
+</div>
+`
 ```
 
 ## Configuration Options
@@ -134,7 +154,6 @@ The dashboard can be configured with the following options:
 - **LogoRedirectURL**: URL to redirect to when the logo is clicked
 - **MenuItems**: Array of menu items for the main menu
 - **MenuShowText**: Whether to show text for menu items
-- **MenuType**: Type of menu (MENU_TYPE_OFFCANVAS or MENU_TYPE_MODAL)
 - **NavbarBackgroundColorMode**: Background color mode for the navbar (light or dark)
 - **NavbarBackgroundColor**: Background color for the navbar
 - **NavbarTextColor**: Text color for the navbar

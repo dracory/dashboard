@@ -36,7 +36,7 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 
 	// Create page content
 	pageContent := hb.Div().Class("page-body")
-	contentContainer := hb.Div().Class("container-fluid")
+	contentContainer := hb.Div().Class("container-xl")
 	contentContainer = contentContainer.Child(hb.NewHTML(d.GetContent()))
 	pageContent = pageContent.Child(contentContainer)
 

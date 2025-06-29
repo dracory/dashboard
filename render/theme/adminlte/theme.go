@@ -2,15 +2,26 @@ package adminlte
 
 import (
 	"github.com/dracory/dashboard/render/theme/shared"
+	"github.com/dracory/omni"
 	"github.com/gouniverse/hb"
 )
 
 // AdminLTETheme implements the shared.Theme interface for AdminLTE
-type AdminLTETheme struct{}
+type AdminLTETheme struct {
+	shared.DefaultTheme // Embed DefaultTheme to inherit default implementations
+}
 
-// New creates a new instance of the AdminLTE theme
-func New() *AdminLTETheme {
+// NewAdminLTETheme creates a new AdminLTE theme instance
+func NewAdminLTETheme() *AdminLTETheme {
 	return &AdminLTETheme{}
+}
+
+// RenderAtom renders an Omni atom using AdminLTE classes and components
+func (t *AdminLTETheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
+	if atom == nil {
+		return nil, nil
+	}
+	return t.renderAtom(atom)
 }
 
 // RenderHeader renders the AdminLTE theme header
@@ -116,6 +127,14 @@ func (t *AdminLTETheme) RenderFooter(d shared.DashboardRenderer) *hb.Tag {
 	footer.Child(container)
 	
 	return footer
+}
+
+// RenderDashboard renders a complete dashboard from Omni atoms
+func (t *AdminLTETheme) RenderDashboard(dashboard *omni.Atom) (string, error) {
+	if dashboard == nil {
+		return "", nil
+	}
+	return t.renderDashboard(dashboard)
 }
 
 // Ensure AdminLTETheme implements shared.Theme

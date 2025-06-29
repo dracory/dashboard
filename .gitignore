@@ -32,3 +32,4 @@ go.work.sum
 # .vscode/
 tabler.zip
 assets/
+examples/theme_switching/tmp/

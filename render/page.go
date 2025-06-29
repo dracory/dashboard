@@ -2,11 +2,35 @@ package render
 
 import (
 	"github.com/dracory/dashboard/model"
+	"github.com/dracory/dashboard/render/theme"
+	shared "github.com/dracory/dashboard/render/theme/shared"
 	"github.com/gouniverse/hb"
 )
 
 // RenderPage generates the complete page HTML for the dashboard
 func RenderPage(d model.DashboardRenderer) *hb.Tag {
+	// Get the theme manager instance
+	themeManager := theme.Manager()
+	
+	// Get the theme from the dashboard configuration
+	themeName := d.GetThemeName()
+	if themeName == "" {
+		themeName = "tabler" // Default theme
+	}
+
+	// Get the theme instance
+	themeInstance := themeManager.Get(themeName)
+	if themeInstance == nil {
+		// Fallback to default theme if requested theme is not found
+		themeInstance = themeManager.Get("tabler")
+	}
+
+	// Ensure we have a valid theme instance
+	if themeInstance == nil {
+		// If still no theme, create a default one (shouldn't happen if themes are properly registered)
+		themeInstance = &shared.DefaultTheme{}
+	}
+	
 	isDarkTheme := isThemeDark(d)
 
 	// Create the head section
@@ -19,14 +43,14 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	// Favicon
 	head = head.Child(renderFavicon(d))
 
-	// Tabler Core CSS
-	cssLinks := renderTablerCSSLinks(isDarkTheme)
+	// Theme CSS
+	cssLinks := themeInstance.GetCSSLinks(isDarkTheme)
 	for _, link := range cssLinks {
 		head = head.Child(link)
 	}
 
-	// Custom styles
-	head = head.Child(hb.Style(dashboardStyle(d)))
+	// Theme custom styles
+	head = head.Child(hb.Style(themeInstance.GetCustomCSS()))
 
 	// Create the body section
 	bodyAttrs := map[string]string{}
@@ -47,12 +71,12 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	pageWrapper := hb.Div().
 		Class("page-wrapper").
 		Child(pageContent).
-		Child(RenderFooter(d))
+		Child(themeInstance.RenderFooter(d))
 
 	// Create page container
 	pageContainer := hb.Div().
 		Class("page").
-		Child(RenderHeader(d)).
+		Child(themeInstance.RenderHeader(d)).
 		Child(pageWrapper)
 
 	// Create body with scripts
@@ -60,14 +84,14 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 		Attrs(bodyAttrs).
 		Child(pageContainer)
 
-	// Add Tabler Core JS
-	jsScripts := renderTablerJSScripts()
+	// Add theme JavaScript
+	jsScripts := themeInstance.GetJSScripts()
 	for _, script := range jsScripts {
 		body = body.Child(script)
 	}
 
-	// Add custom scripts
-	body = body.Child(hb.Script(dashboardScript(d)))
+	// Add theme custom JavaScript
+	body = body.Child(hb.Script(themeInstance.GetCustomJS()))
 
 	// Create the complete HTML document
 	html := hb.NewTag("html").Attr("lang", "en").
@@ -94,65 +118,7 @@ func renderFavicon(d model.DashboardRenderer) *hb.Tag {
 	return hb.NewLink().Attr("rel", "icon").Attr("href", d.GetFaviconURL())
 }
 
-// renderTablerCSSLinks generates the Tabler CSS link tags
-func renderTablerCSSLinks(isDarkTheme bool) []*hb.Tag {
-	links := []*hb.Tag{
-		hb.NewLink().Href("https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler.min.css").Rel("stylesheet"),
-		hb.NewLink().Href("https://cdn.jsdelivr.net/npm/@tabler/icons@latest/iconfont/tabler-icons.min.css").Rel("stylesheet"),
-	}
-
-	if isDarkTheme {
-		links = append(links,
-			hb.NewLink().Href("https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/css/tabler-dark.min.css").Rel("stylesheet"),
-		)
-	}
-
-	return links
-}
-
-// renderTablerJSScripts generates the Tabler JS script tags
-func renderTablerJSScripts() []*hb.Tag {
-	return []*hb.Tag{
-		hb.NewTag("script").Attr("src", "https://cdn.jsdelivr.net/npm/@tabler/core@latest/dist/js/tabler.min.js"),
-	}
-}
-
 // isThemeDark returns whether the theme is dark
 func isThemeDark(d model.DashboardRenderer) bool {
 	return d.GetThemeName() == "dark"
-}
-
-// dashboardStyle returns the dashboard custom CSS
-func dashboardStyle(d model.DashboardRenderer) string {
-	return `
-		.navbar-brand-image {
-			height: 2rem;
-		}
-		.navbar-vertical.navbar-expand-lg {
-			width: 15rem;
-		}
-		.navbar-vertical.navbar-expand-lg .navbar-collapse {
-			margin: 0 -0.5rem;
-		}
-	`
-}
-
-// dashboardScript returns the dashboard custom JavaScript
-func dashboardScript(d model.DashboardRenderer) string {
-	return `
-		// Theme switcher
-		document.querySelectorAll('[data-bs-theme-value]').forEach(function(element) {
-			element.addEventListener('click', function() {
-				var theme = this.getAttribute('data-bs-theme-value');
-				document.body.setAttribute('data-bs-theme', theme);
-				localStorage.setItem('theme', theme);
-			});
-		});
-		
-		// Set theme from localStorage
-		var theme = localStorage.getItem('theme');
-		if (theme) {
-			document.body.setAttribute('data-bs-theme', theme);
-		}
-	`
 }

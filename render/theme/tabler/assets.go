@@ -1,4 +1,4 @@
-package dashboard
+package tabler
 
 import "github.com/gouniverse/hb"
 
@@ -18,7 +18,7 @@ const (
 )
 
 // GetTablerCDNLinks returns the HTML links for Tabler CDN assets
-func getTablerCDNLinks(includeDarkMode bool) []*hb.Tag {
+func GetTablerCDNLinks(includeDarkMode bool) []*hb.Tag {
 	links := []*hb.Tag{
 		hb.NewLink().Href(TablerCSSCDN).Rel("stylesheet"),
 		hb.NewLink().Href(TablerIconsCDN).Rel("stylesheet"),
@@ -34,7 +34,7 @@ func getTablerCDNLinks(includeDarkMode bool) []*hb.Tag {
 }
 
 // GetTablerCDNScripts returns the HTML scripts for Tabler CDN assets
-func getTablerCDNScripts() []*hb.Tag {
+func GetTablerCDNScripts() []*hb.Tag {
 	return []*hb.Tag{
 		hb.ScriptURL(TablerJSCDN),
 	}

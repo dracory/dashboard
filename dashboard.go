@@ -1,55 +1,17 @@
 package dashboard
 
+import (
+	"github.com/dracory/dashboard/model"
+)
+
 const MENU_TYPE_MODAL = "modal"
 const MENU_TYPE_OFFCANVAS = "offcanvas"
 
-// MenuItem represents a menu item in the dashboard
-type MenuItem struct {
-	// The unique ID of the menu item
-	ID string
+// MenuItem is an alias for model.MenuItem for backward compatibility
+type MenuItem = model.MenuItem
 
-	// The icon of the menu item
-	Icon string
-
-	// The text of the menu item
-	Text string
-
-	// The URL of the menu item
-	URL string
-
-	// Whether the menu item is active
-	Active bool
-
-	// The submenu items
-	SubMenu []MenuItem
-
-	// Optional. Whether to open in new window
-	NewWindow bool
-
-	// Optional. The badge text
-	BadgeText string
-
-	// Optional. The badge class
-	BadgeClass string
-
-	// Optional. The onclick JavaScript
-	OnClick string
-}
-
-// User represents a user in the dashboard
-type User struct {
-	// The unique ID of the user
-	ID string
-
-	// The name of the user
-	Name string
-
-	// The email of the user
-	Email string
-
-	// The avatar URL of the user
-	AvatarURL string
-}
+// User is an alias for model.User for backward compatibility
+type User = model.User
 
 // Dashboard represents the main dashboard structure
 type Dashboard struct {

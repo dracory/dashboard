@@ -13,11 +13,11 @@ func createDashboardConfig(r *http.Request, content string) dashboard.Config {
 		FaviconURL:                "https://tabler.io/favicon.ico",
 		HTTPRequest:               r,
 		MenuShowText:              true,
-		MenuType:                  dashboard.MENU_TYPE_OFFCANVAS,
+		// MenuType removed as we're now using the two-row navigation layout
 		LogoImageURL:              "https://tabler.io/img/logo.svg",
 		LogoRedirectURL:           "/dashboard",
-		NavbarBackgroundColorMode: "dark",
-		NavbarTextColor:           "light",
+		NavbarBackgroundColorMode: "light", // Changed to light to match Tabler preview
+		NavbarTextColor:           "dark",  // Changed to dark to match Tabler preview
 		LoginURL:                  "/login",
 		RegisterURL:               "/register",
 		MenuItems:                 createMenuItems(),

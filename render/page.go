@@ -10,11 +10,11 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	isDarkTheme := isThemeDark(d)
 
 	// Create the head section
-	head := hb.NewTag("head")
-	head = head.Child(hb.NewTag("meta").Attr("charset", "utf-8"))
-	head = head.Child(hb.NewTag("meta").Attr("name", "viewport").Attr("content", "width=device-width, initial-scale=1, viewport-fit=cover"))
-	head = head.Child(hb.NewTag("meta").Attr("http-equiv", "X-UA-Compatible").Attr("content", "ie=edge"))
-	head = head.Child(hb.NewTag("title").Text("Dashboard"))
+	head := hb.NewTag("head").
+		Child(hb.NewTag("meta").Attr("charset", "utf-8")).
+		Child(hb.NewTag("meta").Attr("name", "viewport").Attr("content", "width=device-width, initial-scale=1, viewport-fit=cover")).
+		Child(hb.NewTag("meta").Attr("http-equiv", "X-UA-Compatible").Attr("content", "ie=edge")).
+		Child(hb.NewTag("title").Text("Dashboard"))
 
 	// Favicon
 	head = head.Child(renderFavicon(d))
@@ -26,7 +26,7 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	}
 
 	// Custom styles
-	head = head.Child(hb.NewTag("style").Text(dashboardStyle(d)))
+	head = head.Child(hb.Style(dashboardStyle(d)))
 
 	// Create the body section
 	bodyAttrs := map[string]string{}
@@ -35,24 +35,30 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	}
 
 	// Create page content
-	pageContent := hb.Div().Class("page-body")
-	contentContainer := hb.Div().Class("container-xl")
-	contentContainer = contentContainer.Child(hb.NewHTML(d.GetContent()))
-	pageContent = pageContent.Child(contentContainer)
+	contentContainer := hb.Div().
+		Class("container-xl").
+		Child(hb.NewHTML(d.GetContent()))
+
+	pageContent := hb.Div().
+		Class("page-body").
+		Child(contentContainer)
 
 	// Create page wrapper
-	pageWrapper := hb.Div().Class("page-wrapper")
-	pageWrapper = pageWrapper.Child(pageContent)
-	pageWrapper = pageWrapper.Child(RenderFooter(d))
+	pageWrapper := hb.Div().
+		Class("page-wrapper").
+		Child(pageContent).
+		Child(RenderFooter(d))
 
 	// Create page container
-	pageContainer := hb.Div().Class("page")
-	pageContainer = pageContainer.Child(RenderHeader(d))
-	pageContainer = pageContainer.Child(pageWrapper)
+	pageContainer := hb.Div().
+		Class("page").
+		Child(RenderHeader(d)).
+		Child(pageWrapper)
 
 	// Create body with scripts
-	body := hb.NewTag("body").Attrs(bodyAttrs)
-	body = body.Child(pageContainer)
+	body := hb.NewTag("body").
+		Attrs(bodyAttrs).
+		Child(pageContainer)
 
 	// Add Tabler Core JS
 	jsScripts := renderTablerJSScripts()

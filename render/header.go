@@ -54,20 +54,22 @@ func renderTopNavbar(d model.DashboardRenderer) *hb.Tag {
 	// Create user menu container
 	userMenuContainer := hb.Div().
 		Class("navbar-nav flex-row order-md-last").
-		Child(userDropdown).
-		Child(hb.Div().Class("dropdown-divider")).
+		Child(quickAccess).
 		Child(themeSwitcher).
-		Child(quickAccess)
+		Child(hb.Div().Class("dropdown-divider")).
+		Child(userDropdown)
 
 	// Create container
-	container := hb.Div().Class("container-xl")
-	container = container.Child(navbarToggler)
-	container = container.Child(brandContainer)
-	container = container.Child(userMenuContainer)
+	container := hb.Div().
+		Class("container-xl").
+		Child(navbarToggler).
+		Child(brandContainer).
+		Child(userMenuContainer)
 
 	// Create header
-	header := hb.Header().Class("navbar navbar-expand-md navbar-light d-print-none")
-	header = header.Child(container)
+	header := hb.Header().
+		Class("navbar navbar-expand-md navbar-light d-print-none").
+		Child(container)
 
 	return header
 }
@@ -77,15 +79,20 @@ func renderMainMenuNavbar(d model.DashboardRenderer) *hb.Tag {
 	// Main menu items
 	menuItems := RenderMainMenuItems(d)
 
-	return hb.Div().Class("navbar-expand-md").Child(
-		hb.Div().Class("collapse navbar-collapse").ID("navbar-menu").Child(
-			hb.Div().Class("navbar navbar-light").Child(
-				hb.Div().Class("container-xl").Child(
-					hb.Ul().Class("navbar-nav").Child(menuItems),
+	return hb.Div().
+		Class("navbar-expand-md").
+		Child(
+			hb.Div().
+				Class("collapse navbar-collapse").
+				ID("navbar-menu").
+				Child(
+					hb.Div().Class("navbar navbar-light").Child(
+						hb.Div().Class("container-xl").Child(
+							hb.Ul().Class("navbar-nav").Child(menuItems),
+						),
+					),
 				),
-			),
-		),
-	)
+		)
 }
 
 // renderLogo generates the logo HTML

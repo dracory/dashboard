@@ -53,7 +53,7 @@ func RenderFooter(d model.DashboardRenderer) *hb.Tag {
 
 	// Create the container
 	container := hb.Div().
-		Class("container-fluid").
+		Class("container-xl").
 		Child(row)
 
 	// Create the footer

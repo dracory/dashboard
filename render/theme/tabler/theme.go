@@ -320,7 +320,7 @@ func renderNavItem(item model.MenuItem) *hb.Tag {
 }
 
 // RenderFooter renders the Tabler theme footer
-func (t *TablerTheme) RenderFooter(d model.DashboardRenderer) *hb.Tag {
+func (t *TablerTheme) RenderFooter(d shared.DashboardRenderer) *hb.Tag {
 	fmt.Printf("[DEBUG] TablerTheme.RenderFooter called for theme: %s, dashboard theme: %s\n", t.GetName(), d.GetThemeName())
 	
 	// Create footer with proper Tabler classes

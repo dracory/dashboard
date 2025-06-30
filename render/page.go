@@ -7,22 +7,27 @@ import (
 	"github.com/gouniverse/hb"
 )
 
+const THEME_ADMINLTE = "adminlte"
+const THEME_BOOTSTRAP = "bootstrap"
+const THEME_TABLER = "tabler"
+const THEME_DEFAULT = THEME_TABLER
+
 // RenderPage generates the complete page HTML for the dashboard
 func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	// Get the theme manager instance
 	themeManager := theme.Manager()
-	
+
 	// Get the theme from the dashboard configuration
 	themeName := d.GetThemeName()
 	if themeName == "" {
-		themeName = "tabler" // Default theme
+		themeName = THEME_DEFAULT // Default theme
 	}
 
 	// Get the theme instance
 	themeInstance := themeManager.Get(themeName)
 	if themeInstance == nil {
 		// Fallback to default theme if requested theme is not found
-		themeInstance = themeManager.Get("tabler")
+		themeInstance = themeManager.Get(THEME_DEFAULT)
 	}
 
 	// Ensure we have a valid theme instance
@@ -30,7 +35,7 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 		// If still no theme, create a default one (shouldn't happen if themes are properly registered)
 		themeInstance = &shared.DefaultTheme{}
 	}
-	
+
 	isDarkTheme := isThemeDark(d)
 
 	// Create the head section

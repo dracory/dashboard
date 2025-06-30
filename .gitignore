@@ -33,3 +33,4 @@ go.work.sum
 tabler.zip
 assets/
 examples/theme_switching/tmp/
+examples/full-tabler/tmp/build-errors.log

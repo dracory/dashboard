@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"net/http"
 	
-	"github.com/dracory/dashboard"
+	_ "github.com/dracory/dashboard" // Import dashboard package to initialize themes
+	dashboard "github.com/dracory/dashboard"
 )
 
 func main() {

@@ -24,6 +24,7 @@ func createDashboardConfig(r *http.Request, content string) dashboard.Config {
 		QuickAccessMenu:           createQuickAccessMenu(),
 		User:                      createUser(),
 		UserMenu:                  createUserMenu(),
+		ThemeName:                 "tabler", // Explicitly set Tabler theme
 	}
 }
 

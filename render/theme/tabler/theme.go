@@ -67,106 +67,118 @@ func (t *TablerTheme) GetCustomJS() string {
 	`
 }
 
-// RenderHeader renders the Tabler theme header
-func (t *TablerTheme) RenderHeader(d shared.DashboardRenderer) *hb.Tag {
-	header := hb.NewTag("header").Class("navbar navbar-expand-md navbar-light d-print-none")
-	container := hb.NewTag("div").Class("container-xl")
-	
-	// Toggle button for mobile
-	toggleBtn := hb.NewTag("button").
-		Class("navbar-toggler").
-		Attr("type", "button").
-		Attr("data-bs-toggle", "collapse").
-		Attr("data-bs-target", "#navbar-menu").
-		Child(hb.NewTag("span").Class("navbar-toggler-icon"))
+// RenderHeader renders the header of the dashboard
+func (t *TablerTheme) RenderHeader(d model.DashboardRenderer) *hb.Tag {
+	header := hb.NewHeader().Class("navbar navbar-expand-md navbar-dark")
 
-	// Logo/Brand
-	logoLink := hb.NewTag("a").Attr("href", "/").Class("navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3")
-	logoImg := hb.NewTag("img").Attr("src", "/static/logo.svg").Attr("alt", "Tabler").Class("navbar-brand-image")
+	// Container for header content
+	container := hb.NewDiv().Class("container-fluid")
+
+	// Logo on the left
+	logoLink := hb.NewLink().Href("/").Class("navbar-brand me-0 me-md-3")
+	logoImg := hb.NewImage().Src(d.GetLogoImageURL()).Alt("Logo").Style("height: 32px")
 	logoLink.Child(logoImg)
 
-	// Header content
-	headerContent := hb.Div().Class("navbar-nav flex-row order-md-last")
-	
-	// Theme toggle
-	themeToggle := hb.NewTag("div").Class("nav-item dropdown d-none d-md-flex me-3")
-	themeBtn := hb.NewTag("a").Attr("href", "#").Class("nav-link px-0").Attr("data-bs-toggle", "dropdown")
-	themeIcon := hb.NewTag("i").Class("ti ti-bulb")
-	themeBtn.Child(themeIcon)
-	
-	themeMenu := hb.Div().Class("dropdown-menu dropdown-menu-end")
-	themeMenu.Child(hb.A().Href("#").Class("dropdown-item").Attr("data-bs-theme-value", "light").Text("Light"))
-	themeMenu.Child(hb.A().Href("#").Class("dropdown-item").Attr("data-bs-theme-value", "dark").Text("Dark"))
-	themeMenu.Child(hb.A().Href("#").Class("dropdown-item active").Attr("data-bs-theme-value", "system").Text("System"))
-	
-	themeToggle.Child(themeBtn)
-	themeToggle.Child(themeMenu)
-	headerContent.Child(themeToggle)
+	// Mobile menu toggle
+	mobileToggle := hb.NewButton().Class("navbar-toggler")
+	mobileToggle.Attr("type", "button")
+	mobileToggle.Attr("data-bs-toggle", "collapse")
+	mobileToggle.Attr("data-bs-target", "#navbar-menu")
+	mobileToggle.Child(hb.NewSpan().Class("navbar-toggler-icon"))
+
+	// Header controls (right side)
+	headerControls := hb.NewDiv().Class("d-flex align-items-center ms-auto")
+
+	// Search form
+	searchForm := hb.NewForm().Class("d-none d-md-flex me-3")
+	searchGroup := hb.NewDiv().Class("input-group input-group-flat")
+	searchInput := hb.NewInput().Type("search").Class("form-control").Placeholder("Search...")
+	searchButton := hb.NewButton().Class("btn btn-ghost-secondary btn-icon").Child(hb.NewI().Class("ti ti-search"))
+	searchGroup.Child(searchInput).Child(searchButton)
+	searchForm.Child(searchGroup)
+
+	// Notifications
+	notifications := hb.NewDiv().Class("dropdown me-3")
+	notificationsButton := hb.NewButton().Class("btn btn-ghost-secondary btn-icon")
+	notificationsButton.Child(hb.NewI().Class("ti ti-bell"))
+	notifications.Child(notificationsButton)
 
 	// User menu
-	user := d.GetUser()
-	if user != (model.User{}) {
-		userMenu := hb.Div().Class("nav-item dropdown")
-		userLink := hb.A().Href("#").Class("nav-link d-flex lh-1 text-reset p-0").Attr("data-bs-toggle", "dropdown")
+	userMenu := hb.NewDiv().Class("dropdown")
+	userButton := hb.NewButton().Class("btn btn-ghost-secondary btn-icon")
+	userAvatar := hb.NewSpan().Class("avatar avatar-sm").Style("background-image: url('https://ui-avatars.com/api/?name=User&background=random')")
+	userButton.Child(userAvatar)
+
+	// User dropdown menu
+	userDropdown := hb.NewDiv().Class("dropdown-menu dropdown-menu-end")
+	
+	// Add user menu items
+	userDropdown.Child(hb.NewLink().Href("/profile").Class("dropdown-item").Text("Profile"))
+	userDropdown.Child(hb.NewLink().Href("/settings").Class("dropdown-item").Text("Settings"))
+	userDropdown.Child(hb.NewDiv().Class("dropdown-divider"))
+	userDropdown.Child(hb.NewLink().Href("/logout").Class("dropdown-item").Text("Logout"))
+
+	userMenu.Child(userButton).Child(userDropdown)
+
+	// Add controls to header
+	headerControls.Child(searchForm).Child(notifications).Child(userMenu)
+
+	// Main navigation menu
+	menu := hb.NewDiv().Class("collapse navbar-collapse").ID("navbar-menu")
+	menuList := hb.NewDiv().Class("navbar-nav")
+
+	// Add menu items
+	for _, item := range d.GetMenuItems() {
+		menuItemClass := "nav-item"
+		if item.Active {
+			menuItemClass += " active"
+		}
+
+		menuItem := hb.NewDiv().Class(menuItemClass)
+		linkClass := "nav-link"
+		if len(item.SubMenu) > 0 {
+			linkClass += " dropdown-toggle"
+		}
+		link := hb.NewLink().Href(item.URL).Class(linkClass)
 		
-		// User avatar
-		avatar := hb.NewTag("span").Class("avatar avatar-sm")
-		if user.AvatarURL != "" {
-			avatar.Child(hb.NewTag("img").Attr("src", user.AvatarURL).Class("rounded-circle"))
-		} else {
-			initials := ""
-			if len(user.Name) > 0 {
-				initials = string(user.Name[0])
-			}
-			avatar.Child(hb.NewTag("span").Text(initials).Class("avatar-initial"))
+		// Add icon if exists
+		if item.Icon != "" {
+			icon := hb.NewI().Class(item.Icon + " me-1")
+			link.Child(icon)
 		}
 		
-		// User info
-		userInfo := hb.Div().Class("d-none d-xl-block ps-2")
-		userInfo.Child(hb.Div().Text(user.Name).Class("text-muted"))
-		
-		userLink.Child(avatar)
-		userLink.Child(userInfo)
-		
-		// Dropdown menu
-		dropdownMenu := hb.NewTag("div").Class("dropdown-menu dropdown-menu-end dropdown-menu-arrow")
-		dropdownMenu.Child(hb.NewTag("a").Attr("href", "/profile").Class("dropdown-item").Text("Profile"))
-		dropdownMenu.Child(hb.NewTag("a").Attr("href", "/settings").Class("dropdown-item").Text("Settings"))
-		dropdownMenu.Child(hb.NewTag("hr").Class("dropdown-divider"))
-		dropdownMenu.Child(hb.NewTag("a").Attr("href", "/logout").Class("dropdown-item").Text("Logout"))
-		
-		userMenu.Child(userLink)
-		userMenu.Child(dropdownMenu)
-		headerContent.Child(userMenu)
+		// Add text
+		if item.Text != "" {
+			link.Child(hb.Text(item.Text))
+		}
+
+		// Handle submenu if exists
+		if len(item.SubMenu) > 0 {
+			link.Attr("data-bs-toggle", "dropdown")
+			dropdown := hb.NewDiv().Class("dropdown-menu")
+			
+			for _, child := range item.SubMenu {
+				dropdown.Child(hb.NewLink().Href(child.URL).Class("dropdown-item").Text(child.Text))
+			}
+			
+			menuItem.Child(link).Child(dropdown)
+		} else {
+			menuItem.Child(link)
+		}
+
+		menuList.Child(menuItem)
 	}
 
-	// Build header structure
-	container.Child(toggleBtn)
+	menu.Child(menuList)
+
+	// Add all elements to container
 	container.Child(logoLink)
-	
-	// Collapsible content
-	collapse := hb.Div().Class("navbar-collapse").ID("navbar-menu")
-	collapseInner := hb.Div().Class("d-flex flex-column flex-md-row flex-fill align-items-stretch align-items-md-center")
-	
-	nav := hb.NewDiv().Class("flex-grow-1")
-	
-	// Add search bar
-	searchForm := hb.NewForm().Class("flex-grow-1").Action("/search").Method("GET")
-	searchGroup := hb.NewDiv().Class("input-icon")
-	searchInput := hb.NewInput().Type("text").Class("form-control").Placeholder("Search...").Attr("aria-label", "Search")
-	searchIcon := hb.NewSpan().Class("input-icon-addon")
-	searchIcon.AddChild(hb.NewI().Class("ti ti-search"))
-	searchGroup.AddChild(searchInput)
-	searchGroup.AddChild(searchIcon)
-	searchForm.AddChild(searchGroup)
-	nav.AddChild(searchForm)
-	
-	collapseInner.AddChild(nav)
-	collapse.AddChild(collapseInner)
-	container.AddChild(collapse)
-	container.AddChild(headerContent)
-	header.AddChild(container)
-	
+	container.Child(mobileToggle)
+	container.Child(menu)
+	container.Child(headerControls)
+
+	header.Child(container)
+
 	return header
 }
 

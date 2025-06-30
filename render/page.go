@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+
 	"github.com/dracory/dashboard/model"
 	"github.com/dracory/dashboard/render/theme"
 	shared "github.com/dracory/dashboard/render/theme/shared"
@@ -42,8 +43,8 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 
 	fmt.Printf("[DEBUG] Using theme: %s (type: %T)\n", themeInstance.GetName(), themeInstance)
 
-	isDarkTheme := isThemeDark(d)
-
+	// Check if we should use dark color scheme
+	isDarkColorScheme := isDarkColorScheme(d)
 	// Create the head section
 	head := hb.NewTag("head").
 		Child(hb.NewTag("meta").Attr("charset", "utf-8")).
@@ -54,8 +55,8 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	// Favicon
 	head = head.Child(renderFavicon(d))
 
-	// Theme CSS
-	cssLinks := themeInstance.GetCSSLinks(isDarkTheme)
+	// Theme CSS with appropriate color scheme
+	cssLinks := themeInstance.GetCSSLinks(isDarkColorScheme)
 	for _, link := range cssLinks {
 		head = head.Child(link)
 	}
@@ -65,7 +66,7 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 
 	// Create the body section
 	bodyAttrs := map[string]string{}
-	if isDarkTheme {
+	if isDarkColorScheme {
 		bodyAttrs["data-bs-theme"] = "dark"
 	}
 
@@ -129,8 +130,8 @@ func renderFavicon(d model.DashboardRenderer) *hb.Tag {
 	return hb.NewLink().Attr("rel", "icon").Attr("href", d.GetFaviconURL())
 }
 
-// isThemeDark returns whether the color scheme is dark
-func isThemeDark(d model.DashboardRenderer) bool {
+// isDarkColorScheme checks if the dashboard should use dark color scheme
+func isDarkColorScheme(d model.DashboardRenderer) bool {
 	// Check the navbar background color mode to determine if we're in dark mode
 	return d.GetNavbarBackgroundColorMode() == "dark"
 }

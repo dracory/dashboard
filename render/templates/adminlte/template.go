@@ -4,37 +4,37 @@ import (
 	"strings"
 
 	"github.com/dracory/dashboard/render"
-	"github.com/dracory/dashboard/render/theme/shared"
+	"github.com/dracory/dashboard/render/templates/shared"
 	"github.com/dracory/omni"
 	"github.com/gouniverse/hb"
 )
 
-// AdminLTETheme implements the shared.Theme interface for AdminLTE
-type AdminLTETheme struct {
-	shared.DefaultTheme // Embed DefaultTheme to inherit default implementations
+// AdminLTETemplate implements the shared.Template interface for AdminLTE
+type AdminLTETemplate struct {
+	shared.DefaultTemplate // Embed DefaultTemplate to inherit default implementations
 }
 
-// newAdminLTETheme creates a new instance of the AdminLTE theme
-// This is an internal helper function used by NewAdminLTETheme in export.go
-func newAdminLTETheme() *AdminLTETheme {
-	return &AdminLTETheme{}
+// newAdminLTETemplate creates a new instance of the AdminLTE template
+// This is an internal helper function used by NewAdminLTETemplate in export.go
+func newAdminLTETemplate() *AdminLTETemplate {
+	return &AdminLTETemplate{}
 }
 
 // RenderAtom renders an Omni atom using AdminLTE classes and components
-func (t *AdminLTETheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
+func (t *AdminLTETemplate) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 	if atom == nil {
 		return nil, nil
 	}
 	return t.renderAtom(atom)
 }
 
-// RenderHeader renders the AdminLTE theme header
-func (t *AdminLTETheme) RenderHeader(d shared.DashboardRenderer) *hb.Tag {
+// RenderHeader renders the AdminLTE template header
+func (t *AdminLTETemplate) RenderHeader(d shared.DashboardRenderer) *hb.Tag {
 	header := hb.NewTag("header").Class("main-header")
-	
+
 	// Navbar
 	navbar := hb.NewTag("nav").Class("navbar navbar-expand navbar-white navbar-light")
-	
+
 	// Left navbar links
 	leftNav := hb.NewTag("ul").Class("navbar-nav")
 	leftNav.Child(hb.NewTag("li").Class("nav-item").
@@ -42,12 +42,12 @@ func (t *AdminLTETheme) RenderHeader(d shared.DashboardRenderer) *hb.Tag {
 			Attr("data-widget", "pushmenu").
 			Attr("href", "#").
 			Child(hb.I().Class("fas fa-bars"))))
-	
+
 	navbar.Child(leftNav)
-	
+
 	// Right navbar links
 	rightNav := hb.NewTag("ul").Class("navbar-nav ml-auto")
-	
+
 	// User menu
 	user := d.GetUser()
 	if user.Name != "" {
@@ -56,7 +56,7 @@ func (t *AdminLTETheme) RenderHeader(d shared.DashboardRenderer) *hb.Tag {
 		userLink := hb.NewTag("a").Class("nav-link").
 			Attr("data-toggle", "dropdown").
 			Attr("href", "#")
-		
+
 		// User avatar or initials
 		userInfo := hb.NewTag("div").Class("user-panel d-flex align-items-center")
 		if user.AvatarURL != "" {
@@ -74,7 +74,7 @@ func (t *AdminLTETheme) RenderHeader(d shared.DashboardRenderer) *hb.Tag {
 		}
 		userInfo.Child(hb.Span().Class("d-none d-md-inline").Text(user.Name))
 		userLink.Child(userInfo)
-		
+
 		dropdownMenu := hb.NewTag("div").Class("dropdown-menu dropdown-menu-lg dropdown-menu-right")
 		dropdownMenu.Child(hb.Span().Class("dropdown-item dropdown-header").Text("Account"))
 		dropdownMenu.Child(hb.NewTag("div").Class("dropdown-divider"))
@@ -87,7 +87,7 @@ func (t *AdminLTETheme) RenderHeader(d shared.DashboardRenderer) *hb.Tag {
 			Attr("href", "/logout").
 			Child(hb.I().Class("fas fa-sign-out-alt mr-2")).
 			Text("Logout"))
-		
+
 		userMenu.Child(userLink)
 		userMenu.Child(dropdownMenu)
 		rightNav.Child(userMenu)
@@ -102,65 +102,65 @@ func (t *AdminLTETheme) RenderHeader(d shared.DashboardRenderer) *hb.Tag {
 				Attr("href", "/register").
 				Text("Register")))
 	}
-	
+
 	navbar.Child(rightNav)
 	header.Child(navbar)
-	
+
 	return header
 }
 
-// RenderFooter renders the AdminLTE theme footer
-func (t *AdminLTETheme) RenderFooter(d shared.DashboardRenderer) *hb.Tag {
+// RenderFooter renders the AdminLTE template footer
+func (t *AdminLTETemplate) RenderFooter(d shared.DashboardRenderer) *hb.Tag {
 	footer := hb.NewTag("footer").Class("main-footer")
-	
+
 	// Footer content
 	container := hb.NewTag("div").Class("container-fluid")
-	
+
 	// Left side (copyright)
 	leftCol := hb.NewTag("div").Class("float-right d-none d-sm-block")
 	leftCol.Child(hb.NewTag("b").Text("Version")).Text(" 1.0.0")
-	
+
 	// Right side (copyright)
 	rightCol := hb.NewTag("div")
 	rightCol.Child(hb.Text("© 2023 ")).
 		Child(hb.NewTag("a").Attr("href", "#").Text("AdminLTE.io")).
 		Child(hb.Text(". All rights reserved."))
-	
+
 	container.Child(leftCol)
 	container.Child(rightCol)
 	footer.Child(container)
-	
+
 	return footer
 }
 
 // RenderDashboard renders a complete dashboard from Omni atoms
-func (t *AdminLTETheme) RenderDashboard(dashboard *omni.Atom) (string, error) {
+func (t *AdminLTETemplate) RenderDashboard(dashboard *omni.Atom) (string, error) {
 	if dashboard == nil {
 		return "", nil
 	}
 	return t.renderDashboard(dashboard)
 }
 
-// Ensure AdminLTETheme implements shared.Theme
-var _ shared.Theme = (*AdminLTETheme)(nil)
+// Ensure AdminLTETemplate implements shared.Template
+var _ shared.Template = (*AdminLTETemplate)(nil)
 
-// GetName returns the name of the theme
-func (t *AdminLTETheme) GetName() string {
+// GetName returns the name of the template
+func (t *AdminLTETemplate) GetName() string {
 	return render.THEME_ADMINLTE
 }
 
 // GetCSSLinks returns the CSS link tags for the theme
-func (t *AdminLTETheme) GetCSSLinks(isDarkMode bool) []*hb.Tag {
+func (t *AdminLTETemplate) GetCSSLinks(isDarkMode bool) []*hb.Tag {
 	return GetAdminLTEAssets()
 }
 
 // GetJSScripts returns the JavaScript script tags for the theme
-func (t *AdminLTETheme) GetJSScripts() []*hb.Tag {
+func (t *AdminLTETemplate) GetJSScripts() []*hb.Tag {
 	return GetAdminLTEScripts()
 }
 
 // GetCustomCSS returns any custom CSS for the theme
-func (t *AdminLTETheme) GetCustomCSS() string {
+func (t *AdminLTETemplate) GetCustomCSS() string {
 	return `
 		/* AdminLTE custom styles */
 		.content-wrapper {
@@ -183,7 +183,7 @@ func (t *AdminLTETheme) GetCustomCSS() string {
 }
 
 // GetCustomJS returns any custom JavaScript for the theme
-func (t *AdminLTETheme) GetCustomJS() string {
+func (t *AdminLTETemplate) GetCustomJS() string {
 	return `
 		// Enable sidebar toggle
 		document.addEventListener('DOMContentLoaded', function() {
@@ -240,7 +240,7 @@ func (t *AdminLTETheme) GetCustomJS() string {
 }
 
 // RenderPage renders a complete page with the given content and dashboard renderer
-func (t *AdminLTETheme) RenderPage(content string, d shared.DashboardRenderer) (*hb.Tag, error) {
+func (t *AdminLTETemplate) RenderPage(content string, d shared.DashboardRenderer) (*hb.Tag, error) {
 	// Create the head section
 	head := hb.NewTag("head").
 		Child(hb.NewTag("meta").Attr("charset", "utf-8")).
@@ -282,7 +282,7 @@ func (t *AdminLTETheme) RenderPage(content string, d shared.DashboardRenderer) (
 
 	// Create main content area
 	contentWrapper := hb.NewDiv().Class("content-wrapper")
-	
+
 	// Content header
 	contentHeader := hb.NewDiv().Class("content-header")
 	contentHeader.Child(hb.NewDiv().Class("container-fluid"))
@@ -331,6 +331,6 @@ func (t *AdminLTETheme) RenderPage(content string, d shared.DashboardRenderer) (
 }
 
 // isDarkColorScheme checks if the color scheme should be dark
-func (t *AdminLTETheme) isDarkColorScheme(d shared.DashboardRenderer) bool {
+func (t *AdminLTETemplate) isDarkColorScheme(d shared.DashboardRenderer) bool {
 	return d.GetNavbarBackgroundColorMode() == "dark"
 }

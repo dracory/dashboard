@@ -29,7 +29,7 @@ func getChildByType(atom omni.AtomInterface, atomType string) omni.AtomInterface
 }
 
 // renderAtom is the internal implementation that works with omni.AtomInterface
-func (t *AdminLTETheme) renderAtom(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *AdminLTETemplate) renderAtom(atom omni.AtomInterface) (*hb.Tag, error) {
 	if atom == nil {
 		return nil, fmt.Errorf("atom cannot be nil")
 	}
@@ -72,7 +72,7 @@ func (t *AdminLTETheme) renderAtom(atom omni.AtomInterface) (*hb.Tag, error) {
 	}
 }
 
-func (t *AdminLTETheme) renderContainer(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *AdminLTETemplate) renderContainer(atom omni.AtomInterface) (*hb.Tag, error) {
 	container := hb.NewDiv().Class("container")
 	for _, child := range atom.ChildrenGet() {
 		// Type assert to *omni.Atom for RenderAtom
@@ -87,7 +87,7 @@ func (t *AdminLTETheme) renderContainer(atom omni.AtomInterface) (*hb.Tag, error
 	return container, nil
 }
 
-func (t *AdminLTETheme) renderHeader(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *AdminLTETemplate) renderHeader(atom omni.AtomInterface) (*hb.Tag, error) {
 	header := hb.NewTag("header").Class("main-header")
 
 	// Navbar
@@ -119,7 +119,7 @@ func (t *AdminLTETheme) renderHeader(atom omni.AtomInterface) (*hb.Tag, error) {
 	return header, nil
 }
 
-func (t *AdminLTETheme) renderFooter(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *AdminLTETemplate) renderFooter(atom omni.AtomInterface) (*hb.Tag, error) {
 	footer := hb.NewFooter().Class("main-footer")
 
 	// Add children to footer
@@ -137,7 +137,7 @@ func (t *AdminLTETheme) renderFooter(atom omni.AtomInterface) (*hb.Tag, error) {
 	return footer, nil
 }
 
-func (t *AdminLTETheme) renderMenu(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *AdminLTETemplate) renderMenu(atom omni.AtomInterface) (*hb.Tag, error) {
 	menu := hb.NewNav().Class("nav nav-pills nav-sidebar flex-column")
 	menu.Attr("data-widget", "treeview")
 	menu.Attr("role", "menu")
@@ -155,7 +155,7 @@ func (t *AdminLTETheme) renderMenu(atom omni.AtomInterface) (*hb.Tag, error) {
 	return menu, nil
 }
 
-func (t *AdminLTETheme) renderMenuItem(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *AdminLTETemplate) renderMenuItem(atom omni.AtomInterface) (*hb.Tag, error) {
 	item := hb.NewTag("li").Class("nav-item")
 	link := hb.NewTag("a").Class("nav-link")
 
@@ -208,7 +208,7 @@ func (t *AdminLTETheme) renderMenuItem(atom omni.AtomInterface) (*hb.Tag, error)
 	return item, nil
 }
 
-func (t *AdminLTETheme) renderLink(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *AdminLTETemplate) renderLink(atom omni.AtomInterface) (*hb.Tag, error) {
 	href := getPropertyString(atom, "href", "#")
 	link := hb.NewLink().Href(href)
 
@@ -225,7 +225,7 @@ func (t *AdminLTETheme) renderLink(atom omni.AtomInterface) (*hb.Tag, error) {
 	return link, nil
 }
 
-func (t *AdminLTETheme) renderButton(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *AdminLTETemplate) renderButton(atom omni.AtomInterface) (*hb.Tag, error) {
 	button := hb.NewButton()
 
 	// Add text if exists
@@ -245,7 +245,7 @@ func (t *AdminLTETheme) renderButton(atom omni.AtomInterface) (*hb.Tag, error) {
 	return button, nil
 }
 
-func (t *AdminLTETheme) renderImage(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *AdminLTETemplate) renderImage(atom omni.AtomInterface) (*hb.Tag, error) {
 	src := getPropertyString(atom, "src", "")
 	img := hb.NewImage().Src(src)
 
@@ -262,7 +262,7 @@ func (t *AdminLTETheme) renderImage(atom omni.AtomInterface) (*hb.Tag, error) {
 	return img, nil
 }
 
-func (t *AdminLTETheme) renderText(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *AdminLTETemplate) renderText(atom omni.AtomInterface) (*hb.Tag, error) {
 	text := getPropertyString(atom, "text", "")
 	tag := hb.NewTag("span").Child(hb.Text(text))
 
@@ -274,7 +274,7 @@ func (t *AdminLTETheme) renderText(atom omni.AtomInterface) (*hb.Tag, error) {
 	return tag, nil
 }
 
-func (t *AdminLTETheme) renderCard(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *AdminLTETemplate) renderCard(atom omni.AtomInterface) (*hb.Tag, error) {
 	card := hb.NewTag("div").Class("card")
 
 	// Add header if exists
@@ -311,7 +311,7 @@ func (t *AdminLTETheme) renderCard(atom omni.AtomInterface) (*hb.Tag, error) {
 }
 
 // renderDashboard renders a complete dashboard from Omni atoms
-func (t *AdminLTETheme) renderDashboard(dashboard omni.AtomInterface) (string, error) {
+func (t *AdminLTETemplate) renderDashboard(dashboard omni.AtomInterface) (string, error) {
 	// Create HTML document
 	htmlTag := hb.NewTag("html")
 

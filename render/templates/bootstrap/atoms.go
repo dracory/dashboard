@@ -26,7 +26,7 @@ func getPropertyString(atom omni.AtomInterface, key, defaultValue string) string
 }
 
 // RenderAtom renders an Omni atom using Bootstrap 5 classes and components
-func (t *BootstrapTheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
+func (t *BootstrapTemplate) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 	// Convert *omni.Atom to omni.AtomInterface
 	atomInterface, ok := interface{}(atom).(omni.AtomInterface)
 	if !ok {
@@ -36,7 +36,7 @@ func (t *BootstrapTheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 	return t.renderAtom(atomInterface)
 }
 
-func (t *BootstrapTheme) renderAtom(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *BootstrapTemplate) renderAtom(atom omni.AtomInterface) (*hb.Tag, error) {
 	switch atom.GetType() {
 	case "container":
 		return t.renderContainer(atom)
@@ -73,7 +73,7 @@ func (t *BootstrapTheme) renderAtom(atom omni.AtomInterface) (*hb.Tag, error) {
 	}
 }
 
-func (t *BootstrapTheme) renderContainer(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *BootstrapTemplate) renderContainer(atom omni.AtomInterface) (*hb.Tag, error) {
 	container := hb.NewDiv().Class("container")
 	for _, child := range atom.ChildrenGet() {
 		if child == nil {
@@ -88,7 +88,7 @@ func (t *BootstrapTheme) renderContainer(atom omni.AtomInterface) (*hb.Tag, erro
 	return container, nil
 }
 
-func (t *BootstrapTheme) renderHeader(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *BootstrapTemplate) renderHeader(atom omni.AtomInterface) (*hb.Tag, error) {
 	header := hb.NewTag("header").Class("navbar navbar-expand-lg navbar-light bg-light")
 
 	// Add children to header
@@ -106,7 +106,7 @@ func (t *BootstrapTheme) renderHeader(atom omni.AtomInterface) (*hb.Tag, error) 
 	return header, nil
 }
 
-func (t *BootstrapTheme) renderFooter(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *BootstrapTemplate) renderFooter(atom omni.AtomInterface) (*hb.Tag, error) {
 	footer := hb.NewTag("footer").Class("bg-light py-3 mt-5")
 	container := hb.NewDiv().Class("container")
 
@@ -126,7 +126,7 @@ func (t *BootstrapTheme) renderFooter(atom omni.AtomInterface) (*hb.Tag, error) 
 	return footer, nil
 }
 
-func (t *BootstrapTheme) renderMenu(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *BootstrapTemplate) renderMenu(atom omni.AtomInterface) (*hb.Tag, error) {
 	menu := hb.NewTag("ul").Class("navbar-nav me-auto mb-2 mb-lg-0")
 
 	// Add menu items
@@ -144,7 +144,7 @@ func (t *BootstrapTheme) renderMenu(atom omni.AtomInterface) (*hb.Tag, error) {
 	return menu, nil
 }
 
-func (t *BootstrapTheme) renderMenuItem(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *BootstrapTemplate) renderMenuItem(atom omni.AtomInterface) (*hb.Tag, error) {
 	item := hb.NewTag("li").Class("nav-item")
 	link := hb.NewTag("a").Class("nav-link")
 
@@ -173,7 +173,7 @@ func (t *BootstrapTheme) renderMenuItem(atom omni.AtomInterface) (*hb.Tag, error
 	return item, nil
 }
 
-func (t *BootstrapTheme) renderLink(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *BootstrapTemplate) renderLink(atom omni.AtomInterface) (*hb.Tag, error) {
 	href := getPropertyString(atom, "href", "#")
 	text := getPropertyString(atom, "text", "")
 
@@ -194,7 +194,7 @@ func (t *BootstrapTheme) renderLink(atom omni.AtomInterface) (*hb.Tag, error) {
 	return link, nil
 }
 
-func (t *BootstrapTheme) renderButton(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *BootstrapTemplate) renderButton(atom omni.AtomInterface) (*hb.Tag, error) {
 	button := hb.NewTag("button").Class("btn")
 
 	// Set button style
@@ -231,7 +231,7 @@ func (t *BootstrapTheme) renderButton(atom omni.AtomInterface) (*hb.Tag, error) 
 	return button, nil
 }
 
-func (t *BootstrapTheme) renderImage(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *BootstrapTemplate) renderImage(atom omni.AtomInterface) (*hb.Tag, error) {
 	img := hb.NewTag("img")
 
 	// Add src and alt attributes using helper functions
@@ -258,13 +258,13 @@ func (t *BootstrapTheme) renderImage(atom omni.AtomInterface) (*hb.Tag, error) {
 	return img, nil
 }
 
-func (t *BootstrapTheme) renderText(atom omni.AtomInterface) (*hb.Tag, error) {
+func (t *BootstrapTemplate) renderText(atom omni.AtomInterface) (*hb.Tag, error) {
 	tag := hb.NewTag("div").Text(atom.Get("text"))
 	return tag, nil
 }
 
 // RenderDashboard renders a complete dashboard from Omni atoms
-func (t *BootstrapTheme) RenderDashboard(dashboard *omni.Atom) (string, error) {
+func (t *BootstrapTemplate) RenderDashboard(dashboard *omni.Atom) (string, error) {
 	// Convert *omni.Atom to omni.AtomInterface
 	dashboardInterface, ok := interface{}(dashboard).(omni.AtomInterface)
 	if !ok {
@@ -273,13 +273,13 @@ func (t *BootstrapTheme) RenderDashboard(dashboard *omni.Atom) (string, error) {
 
 	// Create the HTML document
 	html := hb.NewTag("html")
-	
+
 	// Create head section
 	head := hb.NewTag("head")
 	head.Child(hb.NewTag("meta").Attr("charset", "UTF-8"))
 	head.Child(hb.NewTag("meta").Attr("name", "viewport").Attr("content", "width=device-width, initial-scale=1.0"))
 	head.Child(hb.NewTag("title").Text("Dashboard"))
-	
+
 	// Add CSS links
 	for _, cssLink := range t.GetCSSLinks(false) {
 		head.Child(cssLink)
@@ -294,7 +294,7 @@ func (t *BootstrapTheme) RenderDashboard(dashboard *omni.Atom) (string, error) {
 
 	// Create body section
 	body := hb.NewTag("body")
-	
+
 	// Create the main container
 	container := hb.NewTag("div").Class("container-fluid").Style("min-height: 100vh; display: flex; flex-direction: column;")
 

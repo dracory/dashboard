@@ -6,13 +6,13 @@ import (
 
 	"github.com/dracory/dashboard/model"
 	"github.com/dracory/dashboard/render"
-	"github.com/dracory/dashboard/render/theme/shared"
+	"github.com/dracory/dashboard/render/templates/shared"
 	hb "github.com/gouniverse/hb"
 )
 
 // TablerTheme implements the shared.Theme interface for Tabler
 type TablerTheme struct {
-	shared.DefaultTheme // Embed DefaultTheme to inherit default implementations
+	shared.DefaultTemplate // Embed DefaultTheme to inherit default implementations
 }
 
 // New creates a new instance of the Tabler theme
@@ -20,8 +20,8 @@ func New() *TablerTheme {
 	return &TablerTheme{}
 }
 
-// Ensure TablerTheme implements shared.Theme
-var _ shared.Theme = (*TablerTheme)(nil)
+// Ensure TablerTheme implements shared.Template
+var _ shared.Template = (*TablerTheme)(nil)
 
 // GetName returns the name of the theme
 func (t *TablerTheme) GetName() string {

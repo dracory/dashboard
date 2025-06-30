@@ -7,10 +7,10 @@ import (
 
 	"github.com/dracory/dashboard"
 	"github.com/dracory/dashboard/components"
-	"github.com/dracory/dashboard/render/theme"
-	_ "github.com/dracory/dashboard/render/theme/adminlte"
-	_ "github.com/dracory/dashboard/render/theme/bootstrap"
-	_ "github.com/dracory/dashboard/render/theme/tabler"
+	"github.com/dracory/dashboard/render/templates"
+	_ "github.com/dracory/dashboard/render/templates/adminlte"
+	_ "github.com/dracory/dashboard/render/templates/bootstrap"
+	_ "github.com/dracory/dashboard/render/templates/tabler"
 	"github.com/gouniverse/hb"
 )
 
@@ -39,19 +39,19 @@ func createSidebar() string {
 
 	themeDropdown := hb.NewDiv()
 	themeDropdown.Class("dropdown-menu")
-	
+
 	tablerLink := hb.NewLink()
 	tablerLink.Attr("href", "/?theme=tabler")
 	tablerLink.Class("dropdown-item")
 	tablerLink.AddChild(hb.NewTag("span").Text("Tabler"))
 	themeDropdown.AddChild(tablerLink)
-	
+
 	bootstrapLink := hb.NewLink()
 	bootstrapLink.Attr("href", "/?theme=bootstrap")
 	bootstrapLink.Class("dropdown-item")
 	bootstrapLink.AddChild(hb.NewTag("span").Text("Bootstrap 5"))
 	themeDropdown.AddChild(bootstrapLink)
-	
+
 	adminlteLink := hb.NewLink()
 	adminlteLink.Attr("href", "/?theme=adminlte")
 	adminlteLink.Class("dropdown-item")
@@ -76,7 +76,7 @@ func createTopNav() string {
 	// Theme switcher in top nav
 	themeDropdown := hb.NewDiv()
 	themeDropdown.Class("nav-item dropdown d-none d-md-flex me-3")
-	
+
 	themeLink := hb.NewLink()
 	themeLink.Attr("href", "#")
 	themeLink.Class("nav-link px-0")
@@ -89,19 +89,19 @@ func createTopNav() string {
 	header.Class("dropdown-header")
 	header.AddChild(hb.NewTag("span").Text("Select Theme"))
 	dropdownMenu.AddChild(header)
-	
+
 	tablerLink := hb.NewTag("a")
 	tablerLink.Class("dropdown-item")
 	tablerLink.Attr("href", "/?theme=tabler")
 	tablerLink.AddChild(hb.NewTag("span").Text("Tabler"))
 	dropdownMenu.AddChild(tablerLink)
-	
+
 	bootstrapLink := hb.NewTag("a")
 	bootstrapLink.Class("dropdown-item")
 	bootstrapLink.Attr("href", "/?theme=bootstrap")
 	bootstrapLink.AddChild(hb.NewTag("span").Text("Bootstrap 5"))
 	dropdownMenu.AddChild(bootstrapLink)
-	
+
 	adminlteLink := hb.NewTag("a")
 	adminlteLink.Class("dropdown-item")
 	adminlteLink.Attr("href", "/?theme=adminlte")
@@ -173,7 +173,7 @@ func createDashboardContent() string {
 
 func main() {
 	// Initialize all registered themes
-	theme.InitializeRegisteredThemes()
+	templates.InitializeRegisteredTemplates()
 
 	// Create a new dashboard instance
 	d := dashboard.New()
@@ -197,8 +197,8 @@ func main() {
 						<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
 							<span class="navbar-toggler-icon"></span>
 						</button>
-						<div class="collapse navbar-collapse" id="navbarSupportedContent">` + 
-						createTopNav() + `
+						<div class="collapse navbar-collapse" id="navbarSupportedContent">` +
+		createTopNav() + `
 						</div>
 					</div>
 				</nav>

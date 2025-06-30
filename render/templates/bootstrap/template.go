@@ -2,22 +2,22 @@ package bootstrap
 
 import (
 	"github.com/dracory/dashboard/render"
-	"github.com/dracory/dashboard/render/theme/shared"
+	"github.com/dracory/dashboard/render/templates/shared"
 	"github.com/gouniverse/hb"
 )
 
 // BootstrapTheme implements the shared.Theme interface for Bootstrap 5
-type BootstrapTheme struct {
-	shared.DefaultTheme // Embed DefaultTheme to inherit default implementations
+type BootstrapTemplate struct {
+	shared.DefaultTemplate // Embed DefaultTemplate to inherit default implementations
 }
 
 // New creates a new instance of the Bootstrap theme
-func New() *BootstrapTheme {
-	return &BootstrapTheme{}
+func New() *BootstrapTemplate {
+	return &BootstrapTemplate{}
 }
 
 // RenderHeader renders the Bootstrap theme header
-func (t *BootstrapTheme) RenderHeader(d shared.DashboardRenderer) *hb.Tag {
+func (t *BootstrapTemplate) RenderHeader(d shared.DashboardRenderer) *hb.Tag {
 	header := hb.NewTag("header").Class("navbar navbar-expand-lg navbar-light bg-light mb-4")
 	container := hb.NewTag("div").Class("container-fluid")
 
@@ -88,7 +88,7 @@ func (t *BootstrapTheme) RenderHeader(d shared.DashboardRenderer) *hb.Tag {
 }
 
 // RenderFooter renders the Bootstrap theme footer
-func (t *BootstrapTheme) RenderFooter(d shared.DashboardRenderer) *hb.Tag {
+func (t *BootstrapTemplate) RenderFooter(d shared.DashboardRenderer) *hb.Tag {
 	footer := hb.NewTag("footer").Class("bg-light py-4 mt-5")
 	container := hb.NewTag("div").Class("container")
 
@@ -119,26 +119,26 @@ func (t *BootstrapTheme) RenderFooter(d shared.DashboardRenderer) *hb.Tag {
 	return footer
 }
 
-// Ensure BootstrapTheme implements shared.Theme
-var _ shared.Theme = (*BootstrapTheme)(nil)
+// Ensure BootstrapTheme implements shared.Template
+var _ shared.Template = (*BootstrapTemplate)(nil)
 
 // GetName returns the name of the theme
-func (t *BootstrapTheme) GetName() string {
+func (t *BootstrapTemplate) GetName() string {
 	return render.THEME_BOOTSTRAP
 }
 
 // GetCSSLinks returns the CSS link tags for the theme
-func (t *BootstrapTheme) GetCSSLinks(isDarkMode bool) []*hb.Tag {
+func (t *BootstrapTemplate) GetCSSLinks(isDarkMode bool) []*hb.Tag {
 	return GetBootstrapCDNLinks()
 }
 
 // GetJSScripts returns the JavaScript script tags for the theme
-func (t *BootstrapTheme) GetJSScripts() []*hb.Tag {
+func (t *BootstrapTemplate) GetJSScripts() []*hb.Tag {
 	return GetBootstrapCDNScripts()
 }
 
 // GetCustomCSS returns any custom CSS for the theme
-func (t *BootstrapTheme) GetCustomCSS() string {
+func (t *BootstrapTemplate) GetCustomCSS() string {
 	return `
 		/* Bootstrap 5 custom styles */
 		.sidebar {
@@ -156,7 +156,7 @@ func (t *BootstrapTheme) GetCustomCSS() string {
 }
 
 // GetCustomJS returns any custom JavaScript for the theme
-func (t *BootstrapTheme) GetCustomJS() string {
+func (t *BootstrapTemplate) GetCustomJS() string {
 	return `
 		// Initialize tooltips
 		var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
@@ -188,7 +188,7 @@ func (t *BootstrapTheme) GetCustomJS() string {
 }
 
 // RenderPage renders a complete page with the given content and dashboard renderer
-func (t *BootstrapTheme) RenderPage(content string, d shared.DashboardRenderer) (*hb.Tag, error) {
+func (t *BootstrapTemplate) RenderPage(content string, d shared.DashboardRenderer) (*hb.Tag, error) {
 	// Create the head section
 	head := hb.NewTag("head").
 		Child(hb.NewTag("meta").Attr("charset", "utf-8")).
@@ -224,12 +224,12 @@ func (t *BootstrapTheme) RenderPage(content string, d shared.DashboardRenderer) 
 
 	// Create main content area
 	mainContent := hb.NewTag("main").Class("flex-grow-1 py-3")
-	
+
 	// Create container for content
 	container := hb.NewDiv().Class("container")
 	container.Child(hb.NewHTML(content))
 	mainContent.Child(container)
-	
+
 	body.Child(mainContent)
 
 	// Add footer
@@ -259,6 +259,6 @@ func (t *BootstrapTheme) RenderPage(content string, d shared.DashboardRenderer) 
 }
 
 // isDarkColorScheme checks if the color scheme should be dark
-func (t *BootstrapTheme) isDarkColorScheme(d shared.DashboardRenderer) bool {
+func (t *BootstrapTemplate) isDarkColorScheme(d shared.DashboardRenderer) bool {
 	return d.GetNavbarBackgroundColorMode() == "dark"
 }

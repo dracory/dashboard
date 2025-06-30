@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/dracory/dashboard/model"
-	"github.com/dracory/dashboard/render/theme"
-	shared "github.com/dracory/dashboard/render/theme/shared"
+	"github.com/dracory/dashboard/render/templates"
+	"github.com/dracory/dashboard/render/templates/shared"
 	"github.com/gouniverse/hb"
 )
 
@@ -17,7 +17,7 @@ const THEME_DEFAULT = THEME_TABLER
 // RenderPage generates the complete page HTML for the dashboard
 func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	// Get the theme manager instance
-	themeManager := theme.Manager()
+	themeManager := templates.Manager()
 
 	// Get the theme from the dashboard configuration
 	themeName := d.GetThemeName()
@@ -38,7 +38,7 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	// Ensure we have a valid theme instance
 	if themeInstance == nil {
 		fmt.Printf("[ERROR] No theme available, using default theme implementation\n")
-		themeInstance = &shared.DefaultTheme{}
+		themeInstance = &shared.DefaultTemplate{}
 	}
 
 	fmt.Printf("[DEBUG] Using theme: %s (type: %T)\n", themeInstance.GetName(), themeInstance)

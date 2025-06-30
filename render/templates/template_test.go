@@ -1,32 +1,32 @@
-package theme_test
+package templates_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/dracory/dashboard/render/theme/shared"
-	"github.com/dracory/dashboard/render/theme/adminlte"
-	"github.com/dracory/dashboard/render/theme/bootstrap"
-	"github.com/dracory/dashboard/render/theme/tabler"
+	"github.com/dracory/dashboard/render/templates/adminlte"
+	"github.com/dracory/dashboard/render/templates/bootstrap"
+	"github.com/dracory/dashboard/render/templates/shared"
+	"github.com/dracory/dashboard/render/templates/tabler"
 	"github.com/dracory/omni"
 )
 
 func TestThemeRendering(t *testing.T) {
 	tests := []struct {
 		name  string
-		theme shared.Theme
+		theme shared.Template
 	}{
 		{
 			name:  "Bootstrap",
-			theme: bootstrap.NewBootstrapTheme(),
+			theme: bootstrap.NewBootstrapTemplate(),
 		},
 		{
 			name:  "AdminLTE",
-			theme: adminlte.NewAdminLTETheme(),
+			theme: adminlte.NewAdminLTETemplate(),
 		},
 		{
 			name:  "Tabler",
-			theme: tabler.NewTablerTheme(),
+			theme: tabler.NewTablerTemplate(),
 		},
 	}
 

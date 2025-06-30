@@ -13,8 +13,8 @@ import (
 // DashboardRenderer defines the interface for dashboard renderers
 type DashboardRenderer = model.DashboardRenderer
 
-// Theme defines the interface for dashboard themes
-type Theme interface {
+// Template defines the interface for dashboard templates
+type Template interface {
 	// RenderPage renders a complete page with the given content
 	// and dashboard renderer
 	RenderPage(content string, d DashboardRenderer) (*hb.Tag, error)
@@ -48,11 +48,11 @@ type Theme interface {
 	RenderDashboard(dashboard *omni.Atom) (string, error)
 }
 
-// DefaultTheme is a basic theme implementation that can be used as a fallback
-type DefaultTheme struct{}
+// DefaultTemplate is a basic template implementation that can be used as a fallback
+type DefaultTemplate struct{}
 
 // RenderPage renders a complete page with the given content and dashboard renderer
-func (t *DefaultTheme) RenderPage(content string, d DashboardRenderer) (*hb.Tag, error) {
+func (t *DefaultTemplate) RenderPage(content string, d DashboardRenderer) (*hb.Tag, error) {
 	header := t.RenderHeader(d)
 	footer := t.RenderFooter(d)
 
@@ -68,7 +68,7 @@ func (t *DefaultTheme) RenderPage(content string, d DashboardRenderer) (*hb.Tag,
 		head.Child(hb.Link().Rel("icon").Href(d.GetFaviconURL()))
 	}
 
-	// Add theme CSS
+	// Add template CSS
 	cssLinks := t.GetCSSLinks(t.isDarkColorScheme(d))
 	for _, link := range cssLinks {
 		head.Child(link)
@@ -108,17 +108,17 @@ func (t *DefaultTheme) RenderPage(content string, d DashboardRenderer) (*hb.Tag,
 }
 
 // isDarkColorScheme checks if the color scheme should be dark
-func (t *DefaultTheme) isDarkColorScheme(d DashboardRenderer) bool {
+func (t *DefaultTemplate) isDarkColorScheme(d DashboardRenderer) bool {
 	return d.GetNavbarBackgroundColorMode() == "dark"
 }
 
-// GetName returns the name of the default theme
-func (t *DefaultTheme) GetName() string {
+// GetName returns the name of the default template
+func (t *DefaultTemplate) GetName() string {
 	return "default"
 }
 
-// GetCSSLinks returns no CSS links for the default theme
-func (t *DefaultTheme) GetCSSLinks(isDarkMode bool) []*hb.Tag {
+// GetCSSLinks returns no CSS links for the default template
+func (t *DefaultTemplate) GetCSSLinks(isDarkMode bool) []*hb.Tag {
 	// Return basic CSS reset as a fallback
 	return []*hb.Tag{
 		hb.Style(`
@@ -128,23 +128,23 @@ func (t *DefaultTheme) GetCSSLinks(isDarkMode bool) []*hb.Tag {
 	}
 }
 
-// GetJSScripts returns no JavaScript for the default theme
-func (t *DefaultTheme) GetJSScripts() []*hb.Tag {
+// GetJSScripts returns no JavaScript for the default template
+func (t *DefaultTemplate) GetJSScripts() []*hb.Tag {
 	return nil
 }
 
-// GetCustomCSS returns empty string as there's no custom CSS for the default theme
-func (t *DefaultTheme) GetCustomCSS() string {
+// GetCustomCSS returns empty string as there's no custom CSS for the default template
+func (t *DefaultTemplate) GetCustomCSS() string {
 	return ""
 }
 
-// GetCustomJS returns empty string as there's no custom JavaScript for the default theme
-func (t *DefaultTheme) GetCustomJS() string {
+// GetCustomJS returns empty string as there's no custom JavaScript for the default template
+func (t *DefaultTemplate) GetCustomJS() string {
 	return ""
 }
 
 // RenderAtom renders an Omni atom using default HTML
-func (t *DefaultTheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
+func (t *DefaultTemplate) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 	if atom == nil {
 		return nil, nil
 	}
@@ -252,9 +252,22 @@ func (t *DefaultTheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 }
 
 // RenderDashboard renders a complete dashboard from Omni atoms
-func (t *DefaultTheme) RenderDashboard(dashboard *omni.Atom) (string, error) {
-	if dashboard == nil {
-		return "", fmt.Errorf("dashboard cannot be nil")
+func (t *DefaultTemplate) RenderDashboard(dashboard *omni.Atom) (string, error) {
+	templateName := dashboard.Get("template")
+	if templateName == "" {
+		templateName = "default"
+	}
+
+	// Add template class to body
+	bodyAttrs := map[string]string{
+		"class": fmt.Sprintf("template-%s", templateName),
+	}
+
+	// Only try to get color scheme if dashboard implements DashboardRenderer
+	if d, ok := interface{}(dashboard).(DashboardRenderer); ok {
+		if t.isDarkColorScheme(d) {
+			bodyAttrs["data-bs-theme"] = "dark"
+		}
 	}
 
 	// Convert *omni.Atom to omni.AtomInterface
@@ -344,8 +357,8 @@ func (t *DefaultTheme) RenderDashboard(dashboard *omni.Atom) (string, error) {
 	return "<!DOCTYPE html>\n" + html.ToHTML(), nil
 }
 
-// RenderHeader renders a basic header for the default theme
-func (t *DefaultTheme) RenderHeader(d DashboardRenderer) *hb.Tag {
+// RenderHeader renders a basic header for the default template
+func (t *DefaultTemplate) RenderHeader(d DashboardRenderer) *hb.Tag {
 	header := hb.NewHeader().Class("p-3 bg-light border-bottom")
 	container := hb.NewDiv().Class("container-fluid")
 	headerInner := hb.NewDiv().Class("d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start")
@@ -390,8 +403,8 @@ func toAtom(atom interface{}) (*omni.Atom, error) {
 	}
 }
 
-// RenderFooter renders a basic footer for the default theme
-func (t *DefaultTheme) RenderFooter(d DashboardRenderer) *hb.Tag {
+// RenderFooter renders a basic footer for the default template
+func (t *DefaultTemplate) RenderFooter(d DashboardRenderer) *hb.Tag {
 	leftCol := hb.NewDiv().
 		Class("col-12 col-md-6").
 		AddChild(hb.NewTag("small").Text("© 2025 Dashboard").Class("text-muted"))

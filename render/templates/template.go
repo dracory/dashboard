@@ -1,4 +1,4 @@
-package theme
+package templates
 
 import "github.com/gouniverse/hb"
 

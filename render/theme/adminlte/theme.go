@@ -11,8 +11,9 @@ type AdminLTETheme struct {
 	shared.DefaultTheme // Embed DefaultTheme to inherit default implementations
 }
 
-// NewAdminLTETheme creates a new AdminLTE theme instance
-func NewAdminLTETheme() *AdminLTETheme {
+// newAdminLTETheme creates a new instance of the AdminLTE theme
+// This is an internal helper function used by NewAdminLTETheme in export.go
+func newAdminLTETheme() *AdminLTETheme {
 	return &AdminLTETheme{}
 }
 

@@ -22,14 +22,14 @@ func (h *atomHelper) getChildren(a omni.AtomInterface) []omni.AtomInterface {
 	if a == nil {
 		return nil
 	}
-	return a.GetChildren()
+	return a.ChildrenGet()
 }
 
-func (h *atomHelper) getProperty(a omni.AtomInterface, key string) omni.PropertyInterface {
+func (h *atomHelper) getProperty(a omni.AtomInterface, key string) string {
 	if a == nil {
-		return nil
+		return ""
 	}
-	return a.GetProperty(key)
+	return a.Get(key)
 }
 
 var helper = &atomHelper{}
@@ -264,10 +264,10 @@ func TestTransformHeader_WithLogo(t *testing.T) {
 	}
 
 	prop := h.getProperty(logoLink, atomizer.PropHref)
-	if prop == nil {
+	if prop == "" {
 		t.Fatal("expected href property to exist")
 	}
-	href := prop.GetValue()
+	href := prop
 	if href != "/" {
 		t.Errorf("expected href to be %q, got %q", "/", href)
 	}
@@ -277,10 +277,10 @@ func TestTransformHeader_WithLogo(t *testing.T) {
 		t.Fatal("logo link should have an image child")
 	}
 	imgProp := h.getProperty(logoChildren[0], atomizer.PropSrc)
-	if imgProp == nil {
+	if imgProp == "" {
 		t.Fatal("expected src property to exist on image")
 	}
-	imgSrc := imgProp.GetValue()
+	imgSrc := imgProp
 	if imgSrc != "/logo.png" {
 		t.Errorf("expected image src to be %q, got %q", "/logo.png", imgSrc)
 	}

@@ -3,13 +3,14 @@ package tabler
 import (
 	"fmt"
 
+	"github.com/dracory/dashboard/render/atomizer"
 	"github.com/dracory/omni"
 	"github.com/gouniverse/hb"
 )
 
 // getChildByType finds the first child of the given type
 func getChildByType(atom omni.AtomInterface, childType string) omni.AtomInterface {
-	for _, child := range atom.GetChildren() {
+	for _, child := range atom.ChildrenGet() {
 		if child.GetType() == childType {
 			return child
 		}
@@ -19,8 +20,8 @@ func getChildByType(atom omni.AtomInterface, childType string) omni.AtomInterfac
 
 // getPropertyString safely gets a string property with a default value
 func getPropertyString(atom omni.AtomInterface, key, defaultValue string) string {
-	if prop := atom.GetProperty(key); prop != nil {
-		return prop.GetValue()
+	if atom.Has(key) {
+		return atom.Get(key)
 	}
 	return defaultValue
 }
@@ -31,33 +32,41 @@ func (t *TablerTheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 	if atom == nil {
 		return nil, fmt.Errorf("atom cannot be nil")
 	}
-	
+
 	// Convert *omni.Atom to omni.AtomInterface
 	atomInterface, ok := interface{}(atom).(omni.AtomInterface)
 	if !ok {
 		return nil, fmt.Errorf("failed to convert *omni.Atom to omni.AtomInterface")
 	}
-	
+
 	return t.renderAtom(atomInterface)
 }
 
-// toAtom converts an interface{} to *omni.Atom
+// toAtom converts an interface to *omni.Atom
 func toAtom(atom interface{}) (*omni.Atom, error) {
 	switch a := atom.(type) {
 	case *omni.Atom:
 		return a, nil
 	case omni.AtomInterface:
-		// Try to convert AtomInterface to *omni.Atom if possible
-		if atomPtr, ok := a.(*omni.Atom); ok {
-			return atomPtr, nil
+		// Create a new atom using NewAtom with the same type
+		newAtomInterface := atomizer.NewAtom(a.GetType())
+		// Try to convert to *omni.Atom
+		newAtom, ok := newAtomInterface.(*omni.Atom)
+		if !ok {
+			return nil, fmt.Errorf("failed to convert atom to *omni.Atom")
 		}
-		// If we can't convert directly, we'll need to create a new Atom
-		// using the factory function if available
-		return omni.NewAtom(
-			a.GetType(),
-			a.GetProperties(),
-			a.GetChildren()...,
-		), nil
+		// Copy properties
+		allProps := a.GetAll()
+		for key, value := range allProps {
+			newAtom.Set(key, value)
+		}
+		// Copy children
+		for _, child := range a.ChildrenGet() {
+			if childAtom, ok := child.(*omni.Atom); ok {
+				newAtom.ChildAdd(childAtom)
+			}
+		}
+		return newAtom, nil
 	}
 	return nil, fmt.Errorf("unsupported atom type: %T, cannot convert to *omni.Atom", atom)
 }
@@ -99,13 +108,45 @@ func (t *TablerTheme) renderAtom(atom interface{}) (*hb.Tag, error) {
 		return t.renderText(atom)
 	default:
 		// For unknown atom types, fall back to a div with the atom type as a class
-		tag := hb.NewTag("div").Class(atom.GetType())
-		for _, child := range atom.GetChildren() {
-			childTag, err := t.RenderAtom(child)
-			if err != nil {
-				return nil, err
+		var atomType string
+		if atomInterface, ok := atom.(omni.AtomInterface); ok {
+			atomType = atomInterface.GetType()
+		} else if atomPtr, ok := atom.(*omni.Atom); ok {
+			if atomInterface, ok := interface{}(atomPtr).(omni.AtomInterface); ok {
+				atomType = atomInterface.GetType()
 			}
-			tag.AddChild(childTag)
+		}
+
+		tag := hb.NewTag("div").Class(atomType)
+
+		// Get children based on the atom type
+		switch a := atom.(type) {
+		case omni.AtomInterface:
+			for _, child := range a.ChildrenGet() {
+				childPtr, err := toAtom(child)
+				if err != nil {
+					return nil, err
+				}
+				childTag, err := t.RenderAtom(childPtr)
+				if err != nil {
+					return nil, err
+				}
+				tag.AddChild(childTag)
+			}
+		case *omni.Atom:
+			if atomInterface, ok := interface{}(a).(omni.AtomInterface); ok {
+				for _, child := range atomInterface.ChildrenGet() {
+					childPtr, err := toAtom(child)
+					if err != nil {
+						return nil, err
+					}
+					childTag, err := t.RenderAtom(childPtr)
+					if err != nil {
+						return nil, err
+					}
+					tag.AddChild(childTag)
+				}
+			}
 		}
 		return tag, nil
 	}
@@ -122,7 +163,7 @@ func (t *TablerTheme) renderContainer(atom interface{}) (*hb.Tag, error) {
 
 	// Get children through the interface
 	if atomInterface, ok := interface{}(atomPtr).(omni.AtomInterface); ok {
-		for _, child := range atomInterface.GetChildren() {
+		for _, child := range atomInterface.ChildrenGet() {
 			// Convert child to *omni.Atom for RenderAtom
 			childPtr, err := toAtom(child)
 			if err != nil {
@@ -155,7 +196,7 @@ func (t *TablerTheme) renderHeader(atom interface{}) (*hb.Tag, error) {
 
 	// Add children to container if atom implements the interface
 	if atomInterface, ok := interface{}(atomPtr).(omni.AtomInterface); ok {
-		for _, child := range atomInterface.GetChildren() {
+		for _, child := range atomInterface.ChildrenGet() {
 			// Convert child to *omni.Atom for RenderAtom
 			childPtr, err := toAtom(child)
 			if err != nil {
@@ -185,7 +226,7 @@ func (t *TablerTheme) renderFooter(atom interface{}) (*hb.Tag, error) {
 
 	// Get children through the interface
 	if atomInterface, ok := interface{}(atomPtr).(omni.AtomInterface); ok {
-		for _, child := range atomInterface.GetChildren() {
+		for _, child := range atomInterface.ChildrenGet() {
 			// Convert child to *omni.Atom for RenderAtom
 			childPtr, err := toAtom(child)
 			if err != nil {
@@ -213,7 +254,7 @@ func (t *TablerTheme) renderMenu(atom interface{}) (*hb.Tag, error) {
 
 	// Get children through the interface
 	if atomInterface, ok := interface{}(atomPtr).(omni.AtomInterface); ok {
-		for _, child := range atomInterface.GetChildren() {
+		for _, child := range atomInterface.ChildrenGet() {
 			// Convert child to *omni.Atom for RenderAtom
 			childPtr, err := toAtom(child)
 			if err != nil {
@@ -248,32 +289,35 @@ func (t *TablerTheme) renderMenuItem(atom interface{}) (*hb.Tag, error) {
 	item := hb.NewTag("li").Class("nav-item")
 
 	// Create link
-	href := getPropertyString(atomInterface, "href", "#")
+	href := atomInterface.Get("href")
 	link := hb.NewTag("a").Attr("href", href).Class("nav-link")
 
 	// Add active class if needed
-	if activeProp := atomInterface.GetProperty("active"); activeProp != nil && activeProp.GetValue() == "true" {
+	if activeProp := atomInterface.Get("active"); activeProp != "" && activeProp == "true" {
 		link.Class("active")
 	}
 
 	// Add icon if available
-	if icon := getPropertyString(atomInterface, "icon", ""); icon != "" {
+	if icon := atomInterface.Get("icon"); icon != "" {
 		link.Child(hb.I().Class(icon + " me-2"))
 	}
 
 	// Add text
-	if text := getPropertyString(atomInterface, "text", ""); text != "" {
+	if text := atomInterface.Get("text"); text != "" {
 		link.Child(hb.Text(text))
 	}
 
 	item.AddChild(link)
 
 	// Add children (submenu)
-	for _, child := range atomInterface.GetChildren() {
+	for _, child := range atomInterface.ChildrenGet() {
+		if child == nil {
+			continue
+		}
 		if child.GetType() == "menu" {
-			submenu, err := t.RenderAtom(child)
+			submenu, err := t.renderAtom(child)
 			if err != nil {
-				return nil, err
+				return nil, fmt.Errorf("failed to render submenu: %w", err)
 			}
 			submenu.Class("nav nav-treeview")
 			item.AddChild(submenu)
@@ -284,29 +328,43 @@ func (t *TablerTheme) renderMenuItem(atom interface{}) (*hb.Tag, error) {
 }
 
 func (t *TablerTheme) renderLink(atom interface{}) (*hb.Tag, error) {
-	atomInterface, err := toAtomInterface(atom)
-	if err != nil {
-		return nil, err
+	// Get the atom interface for property access
+	var atomInterface omni.AtomInterface
+	switch a := atom.(type) {
+	case *omni.Atom:
+		var ok bool
+		atomInterface, ok = interface{}(a).(omni.AtomInterface)
+		if !ok {
+			return nil, fmt.Errorf("failed to convert *omni.Atom to omni.AtomInterface")
+		}
+	case omni.AtomInterface:
+		atomInterface = a
+	default:
+		return nil, fmt.Errorf("unsupported atom type: %T", atom)
 	}
-	atomInterface, ok := atom.(omni.AtomInterface)
-	if !ok {
-		return nil, fmt.Errorf("expected omni.AtomInterface, got %T", atom)
-	}
+
 	href := getPropertyString(atomInterface, "href", "#")
 	title := getPropertyString(atomInterface, "title", "")
 	text := getPropertyString(atomInterface, "text", href)
 
-	a := hb.NewTag("a").Attr("href", href)
+	a := hb.NewTag("a").
+		Attr("href", href).
+		Child(hb.NewText(text))
+
+	// Add title if provided
 	if title != "" {
 		a.Attr("title", title)
 	}
-	a.Child(hb.NewText(text))
 
 	// Add any children (e.g., icons, badges)
-	for _, child := range atomInterface.GetChildren() {
-		childTag, err := t.RenderAtom(child)
+	for _, child := range atomInterface.ChildrenGet() {
+		if child == nil {
+			continue
+		}
+
+		childTag, err := t.renderAtom(child)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to render link child: %w", err)
 		}
 		a.AddChild(childTag)
 	}
@@ -315,21 +373,16 @@ func (t *TablerTheme) renderLink(atom interface{}) (*hb.Tag, error) {
 }
 
 func (t *TablerTheme) renderButton(atom interface{}) (*hb.Tag, error) {
-	atomInterface, err := toAtomInterface(atom)
-	if err != nil {
-		return nil, err
-	}
+	// Convert to omni.AtomInterface
 	atomInterface, ok := atom.(omni.AtomInterface)
 	if !ok {
 		return nil, fmt.Errorf("expected omni.AtomInterface, got %T", atom)
 	}
+
 	button := hb.NewButton()
 
 	// Add button variant class (default to primary)
-	variant := "primary"
-	if variantProp := atomInterface.GetProperty("variant"); variantProp != nil {
-		variant = variantProp.GetValue()
-	}
+	variant := getPropertyString(atomInterface, "variant", "primary")
 	button.AddClass(fmt.Sprintf("btn btn-%s", variant))
 
 	// Add icon if specified
@@ -344,10 +397,13 @@ func (t *TablerTheme) renderButton(atom interface{}) (*hb.Tag, error) {
 	}
 
 	// Add children
-	for _, child := range atomInterface.GetChildren() {
-		childTag, err := t.RenderAtom(child)
+	for _, child := range atomInterface.ChildrenGet() {
+		if child == nil {
+			continue
+		}
+		childTag, err := t.renderAtom(child)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to render button child: %w", err)
 		}
 		button.AddChild(childTag)
 	}
@@ -356,23 +412,26 @@ func (t *TablerTheme) renderButton(atom interface{}) (*hb.Tag, error) {
 }
 
 func (t *TablerTheme) renderImage(atom interface{}) (*hb.Tag, error) {
-	atomInterface, err := toAtomInterface(atom)
-	if err != nil {
-		return nil, err
-	}
+	// Convert to omni.AtomInterface
 	atomInterface, ok := atom.(omni.AtomInterface)
 	if !ok {
 		return nil, fmt.Errorf("expected omni.AtomInterface, got %T", atom)
 	}
+
 	img := hb.NewTag("img")
 
 	// Add src attribute
-	if srcProp := atomInterface.GetProperty("src"); srcProp != nil {
-		img.Attr("src", srcProp.GetValue())
+	src := getPropertyString(atomInterface, "src", "")
+	if src != "" {
+		img.Attr("src", src)
 	}
 
-	// Add alt text
-	if alt := getPropertyString(atomInterface, "alt", getPropertyString(atomInterface, "text", "")); alt != "" {
+	// Add alt text (fallback to text property if alt is not set)
+	alt := getPropertyString(atomInterface, "alt", "")
+	if alt == "" {
+		alt = getPropertyString(atomInterface, "text", "")
+	}
+	if alt != "" {
 		img.Attr("alt", alt)
 	}
 
@@ -383,14 +442,12 @@ func (t *TablerTheme) renderImage(atom interface{}) (*hb.Tag, error) {
 }
 
 func (t *TablerTheme) renderText(atom interface{}) (*hb.Tag, error) {
-	atomInterface, err := toAtomInterface(atom)
-	if err != nil {
-		return nil, err
-	}
+	// Convert to omni.AtomInterface
 	atomInterface, ok := atom.(omni.AtomInterface)
 	if !ok {
 		return nil, fmt.Errorf("expected omni.AtomInterface, got %T", atom)
 	}
+	// Get the text property using the helper function
 	text := getPropertyString(atomInterface, "text", "")
 	return hb.NewTag("span").Text(text), nil
 }

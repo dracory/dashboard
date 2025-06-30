@@ -9,8 +9,8 @@ import (
 
 // getChildByType finds the first child of the given type
 func getChildByType(atom omni.AtomInterface, childType string) omni.AtomInterface {
-	for _, child := range atom.GetChildren() {
-		if child.GetType() == childType {
+	for _, child := range atom.ChildrenGet() {
+		if child != nil && child.GetType() == childType {
 			return child
 		}
 	}
@@ -19,8 +19,8 @@ func getChildByType(atom omni.AtomInterface, childType string) omni.AtomInterfac
 
 // getPropertyString safely gets a string property with a default value
 func getPropertyString(atom omni.AtomInterface, key, defaultValue string) string {
-	if prop := atom.GetProperty(key); prop != nil {
-		return prop.GetValue()
+	if atom.Has(key) {
+		return atom.Get(key)
 	}
 	return defaultValue
 }
@@ -28,16 +28,11 @@ func getPropertyString(atom omni.AtomInterface, key, defaultValue string) string
 // RenderAtom renders an Omni atom using Bootstrap 5 classes and components
 func (t *BootstrapTheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 	// Convert *omni.Atom to omni.AtomInterface
-	if atom == nil {
-		return nil, fmt.Errorf("atom cannot be nil")
-	}
-	
 	atomInterface, ok := interface{}(atom).(omni.AtomInterface)
 	if !ok {
 		return nil, fmt.Errorf("failed to convert *omni.Atom to omni.AtomInterface")
 	}
-	
-	// Call the implementation that works with omni.AtomInterface
+
 	return t.renderAtom(atomInterface)
 }
 
@@ -64,7 +59,10 @@ func (t *BootstrapTheme) renderAtom(atom omni.AtomInterface) (*hb.Tag, error) {
 	default:
 		// For unknown atom types, fall back to a div with the atom type as a class
 		tag := hb.NewTag("div").Class(atom.GetType())
-		for _, child := range atom.GetChildren() {
+		for _, child := range atom.ChildrenGet() {
+			if child == nil {
+				continue
+			}
 			childTag, err := t.renderAtom(child)
 			if err != nil {
 				return nil, err
@@ -77,7 +75,10 @@ func (t *BootstrapTheme) renderAtom(atom omni.AtomInterface) (*hb.Tag, error) {
 
 func (t *BootstrapTheme) renderContainer(atom omni.AtomInterface) (*hb.Tag, error) {
 	container := hb.NewDiv().Class("container")
-	for _, child := range atom.GetChildren() {
+	for _, child := range atom.ChildrenGet() {
+		if child == nil {
+			continue
+		}
 		childTag, err := t.renderAtom(child)
 		if err != nil {
 			return nil, err
@@ -91,7 +92,10 @@ func (t *BootstrapTheme) renderHeader(atom omni.AtomInterface) (*hb.Tag, error) 
 	header := hb.NewTag("header").Class("navbar navbar-expand-lg navbar-light bg-light")
 
 	// Add children to header
-	for _, child := range atom.GetChildren() {
+	for _, child := range atom.ChildrenGet() {
+		if child == nil {
+			continue
+		}
 		childTag, err := t.renderAtom(child)
 		if err != nil {
 			return nil, err
@@ -107,7 +111,10 @@ func (t *BootstrapTheme) renderFooter(atom omni.AtomInterface) (*hb.Tag, error) 
 	container := hb.NewDiv().Class("container")
 
 	// Add children to footer
-	for _, child := range atom.GetChildren() {
+	for _, child := range atom.ChildrenGet() {
+		if child == nil {
+			continue
+		}
 		childTag, err := t.renderAtom(child)
 		if err != nil {
 			return nil, err
@@ -123,7 +130,10 @@ func (t *BootstrapTheme) renderMenu(atom omni.AtomInterface) (*hb.Tag, error) {
 	menu := hb.NewTag("ul").Class("navbar-nav me-auto mb-2 mb-lg-0")
 
 	// Add menu items
-	for _, child := range atom.GetChildren() {
+	for _, child := range atom.ChildrenGet() {
+		if child == nil {
+			continue
+		}
 		childTag, err := t.renderAtom(child)
 		if err != nil {
 			return nil, err
@@ -148,7 +158,10 @@ func (t *BootstrapTheme) renderMenuItem(atom omni.AtomInterface) (*hb.Tag, error
 	}
 
 	// Add any children (e.g., icons, badges)
-	for _, child := range atom.GetChildren() {
+	for _, child := range atom.ChildrenGet() {
+		if child == nil {
+			continue
+		}
 		childTag, err := t.renderAtom(child)
 		if err != nil {
 			return nil, err
@@ -167,7 +180,10 @@ func (t *BootstrapTheme) renderLink(atom omni.AtomInterface) (*hb.Tag, error) {
 	link := hb.NewTag("a").Attr("href", href).Text(text)
 
 	// Add any children (e.g., icons, badges)
-	for _, child := range atom.GetChildren() {
+	for _, child := range atom.ChildrenGet() {
+		if child == nil {
+			continue
+		}
 		childTag, err := t.renderAtom(child)
 		if err != nil {
 			return nil, err
@@ -201,7 +217,10 @@ func (t *BootstrapTheme) renderButton(atom omni.AtomInterface) (*hb.Tag, error) 
 	}
 
 	// Add any children (e.g., icons, badges)
-	for _, child := range atom.GetChildren() {
+	for _, child := range atom.ChildrenGet() {
+		if child == nil {
+			continue
+		}
 		childTag, err := t.renderAtom(child)
 		if err != nil {
 			return nil, err
@@ -239,6 +258,96 @@ func (t *BootstrapTheme) renderImage(atom omni.AtomInterface) (*hb.Tag, error) {
 	return img, nil
 }
 
-func (t *BootstrapTheme) renderText(atom *omni.Atom) (*hb.Tag, error) {
-	return hb.NewTag("span").Text(atom.Text), nil
+func (t *BootstrapTheme) renderText(atom omni.AtomInterface) (*hb.Tag, error) {
+	tag := hb.NewTag("div").Text(atom.Get("text"))
+	return tag, nil
+}
+
+// RenderDashboard renders a complete dashboard from Omni atoms
+func (t *BootstrapTheme) RenderDashboard(dashboard *omni.Atom) (string, error) {
+	// Convert *omni.Atom to omni.AtomInterface
+	dashboardInterface, ok := interface{}(dashboard).(omni.AtomInterface)
+	if !ok {
+		return "", fmt.Errorf("failed to convert *omni.Atom to omni.AtomInterface")
+	}
+
+	// Create the HTML document
+	html := hb.NewTag("html")
+	
+	// Create head section
+	head := hb.NewTag("head")
+	head.Child(hb.NewTag("meta").Attr("charset", "UTF-8"))
+	head.Child(hb.NewTag("meta").Attr("name", "viewport").Attr("content", "width=device-width, initial-scale=1.0"))
+	head.Child(hb.NewTag("title").Text("Dashboard"))
+	
+	// Add CSS links
+	for _, cssLink := range t.GetCSSLinks(false) {
+		head.Child(cssLink)
+	}
+
+	// Add custom CSS
+	if customCSS := t.GetCustomCSS(); customCSS != "" {
+		head.Child(hb.NewTag("style").HTML(customCSS))
+	}
+
+	html.Child(head)
+
+	// Create body section
+	body := hb.NewTag("body")
+	
+	// Create the main container
+	container := hb.NewTag("div").Class("container-fluid").Style("min-height: 100vh; display: flex; flex-direction: column;")
+
+	// Add header if exists
+	header := getChildByType(dashboardInterface, "header")
+	if header != nil {
+		headerTag, err := t.renderAtom(header)
+		if err != nil {
+			return "", fmt.Errorf("error rendering header: %w", err)
+		}
+		container.Child(headerTag)
+	}
+
+	// Create main content area
+	mainContent := hb.NewTag("main").Class("flex-grow-1 py-3")
+
+	// Add main content children
+	for _, child := range dashboard.ChildrenGet() {
+		if child.GetType() != "header" && child.GetType() != "footer" {
+			childTag, err := t.renderAtom(child)
+			if err != nil {
+				return "", fmt.Errorf("error rendering child %s: %w", child.GetType(), err)
+			}
+			mainContent.Child(childTag)
+		}
+	}
+
+	container.Child(mainContent)
+
+	// Add footer if exists
+	footer := getChildByType(dashboardInterface, "footer")
+	if footer != nil {
+		footerTag, err := t.renderAtom(footer)
+		if err != nil {
+			return "", fmt.Errorf("error rendering footer: %w", err)
+		}
+		container.Child(footerTag)
+	}
+
+	body.Child(container)
+
+	// Add JavaScript files
+	for _, jsScript := range t.GetJSScripts() {
+		body.Child(jsScript)
+	}
+
+	// Add custom JavaScript
+	if customJS := t.GetCustomJS(); customJS != "" {
+		body.Child(hb.NewTag("script").HTML(customJS))
+	}
+
+	html.Child(body)
+
+	// Return the complete HTML document
+	return "<!DOCTYPE html>\n" + html.ToHTML(), nil
 }

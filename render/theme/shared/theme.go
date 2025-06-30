@@ -3,6 +3,8 @@ package shared
 import (
 	"fmt"
 
+	"github.com/dracory/dashboard/render/atomizer"
+
 	"github.com/dracory/dashboard/model"
 	"github.com/dracory/omni"
 	"github.com/gouniverse/hb"
@@ -91,8 +93,8 @@ func (t *DefaultTheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 
 	// Helper function to get string property with default
 	getProp := func(key, def string) string {
-		if prop := atomInterface.GetProperty(key); prop != nil {
-			return prop.GetValue()
+		if atomInterface.Has(key) {
+			return atomInterface.Get(key)
 		}
 		return def
 	}
@@ -100,8 +102,12 @@ func (t *DefaultTheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 	switch atom.GetType() {
 	case "container":
 		tag := hb.NewDiv()
-		for _, child := range atom.GetChildren() {
-			childTag, err := t.RenderAtom(child.(*omni.Atom))
+		for _, child := range atomInterface.ChildrenGet() {
+			childPtr, err := toAtom(child)
+			if err != nil {
+				return nil, err
+			}
+			childTag, err := t.RenderAtom(childPtr)
 			if err != nil {
 				return nil, err
 			}
@@ -136,8 +142,12 @@ func (t *DefaultTheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 		link := hb.NewTag("a").Attr("href", href).Text(text)
 
 		// Add children if any
-		for _, child := range atom.GetChildren() {
-			childTag, err := t.RenderAtom(child.(*omni.Atom))
+		for _, child := range atomInterface.ChildrenGet() {
+			childPtr, err := toAtom(child)
+			if err != nil {
+				return nil, err
+			}
+			childTag, err := t.RenderAtom(childPtr)
 			if err != nil {
 				return nil, err
 			}
@@ -147,9 +157,13 @@ func (t *DefaultTheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 
 	case "menu", "menuItem":
 		list := hb.NewTag("ul")
-		for _, child := range atom.GetChildren() {
+		for _, child := range atomInterface.ChildrenGet() {
 			item := hb.NewTag("li")
-			childTag, err := t.RenderAtom(child.(*omni.Atom))
+			childPtr, err := toAtom(child)
+			if err != nil {
+				return nil, err
+			}
+			childTag, err := t.RenderAtom(childPtr)
 			if err != nil {
 				return nil, err
 			}
@@ -186,31 +200,40 @@ func (t *DefaultTheme) RenderDashboard(dashboard *omni.Atom) (string, error) {
 	}
 
 	// Get children
-	children := dashboardInterface.GetChildren()
+	children := dashboardInterface.ChildrenGet()
 	if len(children) < 3 {
 		return "", fmt.Errorf("dashboard must have at least 3 children (header, content, footer)")
 	}
 
 	// Render header if present
 	headerTag := hb.NewTag("header")
-	header, err := t.RenderAtom(children[0].(*omni.Atom))
-	if err == nil && header != nil {
-		headerTag.AddChild(header)
+	headerAtom, err := toAtom(children[0])
+	if err == nil {
+		header, err := t.RenderAtom(headerAtom)
+		if err == nil && header != nil {
+			headerTag.AddChild(header)
+		}
 	}
 
 	// Render content if present
 	contentTag := hb.NewTag("main")
-	content, err := t.RenderAtom(children[1].(*omni.Atom))
-	if err == nil && content != nil {
-		contentTag.AddChild(content)
+	contentAtom, err := toAtom(children[1])
+	if err == nil {
+		content, err := t.RenderAtom(contentAtom)
+		if err == nil && content != nil {
+			contentTag.AddChild(content)
+		}
 	}
 
 	// Render footer if present
 	footerTag := hb.NewTag("footer")
 	if len(children) > 2 {
-		footer, err := t.RenderAtom(children[2].(*omni.Atom))
-		if err == nil && footer != nil {
-			footerTag.AddChild(footer)
+		footerAtom, err := toAtom(children[2])
+		if err == nil {
+			footer, err := t.RenderAtom(footerAtom)
+			if err == nil && footer != nil {
+				footerTag.AddChild(footer)
+			}
 		}
 	}
 
@@ -221,8 +244,8 @@ func (t *DefaultTheme) RenderDashboard(dashboard *omni.Atom) (string, error) {
 	
 	// Add title
 	title := "Dashboard"
-	if prop := dashboardInterface.GetProperty("title"); prop != nil {
-		title = prop.GetValue()
+	if dashboardInterface.Has("title") {
+		title = dashboardInterface.Get("title")
 	}
 	headTag.AddChild(hb.NewTag("title").Text(title))
 
@@ -270,6 +293,39 @@ func (t *DefaultTheme) RenderHeader(d DashboardRenderer) *hb.Tag {
 	return header
 }
 
+// toAtom converts an interface to *omni.Atom
+func toAtom(atom interface{}) (*omni.Atom, error) {
+	switch a := atom.(type) {
+	case *omni.Atom:
+		return a, nil
+	case omni.AtomInterface:
+		// Try to convert AtomInterface to *omni.Atom if possible
+		if atomPtr, ok := a.(*omni.Atom); ok {
+			return atomPtr, nil
+		}
+		// Create a new atom using NewAtom with the same type
+		newAtom := atomizer.NewAtom(a.GetType())
+		// Copy properties
+		allProps := a.GetAll()
+		for key, value := range allProps {
+			newAtom.Set(key, value)
+		}
+		// Copy children
+		for _, child := range a.ChildrenGet() {
+			if child != nil {
+				newAtom.ChildAdd(child)
+			}
+		}
+		// Convert back to *omni.Atom if possible
+		if atomPtr, ok := newAtom.(*omni.Atom); ok {
+			return atomPtr, nil
+		}
+		return nil, fmt.Errorf("failed to convert to *omni.Atom")
+	default:
+		return nil, fmt.Errorf("unsupported atom type: %T", atom)
+	}
+}
+
 // RenderFooter renders a basic footer for the default theme
 func (t *DefaultTheme) RenderFooter(d DashboardRenderer) *hb.Tag {
 	leftCol := hb.NewDiv().
@@ -285,13 +341,8 @@ func (t *DefaultTheme) RenderFooter(d DashboardRenderer) *hb.Tag {
 		AddChild(leftCol).
 		AddChild(rightCol)
 
-	container := hb.NewDiv().
-		Class("container-fluid").
-		AddChild(row)
+	container := hb.NewDiv().Class("container").AddChild(row)
 
-	footer := hb.NewFooter().
-		Class("d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top").
-		AddChild(container)
-
+	footer := hb.NewFooter().Class("mt-auto py-3 bg-light").AddChild(container)
 	return footer
 }

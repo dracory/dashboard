@@ -8,19 +8,19 @@ import (
 // Transformer converts dashboard model to Omni atoms
 type Transformer interface {
 	// TransformDashboard converts a dashboard model to an Omni atom tree
-	TransformDashboard(dashboard model.DashboardRenderer) (*omni.Atom, error)
+	TransformDashboard(dashboard model.DashboardRenderer) (omni.AtomInterface, error)
 
 	// TransformHeader converts dashboard header to an Omni atom
-	TransformHeader(dashboard model.DashboardRenderer) (*omni.Atom, error)
+	TransformHeader(dashboard model.DashboardRenderer) (omni.AtomInterface, error)
 
 	// TransformFooter converts dashboard footer to an Omni atom
-	TransformFooter(dashboard model.DashboardRenderer) (*omni.Atom, error)
+	TransformFooter(dashboard model.DashboardRenderer) (omni.AtomInterface, error)
 
 	// TransformMenu converts a menu item to an Omni atom
-	TransformMenu(menu []model.MenuItem) (*omni.Atom, error)
+	TransformMenu(menu []model.MenuItem) (omni.AtomInterface, error)
 
 	// TransformUserMenu converts the user menu to an Omni atom
-	TransformUserMenu(user model.User, menu []model.MenuItem) (*omni.Atom, error)
+	TransformUserMenu(user model.User, menu []model.MenuItem) (omni.AtomInterface, error)
 }
 
 // NewTransformer creates a new dashboard to Omni transformer

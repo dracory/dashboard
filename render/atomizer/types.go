@@ -57,28 +57,28 @@ const (
 )
 
 // NewAtom creates a new Omni atom with the given type and options
-func NewAtom(atomType string, options ...omni.AtomOption) *omni.Atom {
+func NewAtom(atomType string, options ...omni.AtomOption) omni.AtomInterface {
 	return omni.NewAtom(atomType, options...)
 }
 
 // WithText sets the text content of an atom
 func WithText(text string) omni.AtomOption {
 	return func(a *omni.Atom) {
-		a.SetProperty(omni.NewProperty(PropText, text))
+		a.Set(PropText, text)
 	}
 }
 
 // WithClass adds a CSS class to an atom
 func WithClass(className string) omni.AtomOption {
 	return func(a *omni.Atom) {
-		a.SetProperty(omni.NewProperty(PropClass, className))
+		a.Set(PropClass, className)
 	}
 }
 
 // WithVariant sets the variant of a UI component
 func WithVariant(variant string) omni.AtomOption {
 	return func(a *omni.Atom) {
-		a.SetProperty(omni.NewProperty(PropVariant, variant))
+		a.Set(PropVariant, variant)
 	}
 }
 
@@ -87,7 +87,7 @@ func WithChildren(children ...*omni.Atom) omni.AtomOption {
 	return func(a *omni.Atom) {
 		for _, child := range children {
 			if child != nil {
-				a.AddChild(child)
+				a.ChildAdd(child)
 			}
 		}
 	}

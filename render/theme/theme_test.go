@@ -1,20 +1,20 @@
 package theme_test
 
 import (
+	"fmt"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-	"dracorys.io/dashboard/render/theme"
-	"dracorys.io/dashboard/render/theme/adminlte"
-	"dracorys.io/dashboard/render/theme/bootstrap"
-	"dracorys.io/dashboard/render/theme/tabler"
-	"dracorys.io/dashboard/render/omni"
+	"github.com/dracory/dashboard/render/theme/shared"
+	"github.com/dracory/dashboard/render/theme/adminlte"
+	"github.com/dracory/dashboard/render/theme/bootstrap"
+	"github.com/dracory/dashboard/render/theme/tabler"
+	"github.com/dracory/omni"
 )
 
 func TestThemeRendering(t *testing.T) {
 	tests := []struct {
 		name  string
-		theme theme.Theme
+		theme shared.Theme
 	}{
 		{
 			name:  "Bootstrap",
@@ -32,30 +32,74 @@ func TestThemeRendering(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Test container rendering
-			container := omni.NewAtom("container")
-			_, err := tt.theme.RenderAtom(container)
-			assert.NoError(t, err, "%s: Failed to render container", tt.name)
+			testCases := []struct {
+				name     string
+				testFunc func() error
+			}{
+				{
+					name: "container",
+					testFunc: func() error {
+						atom := omni.NewAtom("container")
+						if atomPtr, ok := atom.(*omni.Atom); ok {
+							_, err := tt.theme.RenderAtom(atomPtr)
+							return err
+						}
+						return fmt.Errorf("failed to convert omni.AtomInterface to *omni.Atom")
+					},
+				},
+				{
+					name: "header",
+					testFunc: func() error {
+						atom := omni.NewAtom("header")
+						if atomPtr, ok := atom.(*omni.Atom); ok {
+							_, err := tt.theme.RenderAtom(atomPtr)
+							return err
+						}
+						return fmt.Errorf("failed to convert omni.AtomInterface to *omni.Atom")
+					},
+				},
+				{
+					name: "footer",
+					testFunc: func() error {
+						atom := omni.NewAtom("footer")
+						if atomPtr, ok := atom.(*omni.Atom); ok {
+							_, err := tt.theme.RenderAtom(atomPtr)
+							return err
+						}
+						return fmt.Errorf("failed to convert omni.AtomInterface to *omni.Atom")
+					},
+				},
+				{
+					name: "menu",
+					testFunc: func() error {
+						atom := omni.NewAtom("menu")
+						if atomPtr, ok := atom.(*omni.Atom); ok {
+							_, err := tt.theme.RenderAtom(atomPtr)
+							return err
+						}
+						return fmt.Errorf("failed to convert omni.AtomInterface to *omni.Atom")
+					},
+				},
+				{
+					name: "dashboard",
+					testFunc: func() error {
+						atom := omni.NewAtom("dashboard")
+						if atomPtr, ok := atom.(*omni.Atom); ok {
+							_, err := tt.theme.RenderDashboard(atomPtr)
+							return err
+						}
+						return fmt.Errorf("failed to convert omni.AtomInterface to *omni.Atom")
+					},
+				},
+			}
 
-			// Test header rendering
-			header := omni.NewAtom("header")
-			_, err = tt.theme.RenderAtom(header)
-			assert.NoError(t, err, "%s: Failed to render header", tt.name)
-
-			// Test footer rendering
-			footer := omni.NewAtom("footer")
-			_, err = tt.theme.RenderAtom(footer)
-			assert.NoError(t, err, "%s: Failed to render footer", tt.name)
-
-			// Test menu rendering
-			menu := omni.NewAtom("menu")
-			_, err = tt.theme.RenderAtom(menu)
-			assert.NoError(t, err, "%s: Failed to render menu", tt.name)
-
-			// Test dashboard rendering
-			dashboard := omni.NewAtom("dashboard")
-			_, err = tt.theme.RenderDashboard(dashboard)
-			assert.NoError(t, err, "%s: Failed to render dashboard", tt.name)
+			for _, tc := range testCases {
+				t.Run(tc.name, func(t *testing.T) {
+					if err := tc.testFunc(); err != nil {
+						t.Fatalf("%s: Failed to render %s: %v", tt.name, tc.name, err)
+					}
+				})
+			}
 		})
 	}
 }

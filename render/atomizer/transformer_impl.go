@@ -8,7 +8,7 @@ import (
 )
 
 // TransformDashboard converts a dashboard model to an Omni atom tree
-func (t *defaultTransformer) TransformDashboard(dashboard model.DashboardRenderer) (*omni.Atom, error) {
+func (t *defaultTransformer) TransformDashboard(dashboard model.DashboardRenderer) (omni.AtomInterface, error) {
 	dashboardAtom := NewAtom(AtomTypeDashboard)
 
 	// Add header
@@ -16,44 +16,45 @@ func (t *defaultTransformer) TransformDashboard(dashboard model.DashboardRendere
 	if err != nil {
 		return nil, fmt.Errorf("failed to transform header: %w", err)
 	}
-	dashboardAtom.AddChild(header)
+	dashboardAtom.ChildAdd(header)
 
 	// Add content
 	content := NewAtom(AtomTypeContent,
 		WithText(dashboard.GetContent()),
 	)
-	dashboardAtom.AddChild(content)
+	dashboardAtom.ChildAdd(content)
 
 	// Add footer
 	footer, err := t.TransformFooter(dashboard)
 	if err != nil {
 		return nil, fmt.Errorf("failed to transform footer: %w", err)
 	}
-	dashboardAtom.AddChild(footer)
+	dashboardAtom.ChildAdd(footer)
 
 	return dashboardAtom, nil
 }
 
 // TransformHeader converts the dashboard header to an Omni atom
-func (t *defaultTransformer) TransformHeader(dashboard model.DashboardRenderer) (*omni.Atom, error) {
+func (t *defaultTransformer) TransformHeader(dashboard model.DashboardRenderer) (omni.AtomInterface, error) {
 	header := NewAtom(AtomTypeHeader)
 
 	// Add logo if available
 	if logoURL := dashboard.GetLogoImageURL(); logoURL != "" {
 		logo := NewAtom(AtomTypeLink,
-			omni.WithProperties(
-				omni.NewProperty(PropHref, dashboard.GetLogoRedirectURL()),
-			),
+			omni.WithProperties(map[string]string{
+				PropText: "Logo",
+				PropHref: dashboard.GetLogoRedirectURL(),
+			}),
 		)
 
 		img := NewAtom(AtomTypeImage,
-			omni.WithProperties(
-				omni.NewProperty(PropSrc, logoURL),
-				omni.NewProperty(PropAlt, "Logo"),
-			),
+			omni.WithProperties(map[string]string{
+				PropSrc: logoURL,
+				PropAlt: "Logo",
+			}),
 		)
-		logo.AddChild(img)
-		header.AddChild(logo)
+		logo.ChildAdd(img)
+		header.ChildAdd(logo)
 	}
 
 	// Add main navigation menu
@@ -62,7 +63,7 @@ func (t *defaultTransformer) TransformHeader(dashboard model.DashboardRenderer) 
 		if err != nil {
 			return nil, fmt.Errorf("failed to transform main menu: %w", err)
 		}
-		header.AddChild(menu)
+		header.ChildAdd(menu)
 	}
 
 	// Add user menu if user is logged in
@@ -72,21 +73,21 @@ func (t *defaultTransformer) TransformHeader(dashboard model.DashboardRenderer) 
 		if err != nil {
 			return nil, fmt.Errorf("failed to transform user menu: %w", err)
 		}
-		header.AddChild(userMenu)
+		header.ChildAdd(userMenu)
 	}
 
 	return header, nil
 }
 
 // TransformFooter converts the dashboard footer to an Omni atom
-func (t *defaultTransformer) TransformFooter(dashboard model.DashboardRenderer) (*omni.Atom, error) {
+func (t *defaultTransformer) TransformFooter(dashboard model.DashboardRenderer) (omni.AtomInterface, error) {
 	footer := NewAtom(AtomTypeFooter)
 	// Add footer content here
 	return footer, nil
 }
 
 // TransformMenu converts a list of menu items to an Omni menu atom
-func (t *defaultTransformer) TransformMenu(menuItems []model.MenuItem) (*omni.Atom, error) {
+func (t *defaultTransformer) TransformMenu(menuItems []model.MenuItem) (omni.AtomInterface, error) {
 	menu := NewAtom(AtomTypeMenu)
 
 	for _, item := range menuItems {
@@ -94,30 +95,30 @@ func (t *defaultTransformer) TransformMenu(menuItems []model.MenuItem) (*omni.At
 		if err != nil {
 			return nil, fmt.Errorf("failed to transform menu item: %w", err)
 		}
-		menu.AddChild(menuItem)
+		menu.ChildAdd(menuItem)
 	}
 
 	return menu, nil
 }
 
 // transformMenuItem converts a single menu item to an Omni atom
-func (t *defaultTransformer) transformMenuItem(item model.MenuItem) (*omni.Atom, error) {
+func (t *defaultTransformer) transformMenuItem(item model.MenuItem) (omni.AtomInterface, error) {
 	// Create menu item with type
 	menuItem := NewAtom(AtomTypeMenuItem)
 
 	// Set properties using omni.NewProperty
 	if item.Text != "" {
-		menuItem.SetProperty(omni.NewProperty(PropText, item.Text))
+		menuItem.Set(PropText, item.Text)
 	}
 
 	// Add URL property if present
 	if item.URL != "" {
-		menuItem.SetProperty(omni.NewProperty(PropHref, item.URL))
+		menuItem.Set(PropHref, item.URL)
 	}
 
 	// Add active state if true
 	if item.Active {
-		menuItem.SetProperty(omni.NewProperty(PropActive, "true"))
+		menuItem.Set(PropActive, "true")
 	}
 
 	// Add submenu items if any
@@ -126,20 +127,20 @@ func (t *defaultTransformer) transformMenuItem(item model.MenuItem) (*omni.Atom,
 		if err != nil {
 			return nil, fmt.Errorf("failed to transform submenu: %w", err)
 		}
-		menuItem.AddChild(submenu)
+		menuItem.ChildAdd(submenu)
 	}
 
 	return menuItem, nil
 }
 
 // TransformUserMenu converts the user menu to an Omni atom
-func (t *defaultTransformer) TransformUserMenu(user model.User, menuItems []model.MenuItem) (*omni.Atom, error) {
+func (t *defaultTransformer) TransformUserMenu(user model.User, menuItems []model.MenuItem) (omni.AtomInterface, error) {
 	userMenu := NewAtom("user_menu")
 
 	// Add user info
 	userInfo := NewAtom("user_info")
-	userInfo.SetProperty(omni.NewProperty(PropText, user.Name))
-	userMenu.AddChild(userInfo)
+	userInfo.Set(PropText, user.Name)
+	userMenu.ChildAdd(userInfo)
 
 	// Add user menu items
 	if len(menuItems) > 0 {
@@ -147,7 +148,7 @@ func (t *defaultTransformer) TransformUserMenu(user model.User, menuItems []mode
 		if err != nil {
 			return nil, fmt.Errorf("failed to transform user menu items: %w", err)
 		}
-		userMenu.AddChild(menu)
+		userMenu.ChildAdd(menu)
 	}
 
 	return userMenu, nil

@@ -44,11 +44,18 @@ func (m *manager) Register(tmpl shared.Template) {
 
 // Get returns a template by name, or the default template if not found
 func (m *manager) Get(name string) shared.Template {
+	// Skip if name is empty or a color mode (light/dark)
+	if name == "" || name == "light" || name == "dark" {
+		fmt.Printf("[DEBUG] Using default template: %s (requested: %s)\n", m.defaultTmpl.GetName(), name)
+		return m.defaultTmpl
+	}
+
 	fmt.Printf("[DEBUG] Requested template: %s\n", name)
 	if tmpl, exists := m.templates[name]; exists {
 		fmt.Printf("[DEBUG] Found template: %s\n", name)
 		return tmpl
 	}
+	
 	fmt.Printf("[WARN] Template not found: %s, using default: %s\n", name, m.defaultTmpl.GetName())
 	return m.defaultTmpl
 }

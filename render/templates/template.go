@@ -2,8 +2,8 @@ package templates
 
 import "github.com/gouniverse/hb"
 
-// Theme defines the interface for dashboard themes
-type Theme interface {
+// Template defines the interface for dashboard themes
+type Template interface {
 	// GetName returns the theme's name
 	GetName() string
 

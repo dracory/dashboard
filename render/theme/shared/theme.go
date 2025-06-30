@@ -15,6 +15,9 @@ type DashboardRenderer = model.DashboardRenderer
 
 // Theme defines the interface for dashboard themes
 type Theme interface {
+	// RenderPage renders a complete page with the given content
+	// and dashboard renderer
+	RenderPage(content string, d DashboardRenderer) (*hb.Tag, error)
 	// GetName returns the theme's name
 	GetName() string
 
@@ -47,6 +50,67 @@ type Theme interface {
 
 // DefaultTheme is a basic theme implementation that can be used as a fallback
 type DefaultTheme struct{}
+
+// RenderPage renders a complete page with the given content and dashboard renderer
+func (t *DefaultTheme) RenderPage(content string, d DashboardRenderer) (*hb.Tag, error) {
+	header := t.RenderHeader(d)
+	footer := t.RenderFooter(d)
+
+	// Create the head section
+	head := hb.NewTag("head").
+		Child(hb.Meta().Attr("charset", "utf-8")).
+		Child(hb.Meta().Name("viewport").Attr("content", "width=device-width, initial-scale=1, viewport-fit=cover")).
+		Child(hb.Meta().Attr("http-equiv", "X-UA-Compatible").Attr("content", "ie=edge")).
+		Child(hb.Title().Text("Dashboard"))
+
+	// Add favicon if available
+	if d.GetFaviconURL() != "" {
+		head.Child(hb.Link().Rel("icon").Href(d.GetFaviconURL()))
+	}
+
+	// Add theme CSS
+	cssLinks := t.GetCSSLinks(t.isDarkColorScheme(d))
+	for _, link := range cssLinks {
+		head.Child(link)
+	}
+
+	// Create the body section
+	bodyAttrs := map[string]string{}
+	if t.isDarkColorScheme(d) {
+		bodyAttrs["data-bs-theme"] = "dark"
+	}
+
+	body := hb.NewTag("body").
+		Attrs(bodyAttrs).
+		ChildIf(header != nil, header).
+		Child(hb.NewHTML(content)).
+		ChildIf(footer != nil, footer)
+
+	// Add JavaScript
+	for _, script := range t.GetJSScripts() {
+		body.Child(script)
+	}
+
+	// Add custom JavaScript
+	if customJS := t.GetCustomJS(); customJS != "" {
+		body.Child(hb.Script(customJS))
+	}
+
+	// Create HTML document
+	html := hb.NewTag("html").
+		Attr("lang", "en").
+		Child(head).
+		Child(body)
+
+	return hb.Wrap().
+		Child(hb.NewHTML("<!DOCTYPE html>")).
+		Child(html), nil
+}
+
+// isDarkColorScheme checks if the color scheme should be dark
+func (t *DefaultTheme) isDarkColorScheme(d DashboardRenderer) bool {
+	return d.GetNavbarBackgroundColorMode() == "dark"
+}
 
 // GetName returns the name of the default theme
 func (t *DefaultTheme) GetName() string {
@@ -241,7 +305,7 @@ func (t *DefaultTheme) RenderDashboard(dashboard *omni.Atom) (string, error) {
 	html := hb.NewTag("html")
 	headTag := hb.NewTag("head")
 	html.AddChild(headTag)
-	
+
 	// Add title
 	title := "Dashboard"
 	if dashboardInterface.Has("title") {

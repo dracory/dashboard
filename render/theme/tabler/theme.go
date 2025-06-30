@@ -9,7 +9,9 @@ import (
 )
 
 // TablerTheme implements the shared.Theme interface for Tabler
-type TablerTheme struct{}
+type TablerTheme struct {
+	shared.DefaultTheme // Embed DefaultTheme to inherit default implementations
+}
 
 // New creates a new instance of the Tabler theme
 func New() *TablerTheme {
@@ -69,19 +71,104 @@ func (t *TablerTheme) GetCustomJS() string {
 	`
 }
 
+// RenderPage renders a complete page with the given content and dashboard renderer
+func (t *TablerTheme) RenderPage(content string, d shared.DashboardRenderer) (*hb.Tag, error) {
+	// Create the head section
+	head := hb.NewTag("head").
+		Child(hb.NewTag("meta").Attr("charset", "utf-8")).
+		Child(hb.NewTag("meta").Attr("name", "viewport").Attr("content", "width=device-width, initial-scale=1, viewport-fit=cover")).
+		Child(hb.NewTag("meta").Attr("http-equiv", "X-UA-Compatible").Attr("content", "ie=edge")).
+		Child(hb.NewTag("title").Text("Dashboard"))
+
+	// Add favicon if available
+	if d.GetFaviconURL() != "" {
+		head.Child(hb.NewTag("link").Attr("rel", "icon").Attr("href", d.GetFaviconURL()))
+	}
+
+	// Add theme CSS
+	cssLinks := t.GetCSSLinks(t.isDarkColorScheme(d))
+	for _, link := range cssLinks {
+		head.Child(link)
+	}
+
+	// Create the body section with Tabler classes
+	bodyAttrs := map[string]string{
+		"class": "antialiased",
+	}
+	if t.isDarkColorScheme(d) {
+		bodyAttrs["data-bs-theme"] = "dark"
+	}
+
+	body := hb.NewTag("body").Attrs(bodyAttrs)
+
+	// Add header
+	header := t.RenderHeader(d)
+	if header != nil {
+		body.Child(header)
+	}
+
+	// Create page wrapper
+	pageWrapper := hb.NewDiv().Class("page-wrapper")
+
+	// Add main content
+	contentContainer := hb.NewDiv().Class("container-xl").
+		AddChild(hb.NewHTML(content))
+
+	pageContent := hb.NewDiv().Class("page-body").
+		AddChild(contentContainer)
+
+	pageWrapper.Child(pageContent)
+
+	// Add footer
+	footer := t.RenderFooter(d)
+	if footer != nil {
+		pageWrapper.Child(footer)
+	}
+
+	// Create page container
+	pageContainer := hb.NewDiv().Class("page").
+		AddChild(pageWrapper)
+
+	body.Child(pageContainer)
+
+	// Add JavaScript
+	for _, script := range t.GetJSScripts() {
+		body.Child(script)
+	}
+
+	// Add custom JavaScript
+	if customJS := t.GetCustomJS(); customJS != "" {
+		body.Child(hb.NewTag("script").Text(customJS))
+	}
+
+	// Create HTML document
+	html := hb.NewTag("html").Attr("lang", "en").
+		Child(head).
+		Child(body)
+
+	return hb.Wrap().
+		Child(hb.NewHTML("<!DOCTYPE html>")).
+		Child(html), nil
+}
+
+// isDarkColorScheme checks if the color scheme should be dark
+func (t *TablerTheme) isDarkColorScheme(d shared.DashboardRenderer) bool {
+	return d.GetNavbarBackgroundColorMode() == "dark"
+}
+
 // RenderHeader renders the header of the dashboard
 func (t *TablerTheme) RenderHeader(d model.DashboardRenderer) *hb.Tag {
 	fmt.Printf("[DEBUG] TablerTheme.RenderHeader called for theme: %s, dashboard theme: %s\n", t.GetName(), d.GetThemeName())
 	
 	// Main header container
-	header := hb.NewHeader().Class("navbar navbar-expand-md navbar-light")
-	header.Attr("data-bs-theme", "light") // Force light theme for header
+	header := hb.NewHeader().Class("navbar navbar-expand-md navbar-dark bg-primary")
+	header.Attr("data-bs-theme", "dark") // Use dark theme for header for better contrast
 
 	// Container for header content
 	container := hb.NewDiv().Class("container-fluid")
 
 	// Logo on the left
-	logoLink := hb.NewLink().Href("/").Class("navbar-brand")
+	logoLink := hb.NewLink().Href("/").Class("navbar-brand me-0 me-md-3")
 	logoImg := hb.NewImage().Src(d.GetLogoImageURL()).Alt("Logo").Class("navbar-brand-image")
 	logoLink.Child(logoImg)
 
@@ -99,16 +186,34 @@ func (t *TablerTheme) RenderHeader(d model.DashboardRenderer) *hb.Tag {
 	// Primary navigation container
 	navbarNav := hb.NewDiv().Class("d-flex flex-column flex-md-row flex-fill align-items-stretch align-items-md-center")
 	
-	// Main navigation items
-	navbarNavInner := hb.NewTag("ul").Class("navbar-nav")
+	// Main navigation items (First row)
+	navbarNavInner := hb.NewTag("ul").Class("navbar-nav me-auto")
 	
-	// Add menu items
+	// Add main menu items (first level)
 	for _, item := range d.GetMenuItems() {
 		navbarNavInner.Child(renderNavItem(item))
 	}
 	
 	navbarNav.Child(navbarNavInner)
+
+	// Secondary navigation (Second row) - Only shown on larger screens
+	secondaryNav := hb.NewTag("ul").Class("navbar-nav d-none d-lg-flex ms-auto")
+	
+	// Add secondary menu items if available
+	if secondaryItems, ok := d.(interface{ GetSecondaryMenuItems() []model.MenuItem }); ok {
+		for _, item := range secondaryItems.GetSecondaryMenuItems() {
+			secondaryNav.Child(renderNavItem(item))
+		}
+	}
+
+	// Add both navigation rows to the navbar collapse
 	navbarCollapse.Child(navbarNav)
+	
+	// Check if we have any secondary navigation items by checking if the secondary nav has any children
+	// The ToHTML() check ensures we don't add an empty nav
+	if secondaryNav.ToHTML() != "<ul class=\"navbar-nav d-none d-lg-flex ms-auto\"></ul>" {
+		navbarCollapse.Child(hb.NewDiv().Class("navbar-nav-secondary").Child(secondaryNav))
+	}
 
 	// Header controls (right side)
 	headerControls := hb.NewDiv().Class("d-flex order-lg-2 ms-auto")
@@ -233,12 +338,18 @@ func renderNavItem(item model.MenuItem) *hb.Tag {
 	
 	navLink := hb.NewTag("a")
 	if len(item.SubMenu) > 0 {
-		navLink.Class("nav-link dropdown-toggle")
+		navLink.Class("nav-link dropdown-toggle text-white")
 		navLink.Attr("data-bs-toggle", "dropdown")
 		navLink.Attr("role", "button")
 		navLink.Attr("aria-expanded", "false")
 	} else {
-		navLink.Class("nav-link")
+		navLink.Class("nav-link text-white")
+	}
+	
+	// Add hover and active states
+	navLink.Class("px-3 py-2 d-flex align-items-center")
+	if item.Active {
+		navLink.Class("active fw-bold")
 	}
 	
 	// Set attributes
@@ -267,7 +378,8 @@ func renderNavItem(item model.MenuItem) *hb.Tag {
 	
 	// Handle submenu if present
 	if len(item.SubMenu) > 0 {
-		dropdownMenu := hb.NewTag("ul").Class("dropdown-menu dropdown-menu-arrow")
+		dropdownMenu := hb.NewTag("ul").Class("dropdown-menu dropdown-menu-arrow dropdown-menu-dark")
+		dropdownMenu.Attr("data-bs-popper", "static")
 		
 		for _, subItem := range item.SubMenu {
 			dropdownItem := hb.NewTag("li")

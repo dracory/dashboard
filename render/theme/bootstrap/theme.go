@@ -7,7 +7,9 @@ import (
 )
 
 // BootstrapTheme implements the shared.Theme interface for Bootstrap 5
-type BootstrapTheme struct{}
+type BootstrapTheme struct {
+	shared.DefaultTheme // Embed DefaultTheme to inherit default implementations
+}
 
 // New creates a new instance of the Bootstrap theme
 func New() *BootstrapTheme {
@@ -183,4 +185,80 @@ func (t *BootstrapTheme) GetCustomJS() string {
 			document.body.setAttribute('data-bs-theme', theme);
 		}
 	`
+}
+
+// RenderPage renders a complete page with the given content and dashboard renderer
+func (t *BootstrapTheme) RenderPage(content string, d shared.DashboardRenderer) (*hb.Tag, error) {
+	// Create the head section
+	head := hb.NewTag("head").
+		Child(hb.NewTag("meta").Attr("charset", "utf-8")).
+		Child(hb.NewTag("meta").Attr("name", "viewport").Attr("content", "width=device-width, initial-scale=1")).
+		Child(hb.NewTag("title").Text("Dashboard"))
+
+	// Add favicon if available
+	if d.GetFaviconURL() != "" {
+		head.Child(hb.NewTag("link").Attr("rel", "icon").Attr("href", d.GetFaviconURL()))
+	}
+
+	// Add theme CSS
+	cssLinks := t.GetCSSLinks(t.isDarkColorScheme(d))
+	for _, link := range cssLinks {
+		head.Child(link)
+	}
+
+	// Create the body section with Bootstrap classes
+	bodyAttrs := map[string]string{
+		"class": "d-flex flex-column min-vh-100",
+	}
+	if t.isDarkColorScheme(d) {
+		bodyAttrs["data-bs-theme"] = "dark"
+	}
+
+	body := hb.NewTag("body").Attrs(bodyAttrs)
+
+	// Add header
+	header := t.RenderHeader(d)
+	if header != nil {
+		body.Child(header)
+	}
+
+	// Create main content area
+	mainContent := hb.NewTag("main").Class("flex-grow-1 py-3")
+	
+	// Create container for content
+	container := hb.NewDiv().Class("container")
+	container.Child(hb.NewHTML(content))
+	mainContent.Child(container)
+	
+	body.Child(mainContent)
+
+	// Add footer
+	footer := t.RenderFooter(d)
+	if footer != nil {
+		body.Child(footer)
+	}
+
+	// Add JavaScript
+	for _, script := range t.GetJSScripts() {
+		body.Child(script)
+	}
+
+	// Add custom JavaScript
+	if customJS := t.GetCustomJS(); customJS != "" {
+		body.Child(hb.NewTag("script").Text(customJS))
+	}
+
+	// Create HTML document
+	html := hb.NewTag("html").Attr("lang", "en").
+		Child(head).
+		Child(body)
+
+	return hb.Wrap().
+		Child(hb.NewHTML("<!DOCTYPE html>")).
+		Child(html), nil
+}
+
+// isDarkColorScheme checks if the color scheme should be dark
+func (t *BootstrapTheme) isDarkColorScheme(d shared.DashboardRenderer) bool {
+	return d.GetNavbarBackgroundColorMode() == "dark"
 }

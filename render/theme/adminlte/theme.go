@@ -1,6 +1,8 @@
 package adminlte
 
 import (
+	"strings"
+
 	"github.com/dracory/dashboard/render"
 	"github.com/dracory/dashboard/render/theme/shared"
 	"github.com/dracory/omni"
@@ -183,43 +185,152 @@ func (t *AdminLTETheme) GetCustomCSS() string {
 // GetCustomJS returns any custom JavaScript for the theme
 func (t *AdminLTETheme) GetCustomJS() string {
 	return `
-		// Initialize AdminLTE
+		// Enable sidebar toggle
 		document.addEventListener('DOMContentLoaded', function() {
+			// Enable push menu
+			$('[data-widget="pushmenu"]').PushMenu('toggle');
+
 			// Enable tooltips
 			$('[data-toggle="tooltip"]').tooltip();
-			
+
 			// Enable popovers
 			$('[data-toggle="popover"]').popover();
-			
-			// Initialize sidebar menu
-			$('[data-widget="treeview"]').each(function() {
+
+			// Enable sidebar tree view
+			$("[data-widget='treeview']").each(function() {
 				$(this).Treeview('init');
 			});
-			
-			// Theme switcher
-			$('[data-bs-theme-value]').on('click', function() {
-				var theme = $(this).data('bs-theme-value');
-				$('body')
-					.removeClass('dark-mode')
-					.removeClass('light-mode');
-				
-				if (theme === 'dark') {
-					$('body').addClass('dark-mode');
-				} else {
-					$('body').addClass('light-mode');
+
+			// Enable direct tree link
+			$(".nav-link, .nav-item a").on('click', function() {
+				var $this = $(this);
+				if ($this.is('a') && $this.attr('href') === '#') {
+					event.preventDefault();
+					return false;
 				}
-				
-				localStorage.setItem('theme', theme);
+				if (!$this.parent().hasClass('menu-open') && !$this.parent().find('> .nav-treeview').is(':visible')) {
+					var menu = $this.next();
+					if (menu.is('.nav-treeview')) {
+						event.preventDefault();
+						menu.slideToggle();
+						$this.parent().toggleClass('menu-open');
+					}
+				}
 			});
-			
-			// Set theme from localStorage
-			var theme = localStorage.getItem('theme');
-			if (theme) {
-				$('body')
-					.removeClass('dark-mode')
-					.removeClass('light-mode')
-					.addClass(theme + '-mode');
-			}
+
+			// Add active class to current menu item
+			var url = window.location.href;
+			$("ul.nav-sidebar a").filter(function() {
+				return this.href === url;
+			}).addClass('active');
+
+			// Add active class to parent menu item
+			$("ul.nav-treeview a").filter(function() {
+				return this.href === url;
+			}).parentsUntil('.nav-sidebar > .nav-treeview').addClass('menu-open').prev('a').addClass('active');
+
+			// Auto-expand active menu item
+			$('ul.nav-treeview').each(function() {
+				if ($(this).find('a.active').length) {
+					$(this).parent().addClass('menu-open');
+				}
+			});
 		});
 	`
+}
+
+// RenderPage renders a complete page with the given content and dashboard renderer
+func (t *AdminLTETheme) RenderPage(content string, d shared.DashboardRenderer) (*hb.Tag, error) {
+	// Create the head section
+	head := hb.NewTag("head").
+		Child(hb.NewTag("meta").Attr("charset", "utf-8")).
+		Child(hb.NewTag("meta").Attr("name", "viewport").Attr("content", "width=device-width, initial-scale=1")).
+		Child(hb.NewTag("meta").Attr("http-equiv", "X-UA-Compatible").Attr("content", "ie=edge")).
+		Child(hb.NewTag("title").Text("Dashboard"))
+
+	// Add favicon if available
+	if d.GetFaviconURL() != "" {
+		head.Child(hb.NewTag("link").Attr("rel", "icon").Attr("href", d.GetFaviconURL()))
+	}
+
+	// Add theme CSS
+	cssLinks := t.GetCSSLinks(t.isDarkColorScheme(d))
+	for _, link := range cssLinks {
+		head.Child(link)
+	}
+
+	// Create the body section with AdminLTE classes
+	bodyClasses := []string{
+		"hold-transition",
+		"sidebar-mini",
+		"layout-fixed",
+	}
+	if t.isDarkColorScheme(d) {
+		bodyClasses = append(bodyClasses, "dark-mode")
+	}
+
+	body := hb.NewTag("body").Class(strings.Join(bodyClasses, " "))
+
+	// Create wrapper
+	wrapper := hb.NewDiv().Class("wrapper")
+
+	// Add header
+	header := t.RenderHeader(d)
+	if header != nil {
+		wrapper.Child(header)
+	}
+
+	// Create main content area
+	contentWrapper := hb.NewDiv().Class("content-wrapper")
+	
+	// Content header
+	contentHeader := hb.NewDiv().Class("content-header")
+	contentHeader.Child(hb.NewDiv().Class("container-fluid"))
+	contentWrapper.Child(contentHeader)
+
+	// Main content
+	mainContent := hb.NewDiv().Class("content")
+	container := hb.NewDiv().Class("container-fluid")
+	container.Child(hb.NewHTML(content))
+	mainContent.Child(container)
+	contentWrapper.Child(mainContent)
+
+	wrapper.Child(contentWrapper)
+
+	// Add footer
+	footer := t.RenderFooter(d)
+	if footer != nil {
+		wrapper.Child(footer)
+	}
+
+	// Add control sidebar (required for AdminLTE)
+	controlSidebar := hb.NewDiv().Class("control-sidebar control-sidebar-dark")
+	wrapper.Child(controlSidebar)
+
+	// Add the wrapper to the body
+	body.Child(wrapper)
+
+	// Add JavaScript
+	for _, script := range t.GetJSScripts() {
+		body.Child(script)
+	}
+
+	// Add custom JavaScript
+	if customJS := t.GetCustomJS(); customJS != "" {
+		body.Child(hb.NewTag("script").Text(customJS))
+	}
+
+	// Create HTML document
+	html := hb.NewTag("html").Attr("lang", "en").
+		Child(head).
+		Child(body)
+
+	return hb.Wrap().
+		Child(hb.NewHTML("<!DOCTYPE html>")).
+		Child(html), nil
+}
+
+// isDarkColorScheme checks if the color scheme should be dark
+func (t *AdminLTETheme) isDarkColorScheme(d shared.DashboardRenderer) bool {
+	return d.GetNavbarBackgroundColorMode() == "dark"
 }

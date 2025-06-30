@@ -8,7 +8,7 @@ import (
 )
 
 // TransformDashboard converts a dashboard model to an Omni atom tree
-func (t *defaultTransformer) TransformDashboard(dashboard model.DashboardRenderer) (omni.AtomInterface, error) {
+func (t *DefaultTransformer) TransformDashboard(dashboard model.DashboardRenderer) (omni.AtomInterface, error) {
 	dashboardAtom := NewAtom(AtomTypeDashboard)
 
 	// Add header
@@ -35,7 +35,7 @@ func (t *defaultTransformer) TransformDashboard(dashboard model.DashboardRendere
 }
 
 // TransformHeader converts the dashboard header to an Omni atom
-func (t *defaultTransformer) TransformHeader(dashboard model.DashboardRenderer) (omni.AtomInterface, error) {
+func (t *DefaultTransformer) TransformHeader(dashboard model.DashboardRenderer) (omni.AtomInterface, error) {
 	header := NewAtom(AtomTypeHeader)
 
 	// Add logo if available
@@ -80,14 +80,14 @@ func (t *defaultTransformer) TransformHeader(dashboard model.DashboardRenderer) 
 }
 
 // TransformFooter converts the dashboard footer to an Omni atom
-func (t *defaultTransformer) TransformFooter(dashboard model.DashboardRenderer) (omni.AtomInterface, error) {
+func (t *DefaultTransformer) TransformFooter(dashboard model.DashboardRenderer) (omni.AtomInterface, error) {
 	footer := NewAtom(AtomTypeFooter)
 	// Add footer content here
 	return footer, nil
 }
 
 // TransformMenu converts a list of menu items to an Omni menu atom
-func (t *defaultTransformer) TransformMenu(menuItems []model.MenuItem) (omni.AtomInterface, error) {
+func (t *DefaultTransformer) TransformMenu(menuItems []model.MenuItem) (omni.AtomInterface, error) {
 	menu := NewAtom(AtomTypeMenu)
 
 	for _, item := range menuItems {
@@ -102,7 +102,7 @@ func (t *defaultTransformer) TransformMenu(menuItems []model.MenuItem) (omni.Ato
 }
 
 // transformMenuItem converts a single menu item to an Omni atom
-func (t *defaultTransformer) transformMenuItem(item model.MenuItem) (omni.AtomInterface, error) {
+func (t *DefaultTransformer) transformMenuItem(item model.MenuItem) (omni.AtomInterface, error) {
 	// Create menu item with type
 	menuItem := NewAtom(AtomTypeMenuItem)
 
@@ -122,8 +122,8 @@ func (t *defaultTransformer) transformMenuItem(item model.MenuItem) (omni.AtomIn
 	}
 
 	// Add submenu items if any
-	if len(item.SubMenu) > 0 {
-		submenu, err := t.TransformMenu(item.SubMenu)
+	if len(item.Children) > 0 {
+		submenu, err := t.TransformMenu(item.Children)
 		if err != nil {
 			return nil, fmt.Errorf("failed to transform submenu: %w", err)
 		}
@@ -134,7 +134,7 @@ func (t *defaultTransformer) transformMenuItem(item model.MenuItem) (omni.AtomIn
 }
 
 // TransformUserMenu converts the user menu to an Omni atom
-func (t *defaultTransformer) TransformUserMenu(user model.User, menuItems []model.MenuItem) (omni.AtomInterface, error) {
+func (t *DefaultTransformer) TransformUserMenu(user model.User, menuItems []model.MenuItem) (omni.AtomInterface, error) {
 	userMenu := NewAtom("user_menu")
 
 	// Add user info

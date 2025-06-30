@@ -25,8 +25,8 @@ type Transformer interface {
 
 // NewTransformer creates a new dashboard to Omni transformer
 func NewTransformer() Transformer {
-	return &defaultTransformer{}
+	return &DefaultTransformer{}
 }
 
-// defaultTransformer implements the Transformer interface
-type defaultTransformer struct{}
+// DefaultTransformer implements the Transformer interface
+type DefaultTransformer struct{}

@@ -60,8 +60,8 @@ type Dashboard struct {
 	// Optional. The favicon URL
 	faviconURL string
 
-	// Optional. The theme name
-	themeName string
+	// Optional. The template name
+	templateName string
 
 	// Optional. The content to display in the dashboard
 	content string
@@ -161,8 +161,13 @@ func (d *Dashboard) SetUserMenu(userMenu []MenuItem) *Dashboard {
 	return d
 }
 
-// SetThemeName sets the theme name
-func (d *Dashboard) SetThemeName(themeName string) *Dashboard {
-	d.themeName = themeName
+// SetTemplateName sets the template name
+func (d *Dashboard) SetTemplateName(templateName string) *Dashboard {
+	d.templateName = templateName
 	return d
+}
+
+// GetTemplateName returns the template name
+func (d *Dashboard) GetTemplateName() string {
+	return d.templateName
 }

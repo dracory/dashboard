@@ -1,7 +1,7 @@
 package bootstrap
 
 import (
-	"github.com/dracory/dashboard/render"
+	"github.com/dracory/dashboard/config"
 	"github.com/dracory/dashboard/render/templates/shared"
 	"github.com/gouniverse/hb"
 )
@@ -124,7 +124,7 @@ var _ shared.Template = (*BootstrapTemplate)(nil)
 
 // GetName returns the name of the theme
 func (t *BootstrapTemplate) GetName() string {
-	return render.THEME_BOOTSTRAP
+	return config.TEMPLATE_BOOTSTRAP
 }
 
 // GetCSSLinks returns the CSS link tags for the theme

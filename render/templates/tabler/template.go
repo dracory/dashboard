@@ -2,44 +2,43 @@ package tabler
 
 import (
 	"fmt"
-	"strings"
 
+	"github.com/dracory/dashboard/config"
 	"github.com/dracory/dashboard/model"
-	"github.com/dracory/dashboard/render"
 	"github.com/dracory/dashboard/render/templates/shared"
 	hb "github.com/gouniverse/hb"
 )
 
-// TablerTheme implements the shared.Theme interface for Tabler
-type TablerTheme struct {
-	shared.DefaultTemplate // Embed DefaultTheme to inherit default implementations
+// TablerTemplate implements the shared.Template interface for Tabler
+type TablerTemplate struct {
+	shared.DefaultTemplate // Embed DefaultTemplate to inherit default implementations
 }
 
-// New creates a new instance of the Tabler theme
-func New() *TablerTheme {
-	return &TablerTheme{}
+// New creates a new instance of the Tabler template
+func New() *TablerTemplate {
+	return &TablerTemplate{}
 }
 
-// Ensure TablerTheme implements shared.Template
-var _ shared.Template = (*TablerTheme)(nil)
+// Ensure TablerTemplate implements shared.Template
+var _ shared.Template = (*TablerTemplate)(nil)
 
-// GetName returns the name of the theme
-func (t *TablerTheme) GetName() string {
-	return render.THEME_TABLER
+// GetName returns the name of the template
+func (t *TablerTemplate) GetName() string {
+	return config.TEMPLATE_TABLER
 }
 
-// GetCSSLinks returns the CSS link tags for the theme
-func (t *TablerTheme) GetCSSLinks(isDarkMode bool) []*hb.Tag {
+// GetCSSLinks returns the CSS link tags for the template
+func (t *TablerTemplate) GetCSSLinks(isDarkMode bool) []*hb.Tag {
 	return GetTablerCDNLinks(isDarkMode)
 }
 
-// GetJSScripts returns the JavaScript script tags for the theme
-func (t *TablerTheme) GetJSScripts() []*hb.Tag {
+// GetJSScripts returns the JavaScript script tags for the template
+func (t *TablerTemplate) GetJSScripts() []*hb.Tag {
 	return GetTablerCDNScripts()
 }
 
-// GetCustomCSS returns any custom CSS for the theme
-func (t *TablerTheme) GetCustomCSS() string {
+// GetCustomCSS returns any custom CSS for the template
+func (t *TablerTemplate) GetCustomCSS() string {
 	return `
 		.navbar-brand-image {
 			height: 2rem;
@@ -54,7 +53,7 @@ func (t *TablerTheme) GetCustomCSS() string {
 }
 
 // GetCustomJS returns any custom JavaScript for the theme
-func (t *TablerTheme) GetCustomJS() string {
+func (t *TablerTemplate) GetCustomJS() string {
 	return `
 		// Theme switcher
 		document.querySelectorAll('[data-bs-theme-value]').forEach(function(element) {
@@ -74,7 +73,7 @@ func (t *TablerTheme) GetCustomJS() string {
 }
 
 // RenderPage renders a complete page with the given content and dashboard renderer
-func (t *TablerTheme) RenderPage(content string, d shared.DashboardRenderer) (*hb.Tag, error) {
+func (t *TablerTemplate) RenderPage(content string, d shared.DashboardRenderer) (*hb.Tag, error) {
 	// Create the head section
 	head := hb.NewTag("head").
 		Child(hb.NewTag("meta").Attr("charset", "utf-8")).
@@ -154,13 +153,13 @@ func (t *TablerTheme) RenderPage(content string, d shared.DashboardRenderer) (*h
 }
 
 // isDarkColorScheme checks if the color scheme should be dark
-func (t *TablerTheme) isDarkColorScheme(d shared.DashboardRenderer) bool {
+func (t *TablerTemplate) isDarkColorScheme(d shared.DashboardRenderer) bool {
 	return d.GetNavbarBackgroundColorMode() == "dark"
 }
 
 // RenderHeader renders the header of the dashboard
-func (t *TablerTheme) RenderHeader(d model.DashboardRenderer) *hb.Tag {
-	fmt.Printf("[DEBUG] TablerTheme.RenderHeader called for theme: %s, dashboard theme: %s\n", t.GetName(), d.GetThemeName())
+func (t *TablerTemplate) RenderHeader(d shared.DashboardRenderer) *hb.Tag {
+	fmt.Printf("[DEBUG] TablerTheme.RenderHeader called for theme: %s, dashboard theme: %s\n", t.GetName(), d.GetTemplateName())
 
 	// Create header container
 	header := hb.NewHeader().Class("navbar navbar-expand-md d-print-none")
@@ -236,7 +235,7 @@ func (t *TablerTheme) RenderHeader(d model.DashboardRenderer) *hb.Tag {
 
 	// Add main menu items (first level)
 	for _, item := range d.GetMenuItems() {
-		navbarNavInner.Child(renderNavItem(item))
+		navbarNavInner.Child(t.renderNavItem(item)) // Start with level 0 for top-level items
 	}
 
 	navbarNav.Child(navbarNavInner)
@@ -247,7 +246,7 @@ func (t *TablerTheme) RenderHeader(d model.DashboardRenderer) *hb.Tag {
 	// Add secondary menu items if available
 	if secondaryItems, ok := d.(interface{ GetSecondaryMenuItems() []model.MenuItem }); ok {
 		for _, item := range secondaryItems.GetSecondaryMenuItems() {
-			secondaryNav.Child(renderNavItem(item))
+			secondaryNav.Child(t.renderNavItem(item)) // Start with level 0 for top-level items
 		}
 	}
 
@@ -309,7 +308,7 @@ func (t *TablerTheme) RenderHeader(d model.DashboardRenderer) *hb.Tag {
 
 	// Add menu items to navigation
 	for _, item := range d.GetMenuItems() {
-		navbarNav.Child(t.renderNavItem(item, 0))
+		navbarNav.Child(t.renderNavItem(item))
 	}
 
 	// Add navigation to second row
@@ -331,68 +330,8 @@ func (t *TablerTheme) RenderHeader(d model.DashboardRenderer) *hb.Tag {
 	return header
 }
 
-// renderNavItem renders a single navigation item
-func (t *TablerTheme) renderNavItem(item model.MenuItem, level int) *hb.Tag {
-	// Create list item
-	li := hb.NewTag("li").Class("nav-item")
-	if item.Active {
-		li.Class("active")
-	}
-
-	// Create link
-	linkClass := "nav-link"
-	if len(item.SubMenu) > 0 {
-		linkClass += " dropdown-toggle"
-	}
-
-	link := hb.NewLink().Href(item.URL).Class(linkClass)
-	if len(item.SubMenu) > 0 {
-		link.Attr("data-bs-toggle", "dropdown")
-		link.Attr("aria-expanded", "false")
-	}
-
-	// Add icon if present
-	if item.Icon != "" {
-		iconClass := item.Icon
-		if !strings.HasPrefix(iconClass, "fa-") && !strings.HasPrefix(iconClass, "ti-") {
-			iconClass = "ti ti-" + iconClass
-		}
-		link.Child(hb.NewI().Class(iconClass + " me-1"))
-	}
-
-	// Add text
-	if item.Text != "" {
-		link.Child(hb.NewSpan().Text(item.Text))
-	}
-
-	// Add badge if present
-	if item.BadgeText != "" {
-		badgeClass := "badge bg-primary ms-2"
-		if item.BadgeClass != "" {
-			badgeClass = item.BadgeClass
-		}
-		link.Child(hb.NewSpan().Class(badgeClass).Text(item.BadgeText))
-	}
-
-	// Add submenu if exists
-	if len(item.SubMenu) > 0 {
-		dropdown := hb.NewDiv().Class("dropdown-menu")
-		if level > 0 {
-			dropdown.Class("dropdown-submenu")
-		}
-
-		for _, subItem := range item.SubMenu {
-			dropdown.Child(t.renderNavItem(subItem, level+1))
-		}
-
-		return li.Child(link).Child(dropdown)
-	}
-
-	return li.Child(link)
-}
-
 // renderNavItem creates a navigation item for the header with proper Tabler styling
-func renderNavItem(item model.MenuItem) *hb.Tag {
+func (t *TablerTemplate) renderNavItem(item model.MenuItem) *hb.Tag {
 	navItem := hb.NewTag("li").Class("nav-item")
 	if len(item.SubMenu) > 0 {
 		navItem.Class("dropdown")
@@ -503,9 +442,9 @@ func renderNavItem(item model.MenuItem) *hb.Tag {
 	return navItem
 }
 
-// RenderFooter renders the Tabler theme footer
-func (t *TablerTheme) RenderFooter(d shared.DashboardRenderer) *hb.Tag {
-	fmt.Printf("[DEBUG] TablerTheme.RenderFooter called for theme: %s, dashboard theme: %s\n", t.GetName(), d.GetThemeName())
+// RenderFooter renders the Tabler template footer
+func (t *TablerTemplate) RenderFooter(d shared.DashboardRenderer) *hb.Tag {
+	fmt.Printf("[DEBUG] TablerTheme.RenderFooter called for theme: %s, dashboard template: %s\n", t.GetName(), d.GetTemplateName())
 
 	// Create footer with proper Tabler classes
 	footer := hb.NewTag("footer").Class("footer footer-transparent d-print-none")

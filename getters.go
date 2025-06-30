@@ -54,11 +54,6 @@ func (d *Dashboard) GetFaviconURL() string {
 	return d.faviconURL
 }
 
-// GetThemeName returns the theme name
-func (d *Dashboard) GetThemeName() string {
-	return d.themeName
-}
-
 // GetContent returns the content
 func (d *Dashboard) GetContent() string {
 	return d.content

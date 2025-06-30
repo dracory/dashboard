@@ -3,45 +3,53 @@ package render
 import (
 	"fmt"
 
+	"github.com/dracory/dashboard/config"
 	"github.com/dracory/dashboard/model"
-	"github.com/dracory/dashboard/render/templates"
-	"github.com/dracory/dashboard/render/templates/shared"
+	"github.com/dracory/dashboard/model/interfaces"
+	"github.com/dracory/dashboard/model/templateregistry"
 	"github.com/gouniverse/hb"
 )
 
-const THEME_ADMINLTE = "adminlte"
-const THEME_BOOTSTRAP = "bootstrap"
-const THEME_TABLER = "tabler"
-const THEME_DEFAULT = THEME_TABLER
-
 // RenderPage generates the complete page HTML for the dashboard
-func RenderPage(d model.DashboardRenderer) *hb.Tag {
-	// Get the theme manager instance
-	themeManager := templates.Manager()
-
-	// Get the theme from the dashboard configuration
-	themeName := d.GetThemeName()
-	if themeName == "" {
-		fmt.Printf("[DEBUG] No theme specified in dashboard, using default: %s\n", THEME_DEFAULT)
-		themeName = THEME_DEFAULT // Default theme
+func RenderPage(d interfaces.DashboardRenderer) *hb.Tag {
+	// Get the template name from the dashboard configuration
+	templateName := d.GetTemplateName()
+	if templateName == "" {
+		fmt.Printf("[DEBUG] No template specified in dashboard, using default: %s\n", config.TEMPLATE_DEFAULT)
+		templateName = config.TEMPLATE_DEFAULT
 	} else {
-		fmt.Printf("[DEBUG] Dashboard requested theme: %s\n", themeName)
+		fmt.Printf("[DEBUG] Dashboard requested template: %s\n", templateName)
 	}
 
-	// Get the theme instance
-	themeInstance := themeManager.Get(themeName)
-	if themeInstance == nil {
-		fmt.Printf("[WARN] Requested theme not found: %s, falling back to default: %s\n", themeName, THEME_DEFAULT)
-		themeInstance = themeManager.Get(THEME_DEFAULT)
-	}
+	// Get the template instance from the registry
+	templateInstance := templateregistry.Get(templateName)
+	if templateInstance == nil {
+		fmt.Printf("[WARN] Requested template not found: %s, falling back to default: %s\n", templateName, config.TEMPLATE_DEFAULT)
+		templateName = config.TEMPLATE_DEFAULT
+		templateInstance = templateregistry.GetDefault()
 
-	// Ensure we have a valid theme instance
-	if themeInstance == nil {
-		fmt.Printf("[ERROR] No theme available, using default theme implementation\n")
-		themeInstance = &shared.DefaultTemplate{}
+		if templateInstance == nil {
+			// If we still can't find a template, use a default one
+			fmt.Printf("[ERROR] No templates registered, using fallback\n")
+			// Create a new default template from the model package
+			template := &model.DefaultTemplate{}
+			page, err := template.RenderPage("", d)
+			if err != nil {
+				// Return a basic error page if rendering fails
+				errPage := hb.NewTag("html")
+				head := hb.NewTag("head")
+				head.Child(hb.NewTag("title").Text("Error"))
+				errPage.Child(head)
+				body := hb.NewTag("body")
+				body.Child(hb.NewTag("h1").Text("Error Rendering Page"))
+				body.Child(hb.NewTag("p").Text(fmt.Sprintf("Failed to render page: %v", err)))
+				errPage.Child(body)
+				return errPage
+			}
+			return page
+		}
 	}
-
-	fmt.Printf("[DEBUG] Using theme: %s (type: %T)\n", themeInstance.GetName(), themeInstance)
+	fmt.Printf("[DEBUG] Using template: %s (type: %T)\n", templateInstance.GetName(), templateInstance)
 
 	// Check if we should use dark color scheme
 	isDarkColorScheme := isDarkColorScheme(d)
@@ -55,14 +63,14 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	// Favicon
 	head = head.Child(renderFavicon(d))
 
-	// Theme CSS with appropriate color scheme
-	cssLinks := themeInstance.GetCSSLinks(isDarkColorScheme)
+	// Template CSS with appropriate color scheme
+	cssLinks := templateInstance.GetCSSLinks(isDarkColorScheme)
 	for _, link := range cssLinks {
 		head = head.Child(link)
 	}
 
-	// Theme custom styles
-	head = head.Child(hb.Style(themeInstance.GetCustomCSS()))
+	// Template custom styles
+	head = head.Child(hb.Style(templateInstance.GetCustomCSS()))
 
 	// Create the body section
 	bodyAttrs := map[string]string{}
@@ -83,12 +91,12 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	pageWrapper := hb.Div().
 		Class("page-wrapper").
 		Child(pageContent).
-		Child(themeInstance.RenderFooter(d))
+		Child(templateInstance.RenderFooter(d))
 
 	// Create page container
 	pageContainer := hb.Div().
 		Class("page").
-		Child(themeInstance.RenderHeader(d)).
+		Child(templateInstance.RenderHeader(d)).
 		Child(pageWrapper)
 
 	// Create body with scripts
@@ -96,14 +104,14 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 		Attrs(bodyAttrs).
 		Child(pageContainer)
 
-	// Add theme JavaScript
-	jsScripts := themeInstance.GetJSScripts()
+	// Add template JavaScript
+	jsScripts := templateInstance.GetJSScripts()
 	for _, script := range jsScripts {
 		body = body.Child(script)
 	}
 
-	// Add theme custom JavaScript
-	body = body.Child(hb.Script(themeInstance.GetCustomJS()))
+	// Add template custom JavaScript
+	body = body.Child(hb.Script(templateInstance.GetCustomJS()))
 
 	// Create the complete HTML document
 	html := hb.NewTag("html").Attr("lang", "en").
@@ -132,6 +140,7 @@ func renderFavicon(d model.DashboardRenderer) *hb.Tag {
 
 // isDarkColorScheme checks if the dashboard should use dark color scheme
 func isDarkColorScheme(d model.DashboardRenderer) bool {
-	// Check the navbar background color mode to determine if we're in dark mode
-	return d.GetNavbarBackgroundColorMode() == "dark"
+	// For now, default to light theme
+	// TODO: Implement proper theme detection based on user preferences
+	return false
 }

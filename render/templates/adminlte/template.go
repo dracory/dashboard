@@ -3,7 +3,7 @@ package adminlte
 import (
 	"strings"
 
-	"github.com/dracory/dashboard/render"
+	"github.com/dracory/dashboard/config"
 	"github.com/dracory/dashboard/render/templates/shared"
 	"github.com/dracory/omni"
 	"github.com/gouniverse/hb"
@@ -133,12 +133,55 @@ func (t *AdminLTETemplate) RenderFooter(d shared.DashboardRenderer) *hb.Tag {
 	return footer
 }
 
-// RenderDashboard renders a complete dashboard from Omni atoms
-func (t *AdminLTETemplate) RenderDashboard(dashboard *omni.Atom) (string, error) {
-	if dashboard == nil {
-		return "", nil
+// RenderDashboard renders a complete dashboard using the AdminLTE template
+func (t *AdminLTETemplate) RenderDashboard(d shared.DashboardRenderer) (*hb.Tag, error) {
+	// Create the main content container
+	content := hb.Div().Class("content-wrapper")
+	
+	// Build the header with title and breadcrumb
+	headerContent := hb.Div().Class("container-fluid")
+	headerRow := hb.Div().Class("row mb-2")
+	
+	titleCol := hb.Div().Class("col-sm-6")
+	// Use a default title if GetTitle is not available
+	title := "Dashboard"
+	if renderer, ok := d.(interface{ GetTitle() string }); ok {
+		title = renderer.GetTitle()
 	}
-	return t.renderDashboard(dashboard)
+	titleCol.Child(hb.H1().Text(title).Class("m-0"))
+	headerRow.Child(titleCol)
+	
+	breadcrumbCol := hb.Div().Class("col-sm-6")
+	breadcrumbCol.Child(hb.Ol().Class("breadcrumb float-sm-right"))
+	headerRow.Child(breadcrumbCol)
+	
+	headerContent.Child(headerRow)
+	header := hb.Div().Class("content-header").Child(headerContent)
+	content.Child(header)
+	
+	// Build the main content area
+	cardBody := hb.Div().Class("card-body")
+	cardBody.Child(hb.NewHTML(d.GetContent()))
+	
+	card := hb.Div().Class("card")
+	card.Child(cardBody)
+	
+	mainCol := hb.Div().Class("col-12")
+	mainCol.Child(card)
+	
+	mainRow := hb.Div().Class("row")
+	mainRow.Child(mainCol)
+	
+	container := hb.Div().Class("container-fluid")
+	container.Child(mainRow)
+	
+	mainContent := hb.Div().Class("content")
+	mainContent.Child(container)
+	content.Child(mainContent)
+	
+	content.Child(mainContent)
+	
+	return content, nil
 }
 
 // Ensure AdminLTETemplate implements shared.Template
@@ -146,20 +189,28 @@ var _ shared.Template = (*AdminLTETemplate)(nil)
 
 // GetName returns the name of the template
 func (t *AdminLTETemplate) GetName() string {
-	return render.THEME_ADMINLTE
+	return config.TEMPLATE_ADMINLTE
 }
 
-// GetCSSLinks returns the CSS link tags for the theme
+// GetCSSLinks returns the CSS link tags for the template
 func (t *AdminLTETemplate) GetCSSLinks(isDarkMode bool) []*hb.Tag {
-	return GetAdminLTEAssets()
+	// Get the base AdminLTE assets
+	assets := GetAdminLTEAssets()
+	
+	// Add dark mode styles if enabled
+	if isDarkMode {
+		// Add any dark mode specific styles here
+	}
+	
+	return assets
 }
 
-// GetJSScripts returns the JavaScript script tags for the theme
+// GetJSScripts returns the JavaScript script tags for the template
 func (t *AdminLTETemplate) GetJSScripts() []*hb.Tag {
 	return GetAdminLTEScripts()
 }
 
-// GetCustomCSS returns any custom CSS for the theme
+// GetCustomCSS returns any custom CSS for the template
 func (t *AdminLTETemplate) GetCustomCSS() string {
 	return `
 		/* AdminLTE custom styles */
@@ -182,7 +233,7 @@ func (t *AdminLTETemplate) GetCustomCSS() string {
 	`
 }
 
-// GetCustomJS returns any custom JavaScript for the theme
+// GetCustomJS returns any custom JavaScript for the template
 func (t *AdminLTETemplate) GetCustomJS() string {
 	return `
 		// Enable sidebar toggle

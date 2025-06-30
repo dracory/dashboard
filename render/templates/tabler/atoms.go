@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dracory/dashboard/render/atomizer"
+	"github.com/dracory/dashboard/render/templates/shared"
 	"github.com/dracory/omni"
 	"github.com/gouniverse/hb"
 )
@@ -27,8 +28,8 @@ func getPropertyString(atom omni.AtomInterface, key, defaultValue string) string
 }
 
 // RenderAtom renders an Omni atom using Tabler classes and components
-// Implements shared.Theme interface
-func (t *TablerTheme) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
+// Implements shared.Template interface
+func (t *TablerTemplate) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 	if atom == nil {
 		return nil, fmt.Errorf("atom cannot be nil")
 	}
@@ -72,7 +73,7 @@ func toAtom(atom interface{}) (*omni.Atom, error) {
 }
 
 // renderAtom is the internal implementation that works with both *omni.Atom and omni.AtomInterface
-func (t *TablerTheme) renderAtom(atom interface{}) (*hb.Tag, error) {
+func (t *TablerTemplate) renderAtom(atom interface{}) (*hb.Tag, error) {
 	// Convert to *omni.Atom first since that's what RenderAtom expects
 	atomPtr, err := toAtom(atom)
 	if err != nil {
@@ -152,7 +153,7 @@ func (t *TablerTheme) renderAtom(atom interface{}) (*hb.Tag, error) {
 	}
 }
 
-func (t *TablerTheme) renderContainer(atom interface{}) (*hb.Tag, error) {
+func (t *TablerTemplate) renderContainer(atom interface{}) (*hb.Tag, error) {
 	// Convert to *omni.Atom first
 	atomPtr, err := toAtom(atom)
 	if err != nil {
@@ -180,7 +181,7 @@ func (t *TablerTheme) renderContainer(atom interface{}) (*hb.Tag, error) {
 	return container, nil
 }
 
-func (t *TablerTheme) renderHeader(atom interface{}) (*hb.Tag, error) {
+func (t *TablerTemplate) renderHeader(atom interface{}) (*hb.Tag, error) {
 	// Convert to *omni.Atom first
 	atomPtr, err := toAtom(atom)
 	if err != nil {
@@ -213,7 +214,7 @@ func (t *TablerTheme) renderHeader(atom interface{}) (*hb.Tag, error) {
 	return header, nil
 }
 
-func (t *TablerTheme) renderFooter(atom interface{}) (*hb.Tag, error) {
+func (t *TablerTemplate) renderFooter(atom interface{}) (*hb.Tag, error) {
 	// Convert to *omni.Atom first
 	atomPtr, err := toAtom(atom)
 	if err != nil {
@@ -243,7 +244,7 @@ func (t *TablerTheme) renderFooter(atom interface{}) (*hb.Tag, error) {
 	return footer, nil
 }
 
-func (t *TablerTheme) renderMenu(atom interface{}) (*hb.Tag, error) {
+func (t *TablerTemplate) renderMenu(atom interface{}) (*hb.Tag, error) {
 	// Convert to *omni.Atom first
 	atomPtr, err := toAtom(atom)
 	if err != nil {
@@ -271,7 +272,7 @@ func (t *TablerTheme) renderMenu(atom interface{}) (*hb.Tag, error) {
 	return menu, nil
 }
 
-func (t *TablerTheme) renderMenuItem(atom interface{}) (*hb.Tag, error) {
+func (t *TablerTemplate) renderMenuItem(atom interface{}) (*hb.Tag, error) {
 	// Convert to *omni.Atom first
 	atomPtr, err := toAtom(atom)
 	if err != nil {
@@ -327,7 +328,7 @@ func (t *TablerTheme) renderMenuItem(atom interface{}) (*hb.Tag, error) {
 	return item, nil
 }
 
-func (t *TablerTheme) renderLink(atom interface{}) (*hb.Tag, error) {
+func (t *TablerTemplate) renderLink(atom interface{}) (*hb.Tag, error) {
 	// Get the atom interface for property access
 	var atomInterface omni.AtomInterface
 	switch a := atom.(type) {
@@ -372,7 +373,7 @@ func (t *TablerTheme) renderLink(atom interface{}) (*hb.Tag, error) {
 	return a, nil
 }
 
-func (t *TablerTheme) renderButton(atom interface{}) (*hb.Tag, error) {
+func (t *TablerTemplate) renderButton(atom interface{}) (*hb.Tag, error) {
 	// Convert to omni.AtomInterface
 	atomInterface, ok := atom.(omni.AtomInterface)
 	if !ok {
@@ -411,7 +412,7 @@ func (t *TablerTheme) renderButton(atom interface{}) (*hb.Tag, error) {
 	return button, nil
 }
 
-func (t *TablerTheme) renderImage(atom interface{}) (*hb.Tag, error) {
+func (t *TablerTemplate) renderImage(atom interface{}) (*hb.Tag, error) {
 	// Convert to omni.AtomInterface
 	atomInterface, ok := atom.(omni.AtomInterface)
 	if !ok {
@@ -441,7 +442,7 @@ func (t *TablerTheme) renderImage(atom interface{}) (*hb.Tag, error) {
 	return img, nil
 }
 
-func (t *TablerTheme) renderText(atom interface{}) (*hb.Tag, error) {
+func (t *TablerTemplate) renderText(atom interface{}) (*hb.Tag, error) {
 	// Convert to omni.AtomInterface
 	atomInterface, ok := atom.(omni.AtomInterface)
 	if !ok {
@@ -452,73 +453,43 @@ func (t *TablerTheme) renderText(atom interface{}) (*hb.Tag, error) {
 	return hb.NewTag("span").Text(text), nil
 }
 
-// RenderDashboard renders a complete dashboard from Omni atoms
-func (t *TablerTheme) RenderDashboard(dashboard *omni.Atom) (string, error) {
-	// Convert *omni.Atom to omni.AtomInterface
-	if dashboard == nil {
-		return "", fmt.Errorf("dashboard cannot be nil")
-	}
-
-	atomInterface, ok := interface{}(dashboard).(omni.AtomInterface)
-	if !ok {
-		return "", fmt.Errorf("failed to convert *omni.Atom to omni.AtomInterface")
-	}
-
-	return t.renderDashboard(atomInterface)
-}
-
-// renderDashboard is the internal implementation that works with both *omni.Atom and omni.AtomInterface
-func (t *TablerTheme) renderDashboard(dashboard interface{}) (string, error) {
-	// Convert to *omni.Atom first
-	dashboardPtr, err := toAtom(dashboard)
-	if err != nil {
-		return "", err
-	}
-
-	// Get the dashboard interface
-	var dashboardInterface omni.AtomInterface
-	var ok bool
-	if dashboardInterface, ok = interface{}(dashboardPtr).(omni.AtomInterface); !ok {
-		return "", fmt.Errorf("dashboard does not implement omni.AtomInterface")
-	}
-
-	// Start with a page wrapper
-	page := hb.NewTag("div").Class("page")
-
-	// Get header and content children
-	header := getChildByType(dashboardInterface, "header")
-	contentAtom := getChildByType(dashboardInterface, "content")
-
-	// Render header if exists
-	if header != nil {
-		headerPtr, err := toAtom(header)
-		if err != nil {
-			return "", fmt.Errorf("error converting header: %v", err)
-		}
-		headerTag, err := t.RenderAtom(headerPtr)
-		if err != nil {
-			return "", fmt.Errorf("failed to render header: %w", err)
-		}
-		page.AddChild(headerTag)
-
-		// Add main content
-		content := hb.NewTag("div").Class("page-wrapper")
-		page.AddChild(content)
-
-		// Render content if exists
-		if contentAtom != nil {
-			contentPtr, err := toAtom(contentAtom)
-			if err != nil {
-				return "", fmt.Errorf("error converting content: %v", err)
-			}
-			contentTag, err := t.RenderAtom(contentPtr)
-			if err != nil {
-				return "", fmt.Errorf("failed to render content: %w", err)
-			}
-			contentTag.Class("content")
-			page.AddChild(contentTag)
-		}
-	}
-
-	return page.ToHTML(), nil
+// RenderDashboard renders a complete dashboard using the Tabler template
+func (t *TablerTemplate) RenderDashboard(d shared.DashboardRenderer) (*hb.Tag, error) {
+	// Create the main content container
+	content := hb.Div().Class("page")
+	
+	// Add the header
+	header := t.RenderHeader(d)
+	content.Child(header)
+	
+	// Add the main content
+	mainContent := hb.Div().Class("page-wrapper")
+	
+	// Add a container for the content
+	container := hb.Div().Class("container-xl")
+	
+	// Add the dashboard content
+	rowDiv := hb.NewDiv().Class("row row-cards")
+	colDiv := hb.NewDiv().Class("col-12")
+	cardDiv := hb.NewDiv().Class("card")
+	cardBody := hb.NewDiv().Class("card-body")
+	
+	// Add the content to the card body
+	contentHTML := hb.NewHTML(d.GetContent())
+	cardBody.Child(contentHTML)
+	
+	// Build the hierarchy
+	cardDiv.Child(cardBody)
+	colDiv.Child(cardDiv)
+	rowDiv.Child(colDiv)
+	container.Child(rowDiv)
+	
+	mainContent.Child(container)
+	content.Child(mainContent)
+	
+	// Add the footer
+	footer := t.RenderFooter(d)
+	content.Child(footer)
+	
+	return content, nil
 }

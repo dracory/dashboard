@@ -1,12 +1,14 @@
-package atomizer_test
+package atomizer
 
 import (
 	"testing"
 
+	"github.com/dracory/dashboard/config"
 	"github.com/dracory/dashboard/model"
-	"github.com/dracory/dashboard/render/atomizer"
 	"github.com/dracory/omni"
 )
+
+
 
 // Helper functions to work with omni.AtomInterface
 type atomHelper struct{}
@@ -48,8 +50,8 @@ func (m *mockDashboard) GetContent() string                   { return m.content
 func (m *mockDashboard) GetFaviconURL() string                { return "" }
 func (m *mockDashboard) GetLogoImageURL() string              { return m.logoImageURL }
 func (m *mockDashboard) GetLogoRawHtml() string               { return "" }
+func (m *mockDashboard) GetTemplateName() string              { return config.TEMPLATE_TABLER }
 func (m *mockDashboard) GetLogoRedirectURL() string           { return m.logoURL }
-func (m *mockDashboard) GetThemeName() string                 { return "test" }
 func (m *mockDashboard) GetMenuItems() []model.MenuItem       { return m.menuItems }
 func (m *mockDashboard) GetMenuShowText() bool                { return true }
 func (m *mockDashboard) GetQuickAccessMenu() []model.MenuItem { return nil }
@@ -193,20 +195,37 @@ func TestTransformMenu(t *testing.T) {
 	})
 
 	t.Run("menu with items", func(t *testing.T) {
-		items := []model.MenuItem{
-			{ID: "1", Text: "Home", URL: "/"},
-			{ID: "2", Text: "About", URL: "/about", Active: true},
+		menuItems := []model.MenuItem{
+			{
+				ID:   "1",
+				Text: "Home",
+				URL:  "/",
+			},
+			{
+				ID:     "2",
+				Text:   "About",
+				URL:    "/about",
+				Active: true,
+			},
 			{
 				ID:   "3",
 				Text: "Services",
-				SubMenu: []model.MenuItem{
-					{ID: "3.1", Text: "Web", URL: "/services/web"},
-					{ID: "3.2", Text: "Mobile", URL: "/services/mobile"},
+				Children: []model.MenuItem{
+					{
+						ID:   "3.1",
+						Text: "Web",
+						URL:  "/services/web",
+					},
+					{
+						ID:   "3.2",
+						Text: "Mobile",
+						URL:  "/services/mobile",
+					},
 				},
 			},
 		}
 
-		menu, err := transformer.TransformMenu(items)
+		menu, err := transformer.TransformMenu(menuItems)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -222,8 +241,8 @@ func TestTransformMenu(t *testing.T) {
 			t.Fatal("expected services to have children")
 		}
 		submenu := servicesChildren[0]
-		if helper.getAtomType(submenu) != atomizer.AtomTypeMenu {
-			t.Errorf("expected type %q, got %q", atomizer.AtomTypeMenu, helper.getAtomType(submenu))
+		if helper.getAtomType(submenu) != AtomTypeMenu {
+			t.Errorf("expected type %q, got %q", AtomTypeMenu, helper.getAtomType(submenu))
 		}
 		submenuChildren := helper.getChildren(submenu)
 		if len(submenuChildren) != 2 {

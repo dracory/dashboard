@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"fmt"
 
+	"github.com/dracory/dashboard/render/templates/shared"
 	"github.com/dracory/omni"
 	"github.com/gouniverse/hb"
 )
@@ -263,24 +264,23 @@ func (t *BootstrapTemplate) renderText(atom omni.AtomInterface) (*hb.Tag, error)
 	return tag, nil
 }
 
-// RenderDashboard renders a complete dashboard from Omni atoms
-func (t *BootstrapTemplate) RenderDashboard(dashboard *omni.Atom) (string, error) {
-	// Convert *omni.Atom to omni.AtomInterface
-	dashboardInterface, ok := interface{}(dashboard).(omni.AtomInterface)
-	if !ok {
-		return "", fmt.Errorf("failed to convert *omni.Atom to omni.AtomInterface")
-	}
-
+// RenderDashboard renders a complete dashboard using the template's layout
+func (t *BootstrapTemplate) RenderDashboard(d shared.DashboardRenderer) (*hb.Tag, error) {
 	// Create the HTML document
-	html := hb.NewTag("html")
+	doc := hb.NewTag("html")
 
 	// Create head section
 	head := hb.NewTag("head")
 	head.Child(hb.NewTag("meta").Attr("charset", "UTF-8"))
 	head.Child(hb.NewTag("meta").Attr("name", "viewport").Attr("content", "width=device-width, initial-scale=1.0"))
-	head.Child(hb.NewTag("title").Text("Dashboard"))
+	head.Child(hb.NewTag("title").Text("Dashboard")) // Using a default title since GetTitle is not available
 
-	// Add CSS links
+	// Add favicon if available
+	if faviconURL := d.GetFaviconURL(); faviconURL != "" {
+		head.Child(hb.NewTag("link").Attr("rel", "icon").Attr("href", faviconURL))
+	}
+
+	// Add CSS links (default to light mode since we can't detect dark mode)
 	for _, cssLink := range t.GetCSSLinks(false) {
 		head.Child(cssLink)
 	}
@@ -290,55 +290,37 @@ func (t *BootstrapTemplate) RenderDashboard(dashboard *omni.Atom) (string, error
 		head.Child(hb.NewTag("style").HTML(customCSS))
 	}
 
-	html.Child(head)
+	doc.Child(head)
 
 	// Create body section
-	body := hb.NewTag("body")
+	body := hb.NewTag("body").Class("template-bootstrap")
 
 	// Create the main container
 	container := hb.NewTag("div").Class("container-fluid").Style("min-height: 100vh; display: flex; flex-direction: column;")
 
-	// Add header if exists
-	header := getChildByType(dashboardInterface, "header")
+	// Add header
+	header := t.RenderHeader(d)
 	if header != nil {
-		headerTag, err := t.renderAtom(header)
-		if err != nil {
-			return "", fmt.Errorf("error rendering header: %w", err)
-		}
-		container.Child(headerTag)
+		container.Child(header)
 	}
 
-	// Create main content area
-	mainContent := hb.NewTag("main").Class("flex-grow-1 py-3")
+	// Render main content
+	content := hb.NewTag("main").Class("flex-grow-1 p-3")
+	content.Child(hb.NewHTML(d.GetContent()))
+	container.Child(content)
 
-	// Add main content children
-	for _, child := range dashboard.ChildrenGet() {
-		if child.GetType() != "header" && child.GetType() != "footer" {
-			childTag, err := t.renderAtom(child)
-			if err != nil {
-				return "", fmt.Errorf("error rendering child %s: %w", child.GetType(), err)
-			}
-			mainContent.Child(childTag)
-		}
-	}
-
-	container.Child(mainContent)
-
-	// Add footer if exists
-	footer := getChildByType(dashboardInterface, "footer")
+	// Add footer
+	footer := t.RenderFooter(d)
 	if footer != nil {
-		footerTag, err := t.renderAtom(footer)
-		if err != nil {
-			return "", fmt.Errorf("error rendering footer: %w", err)
-		}
-		container.Child(footerTag)
+		container.Child(footer)
 	}
 
+	// Add container to body
 	body.Child(container)
 
-	// Add JavaScript files
-	for _, jsScript := range t.GetJSScripts() {
-		body.Child(jsScript)
+	// Add JavaScript
+	for _, script := range t.GetJSScripts() {
+		body.Child(script)
 	}
 
 	// Add custom JavaScript
@@ -346,8 +328,9 @@ func (t *BootstrapTemplate) RenderDashboard(dashboard *omni.Atom) (string, error
 		body.Child(hb.NewTag("script").HTML(customJS))
 	}
 
-	html.Child(body)
+	// Add body to document
+	doc.Child(body)
 
 	// Return the complete HTML document
-	return "<!DOCTYPE html>\n" + html.ToHTML(), nil
+	return doc, nil
 }

@@ -7,7 +7,6 @@ import (
 
 	"github.com/dracory/dashboard"
 	"github.com/dracory/dashboard/components"
-	"github.com/dracory/dashboard/render/templates"
 	_ "github.com/dracory/dashboard/render/templates/adminlte"
 	_ "github.com/dracory/dashboard/render/templates/bootstrap"
 	_ "github.com/dracory/dashboard/render/templates/tabler"
@@ -172,12 +171,13 @@ func createDashboardContent() string {
 }
 
 func main() {
-	// Initialize all registered themes
-	templates.InitializeRegisteredTemplates()
-
 	// Create a new dashboard instance
 	d := dashboard.New()
-	d.SetThemeName("tabler") // Set default theme
+
+	// Set the default template
+	if err := d.SetTemplateName("tabler"); err != nil {
+		log.Fatalf("Failed to set default template: %v", err)
+	} // Set default theme
 
 	// Set up the dashboard with content and navigation
 	content := `
@@ -214,10 +214,12 @@ func main() {
 
 	// Set up a simple HTTP server
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		// Get the theme from query parameter
-		theme := r.URL.Query().Get("theme")
-		if theme != "" {
-			d.SetThemeName(theme)
+		// Handle template switching
+		if templateName := r.URL.Query().Get("template"); templateName != "" {
+			if err := d.SetTemplateName(templateName); err != nil {
+				http.Error(w, "Invalid template", http.StatusBadRequest)
+				return
+			}
 		}
 
 		// Render the dashboard

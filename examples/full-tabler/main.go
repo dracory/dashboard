@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	
-	_ "github.com/dracory/dashboard" // Import dashboard package to initialize themes
+	_ "github.com/dracory/dashboard/render/templates/tabler" // Import tabler template to register it
 	dashboard "github.com/dracory/dashboard"
 )
 

@@ -1,6 +1,7 @@
-package model
+package interfaces
 
 import (
+	"github.com/dracory/dashboard/model"
 	"github.com/dracory/omni"
 	"github.com/gouniverse/hb"
 )
@@ -16,13 +17,13 @@ type DashboardRenderer interface {
 	GetTemplateName() string
 
 	// Menu access
-	GetMenuItems() []MenuItem
+	GetMenuItems() []model.MenuItem
 	GetMenuShowText() bool
-	GetQuickAccessMenu() []MenuItem
+	GetQuickAccessMenu() []model.MenuItem
 
 	// User access
-	GetUser() User
-	GetUserMenu() []MenuItem
+	GetUser() model.User
+	GetUserMenu() []model.MenuItem
 	GetLoginURL() string
 	GetRegisterURL() string
 
@@ -34,9 +35,9 @@ type DashboardRenderer interface {
 
 // Template defines the interface for dashboard templates
 type Template interface {
-	// RenderPage renders a complete page with the given content
-	// and dashboard renderer
+	// RenderPage renders a complete page with the given content and dashboard renderer
 	RenderPage(content string, d DashboardRenderer) (*hb.Tag, error)
+
 	// GetName returns the template's name
 	GetName() string
 
@@ -65,17 +66,6 @@ type Template interface {
 	RenderDashboard(d DashboardRenderer) (*hb.Tag, error)
 }
 
-// User represents a user in the dashboard
-type User struct {
-	// The unique ID of the user
-	ID string `json:"id"`
+// MenuItem is now defined in the model package
 
-	// The name of the user
-	Name string `json:"name"`
-
-	// The email of the user
-	Email string `json:"email"`
-
-	// The avatar URL of the user
-	AvatarURL string `json:"avatar_url,omitempty"`
-}
+// User is now defined in the model package

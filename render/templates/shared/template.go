@@ -3,50 +3,17 @@ package shared
 import (
 	"fmt"
 
+	"github.com/dracory/dashboard/model/interfaces"
 	"github.com/dracory/dashboard/render/atomizer"
-
-	"github.com/dracory/dashboard/model"
 	"github.com/dracory/omni"
 	"github.com/gouniverse/hb"
 )
 
 // DashboardRenderer defines the interface for dashboard renderers
-type DashboardRenderer = model.DashboardRenderer
+type DashboardRenderer = interfaces.DashboardRenderer
 
 // Template defines the interface for dashboard templates
-type Template interface {
-	// RenderPage renders a complete page with the given content
-	// and dashboard renderer
-	RenderPage(content string, d DashboardRenderer) (*hb.Tag, error)
-	// GetName returns the theme's name
-	GetName() string
-
-	// GetCSSLinks returns the CSS link tags for the theme
-	GetCSSLinks(isDarkMode bool) []*hb.Tag
-
-	// GetJSScripts returns the JavaScript script tags for the theme
-	GetJSScripts() []*hb.Tag
-
-	// GetCustomCSS returns any custom CSS for the theme
-	GetCustomCSS() string
-
-	// GetCustomJS returns any custom JavaScript for the theme
-	GetCustomJS() string
-
-	// RenderHeader renders the theme-specific header
-	// Deprecated: Use RenderAtom with Omni atoms instead
-	RenderHeader(d DashboardRenderer) *hb.Tag
-
-	// RenderFooter renders the theme-specific footer
-	// Deprecated: Use RenderAtom with Omni atoms instead
-	RenderFooter(d DashboardRenderer) *hb.Tag
-
-	// RenderAtom renders an Omni atom using the theme's styling
-	RenderAtom(atom *omni.Atom) (*hb.Tag, error)
-
-	// RenderDashboard renders a complete dashboard from Omni atoms
-	RenderDashboard(dashboard *omni.Atom) (string, error)
-}
+type Template = interfaces.Template
 
 // DefaultTemplate is a basic template implementation that can be used as a fallback
 type DefaultTemplate struct{}
@@ -144,29 +111,29 @@ func (t *DefaultTemplate) GetCustomJS() string {
 }
 
 // RenderAtom renders an Omni atom using default HTML
-func (t *DefaultTemplate) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
-	if atom == nil {
+func (t *DefaultTemplate) RenderAtom(a *omni.Atom) (*hb.Tag, error) {
+	if a == nil {
 		return nil, nil
 	}
 
 	// Convert *omni.Atom to omni.AtomInterface
-	atomInterface, ok := interface{}(atom).(omni.AtomInterface)
+	aInterface, ok := interface{}(a).(omni.AtomInterface)
 	if !ok {
 		return nil, fmt.Errorf("failed to convert *omni.Atom to omni.AtomInterface")
 	}
 
 	// Helper function to get string property with default
 	getProp := func(key, def string) string {
-		if atomInterface.Has(key) {
-			return atomInterface.Get(key)
+		if aInterface.Has(key) {
+			return aInterface.Get(key)
 		}
 		return def
 	}
 
-	switch atom.GetType() {
+	switch a.GetType() {
 	case "container":
 		tag := hb.NewDiv()
-		for _, child := range atomInterface.ChildrenGet() {
+		for _, child := range aInterface.ChildrenGet() {
 			childPtr, err := toAtom(child)
 			if err != nil {
 				return nil, err
@@ -206,7 +173,7 @@ func (t *DefaultTemplate) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 		link := hb.NewTag("a").Attr("href", href).Text(text)
 
 		// Add children if any
-		for _, child := range atomInterface.ChildrenGet() {
+		for _, child := range aInterface.ChildrenGet() {
 			childPtr, err := toAtom(child)
 			if err != nil {
 				return nil, err
@@ -221,7 +188,7 @@ func (t *DefaultTemplate) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 
 	case "menu", "menuItem":
 		list := hb.NewTag("ul")
-		for _, child := range atomInterface.ChildrenGet() {
+		for _, child := range aInterface.ChildrenGet() {
 			item := hb.NewTag("li")
 			childPtr, err := toAtom(child)
 			if err != nil {
@@ -251,12 +218,9 @@ func (t *DefaultTemplate) RenderAtom(atom *omni.Atom) (*hb.Tag, error) {
 	}
 }
 
-// RenderDashboard renders a complete dashboard from Omni atoms
-func (t *DefaultTemplate) RenderDashboard(dashboard *omni.Atom) (string, error) {
-	templateName := dashboard.Get("template")
-	if templateName == "" {
-		templateName = "default"
-	}
+// RenderDashboard renders a dashboard using the template's layout
+func (t *DefaultTemplate) RenderDashboard(d DashboardRenderer) (*hb.Tag, error) {
+	templateName := "default"
 
 	// Add template class to body
 	bodyAttrs := map[string]string{
@@ -264,97 +228,54 @@ func (t *DefaultTemplate) RenderDashboard(dashboard *omni.Atom) (string, error) 
 	}
 
 	// Only try to get color scheme if dashboard implements DashboardRenderer
-	if d, ok := interface{}(dashboard).(DashboardRenderer); ok {
-		if t.isDarkColorScheme(d) {
-			bodyAttrs["data-bs-theme"] = "dark"
-		}
+	if t.isDarkColorScheme(d) {
+		bodyAttrs["data-bs-theme"] = "dark"
 	}
 
-	// Convert *omni.Atom to omni.AtomInterface
-	dashboardInterface, ok := interface{}(dashboard).(omni.AtomInterface)
-	if !ok {
-		return "", fmt.Errorf("failed to convert *omni.Atom to omni.AtomInterface")
+	// Create the head section
+	head := hb.NewTag("head").
+		Child(hb.Meta().Attr("charset", "utf-8")).
+		Child(hb.Meta().Name("viewport").Attr("content", "width=device-width, initial-scale=1, viewport-fit=cover")).
+		Child(hb.Meta().Attr("http-equiv", "X-UA-Compatible").Attr("content", "ie=edge")).
+		Child(hb.Title().Text("Dashboard"))
+
+	// Add favicon if available
+	if d.GetFaviconURL() != "" {
+		head.Child(hb.Link().Rel("icon").Href(d.GetFaviconURL()))
 	}
 
-	// Get children
-	children := dashboardInterface.ChildrenGet()
-	if len(children) < 3 {
-		return "", fmt.Errorf("dashboard must have at least 3 children (header, content, footer)")
+	// Add template CSS
+	cssLinks := t.GetCSSLinks(false)
+	for _, link := range cssLinks {
+		head.Child(link)
 	}
 
-	// Render header if present
-	headerTag := hb.NewTag("header")
-	headerAtom, err := toAtom(children[0])
-	if err == nil {
-		header, err := t.RenderAtom(headerAtom)
-		if err == nil && header != nil {
-			headerTag.AddChild(header)
-		}
-	}
-
-	// Render content if present
-	contentTag := hb.NewTag("main")
-	contentAtom, err := toAtom(children[1])
-	if err == nil {
-		content, err := t.RenderAtom(contentAtom)
-		if err == nil && content != nil {
-			contentTag.AddChild(content)
-		}
-	}
-
-	// Render footer if present
-	footerTag := hb.NewTag("footer")
-	if len(children) > 2 {
-		footerAtom, err := toAtom(children[2])
-		if err == nil {
-			footer, err := t.RenderAtom(footerAtom)
-			if err == nil && footer != nil {
-				footerTag.AddChild(footer)
-			}
-		}
-	}
-
-	// Create HTML document structure
-	html := hb.NewTag("html")
-	headTag := hb.NewTag("head")
-	html.AddChild(headTag)
-
-	// Add title
-	title := "Dashboard"
-	if dashboardInterface.Has("title") {
-		title = dashboardInterface.Get("title")
-	}
-	headTag.AddChild(hb.NewTag("title").Text(title))
-
-	// Add meta charset and viewport
-	headTag.AddChild(hb.NewTag("meta").Attr("charset", "UTF-8"))
-	headTag.AddChild(hb.NewTag("meta").Attr("name", "viewport").Attr("content", "width=device-width, initial-scale=1.0"))
-
-	body := hb.NewTag("body")
-	html.AddChild(body)
-
-	// Add header, content, and footer to body
-	body.AddChild(headerTag)
-	body.AddChild(contentTag)
-	body.AddChild(footerTag)
-
-	// Add CSS
-	for _, css := range t.GetCSSLinks(false) {
-		headTag.AddChild(css)
-	}
+	// Create the body section
+	body := hb.NewTag("body").
+		Attrs(bodyAttrs).
+		Child(t.RenderHeader(d)).
+		Child(hb.NewTag("main")).
+		Child(t.RenderFooter(d))
 
 	// Add JavaScript
-	for _, js := range t.GetJSScripts() {
-		body.AddChild(js)
+	for _, script := range t.GetJSScripts() {
+		body.Child(script)
 	}
 
 	// Add custom JavaScript
 	if customJS := t.GetCustomJS(); customJS != "" {
-		body.AddChild(hb.NewTag("script").Text(customJS))
+		body.Child(hb.Script(customJS))
 	}
 
-	// Create HTML document with doctype
-	return "<!DOCTYPE html>\n" + html.ToHTML(), nil
+	// Create HTML document
+	html := hb.NewTag("html").
+		Attr("lang", "en").
+		Child(head).
+		Child(body)
+
+	return hb.Wrap().
+		Child(hb.NewHTML("<!DOCTYPE html>")).
+		Child(html), nil
 }
 
 // RenderHeader renders a basic header for the default template
@@ -407,7 +328,7 @@ func toAtom(atom interface{}) (*omni.Atom, error) {
 func (t *DefaultTemplate) RenderFooter(d DashboardRenderer) *hb.Tag {
 	leftCol := hb.NewDiv().
 		Class("col-12 col-md-6").
-		AddChild(hb.NewTag("small").Text("© 2025 Dashboard").Class("text-muted"))
+		AddChild(hb.NewTag("small").Text(" 2025 Dashboard").Class("text-muted"))
 
 	rightCol := hb.NewDiv().
 		Class("col-12 col-md-6 text-end").

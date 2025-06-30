@@ -2,11 +2,11 @@ package dashboard
 
 import "net/http"
 
-// ThemeNameContextKey is a key for storing theme name in context
-type ThemeNameContextKey struct{}
+// TemplateNameContextKey is a key for storing template name in context
+type TemplateNameContextKey struct{}
 
-// THEME_COOKIE_KEY is the name of the cookie that stores the theme
-var THEME_COOKIE_KEY = "theme"
+// TEMPLATE_COOKIE_KEY is the name of the cookie that stores the template
+var TEMPLATE_COOKIE_KEY = "template"
 
 // Config holds configuration for the dashboard
 type Config struct {
@@ -16,7 +16,7 @@ type Config struct {
 	// The favicon URL
 	FaviconURL string
 	
-	// The HTTP request (for theme detection)
+	// The HTTP request (for template detection)
 	HTTPRequest *http.Request
 	
 	// The URL of the logo image
@@ -49,6 +49,10 @@ type Config struct {
 	// Optional. The text color for the navbar (default light)
 	NavbarTextColor string
 
+	// Optional. The template name to use for the dashboard
+	// Defaults to "tabler"
+	TemplateName string
+
 	// Optional. The URL of the login page to use (if user is not provided)
 	LoginURL string
 
@@ -57,9 +61,6 @@ type Config struct {
 
 	// Optional. Menu for Quick Access
 	QuickAccessMenu []MenuItem
-	
-	// Optional. The theme name
-	ThemeName string
 	
 	// Optional. The currently logged in user
 	User User
@@ -126,8 +127,8 @@ func NewFromConfig(config Config) *Dashboard {
 		dashboard.SetQuickAccessMenu(config.QuickAccessMenu)
 	}
 	
-	if config.ThemeName != "" {
-		dashboard.SetThemeName(config.ThemeName)
+	if config.TemplateName != "" {
+		dashboard.SetTemplateName(config.TemplateName)
 	}
 	
 	if config.User.ID != "" {
@@ -138,11 +139,11 @@ func NewFromConfig(config Config) *Dashboard {
 		dashboard.SetUserMenu(config.UserMenu)
 	}
 	
-	// Detect theme from cookie if HTTP request is provided
+	// Detect template from cookie if HTTP request is provided
 	if config.HTTPRequest != nil {
-		cookie, err := config.HTTPRequest.Cookie(THEME_COOKIE_KEY)
+		cookie, err := config.HTTPRequest.Cookie(TEMPLATE_COOKIE_KEY)
 		if err == nil && cookie.Value != "" {
-			dashboard.SetThemeName(cookie.Value)
+			dashboard.SetTemplateName(cookie.Value)
 		}
 	}
 	

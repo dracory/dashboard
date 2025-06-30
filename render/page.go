@@ -1,6 +1,7 @@
 package render
 
 import (
+	"fmt"
 	"github.com/dracory/dashboard/model"
 	"github.com/dracory/dashboard/render/theme"
 	shared "github.com/dracory/dashboard/render/theme/shared"
@@ -20,21 +21,26 @@ func RenderPage(d model.DashboardRenderer) *hb.Tag {
 	// Get the theme from the dashboard configuration
 	themeName := d.GetThemeName()
 	if themeName == "" {
+		fmt.Printf("[DEBUG] No theme specified in dashboard, using default: %s\n", THEME_DEFAULT)
 		themeName = THEME_DEFAULT // Default theme
+	} else {
+		fmt.Printf("[DEBUG] Dashboard requested theme: %s\n", themeName)
 	}
 
 	// Get the theme instance
 	themeInstance := themeManager.Get(themeName)
 	if themeInstance == nil {
-		// Fallback to default theme if requested theme is not found
+		fmt.Printf("[WARN] Requested theme not found: %s, falling back to default: %s\n", themeName, THEME_DEFAULT)
 		themeInstance = themeManager.Get(THEME_DEFAULT)
 	}
 
 	// Ensure we have a valid theme instance
 	if themeInstance == nil {
-		// If still no theme, create a default one (shouldn't happen if themes are properly registered)
+		fmt.Printf("[ERROR] No theme available, using default theme implementation\n")
 		themeInstance = &shared.DefaultTheme{}
 	}
+
+	fmt.Printf("[DEBUG] Using theme: %s (type: %T)\n", themeInstance.GetName(), themeInstance)
 
 	isDarkTheme := isThemeDark(d)
 
@@ -123,7 +129,8 @@ func renderFavicon(d model.DashboardRenderer) *hb.Tag {
 	return hb.NewLink().Attr("rel", "icon").Attr("href", d.GetFaviconURL())
 }
 
-// isThemeDark returns whether the theme is dark
+// isThemeDark returns whether the color scheme is dark
 func isThemeDark(d model.DashboardRenderer) bool {
-	return d.GetThemeName() == "dark"
+	// Check the navbar background color mode to determine if we're in dark mode
+	return d.GetNavbarBackgroundColorMode() == "dark"
 }

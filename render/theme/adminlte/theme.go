@@ -1,6 +1,7 @@
 package adminlte
 
 import (
+	"github.com/dracory/dashboard/render"
 	"github.com/dracory/dashboard/render/theme/shared"
 	"github.com/dracory/omni"
 	"github.com/gouniverse/hb"
@@ -143,7 +144,7 @@ var _ shared.Theme = (*AdminLTETheme)(nil)
 
 // GetName returns the name of the theme
 func (t *AdminLTETheme) GetName() string {
-	return "adminlte"
+	return render.THEME_ADMINLTE
 }
 
 // GetCSSLinks returns the CSS link tags for the theme

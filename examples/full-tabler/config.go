@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/dracory/dashboard"
@@ -8,7 +9,11 @@ import (
 
 // createDashboardConfig creates a dashboard configuration
 func createDashboardConfig(r *http.Request, content string) dashboard.Config {
-	return dashboard.Config{
+	// Explicitly set the theme name
+	themeName := "tabler"
+	
+	// Create and return the config
+	config := dashboard.Config{
 		Content:                   content,
 		FaviconURL:                "https://tabler.io/favicon.ico",
 		HTTPRequest:               r,
@@ -16,16 +21,23 @@ func createDashboardConfig(r *http.Request, content string) dashboard.Config {
 		// MenuType removed as we're now using the two-row navigation layout
 		LogoImageURL:              "https://tabler.io/img/logo.svg",
 		LogoRedirectURL:           "/dashboard",
-		NavbarBackgroundColorMode: "light", // Changed to light to match Tabler preview
-		NavbarTextColor:           "dark",  // Changed to dark to match Tabler preview
+		NavbarBackgroundColorMode: "light", // This is just for the navbar appearance
+		NavbarTextColor:           "dark",  // This is just for the navbar text color
 		LoginURL:                  "/login",
 		RegisterURL:               "/register",
 		MenuItems:                 createMenuItems(),
 		QuickAccessMenu:           createQuickAccessMenu(),
 		User:                      createUser(),
 		UserMenu:                  createUserMenu(),
-		ThemeName:                 "tabler", // Explicitly set Tabler theme
+		ThemeName:                 themeName, // Explicitly set Tabler theme
 	}
+
+	// Debug log the config
+	if r != nil {
+		fmt.Printf("[DEBUG] Creating dashboard config with theme: %s\n", themeName)
+	}
+
+	return config
 }
 
 // createMenuItems creates menu items for the dashboard

@@ -2,10 +2,12 @@ package tabler
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/dracory/dashboard/model"
 	"github.com/dracory/dashboard/render"
 	"github.com/dracory/dashboard/render/theme/shared"
-	"github.com/gouniverse/hb"
+	hb "github.com/gouniverse/hb"
 )
 
 // TablerTheme implements the shared.Theme interface for Tabler
@@ -159,46 +161,89 @@ func (t *TablerTheme) isDarkColorScheme(d shared.DashboardRenderer) bool {
 // RenderHeader renders the header of the dashboard
 func (t *TablerTheme) RenderHeader(d model.DashboardRenderer) *hb.Tag {
 	fmt.Printf("[DEBUG] TablerTheme.RenderHeader called for theme: %s, dashboard theme: %s\n", t.GetName(), d.GetThemeName())
-	
-	// Main header container
-	header := hb.NewHeader().Class("navbar navbar-expand-md navbar-dark bg-primary")
-	header.Attr("data-bs-theme", "dark") // Use dark theme for header for better contrast
 
-	// Container for header content
-	container := hb.NewDiv().Class("container-fluid")
+	// Create header container
+	header := hb.NewHeader().Class("navbar navbar-expand-md d-print-none")
+	header.Style("background-color: #206bc4;")
+	container := hb.NewDiv().Class("container-xl")
 
-	// Logo on the left
-	logoLink := hb.NewLink().Href("/").Class("navbar-brand me-0 me-md-3")
-	logoImg := hb.NewImage().Src(d.GetLogoImageURL()).Alt("Logo").Class("navbar-brand-image")
-	logoLink.Child(logoImg)
+	// First row container
+	firstRow := hb.NewDiv().Class("d-flex flex-row w-100 align-items-center")
 
-	// Mobile menu toggle
+	// Logo on left side of first row
+	logoLink := hb.NewLink().Href("/").Class("navbar-brand navbar-brand-autodark me-0 me-md-3")
+	logoURL := d.GetLogoImageURL()
+	if logoURL != "" {
+		logoLink.Child(hb.NewImage().Src(logoURL).Alt("Logo").Style("height: 32px;"))
+	} else {
+		logoLink.Child(hb.Text("Dashboard"))
+	}
+
+	// User menu on right side of first row
+	userMenu := hb.NewDiv().Class("ms-auto d-flex")
+	user := d.GetUser()
+	userName := "User"
+	if user.Name != "" {
+		userName = user.Name
+	}
+
+	// User avatar
+	avatarURL := "https://ui-avatars.com/api/?name=" + userName + "&background=0D8ABC&color=fff"
+	if user.AvatarURL != "" {
+		avatarURL = user.AvatarURL
+	}
+
+	// User dropdown
+	dropdownMenu := hb.NewDiv().Class("dropdown-menu dropdown-menu-end dropdown-menu-arrow")
+
+	// Add user menu items
+	for _, item := range d.GetUserMenu() {
+		dropdownMenu.Child(hb.NewLink().Href(item.URL).Class("dropdown-item").Text(item.Text))
+	}
+
+	// Add dropdown to user menu
+	userMenu.Child(hb.NewDiv().Class("nav-item dropdown").
+		Child(hb.NewLink().Href("#").Class("nav-link d-flex lh-1 text-white p-0").
+			Attr("data-bs-toggle", "dropdown").
+			Child(hb.NewSpan().Class("avatar avatar-sm me-2").
+				Child(hb.NewImage().Src(avatarURL).Class("avatar-img rounded-circle").Alt(""))).
+			Child(hb.NewDiv().Class("d-none d-xl-block ps-1").
+				Child(hb.NewDiv().Text(userName)).
+				Child(hb.NewDiv().Class("mt-1 small text-white-50").Text(user.Email)))))
+
+	// Mobile toggle
 	mobileToggle := hb.NewButton().Class("navbar-toggler")
 	mobileToggle.Attr("type", "button")
 	mobileToggle.Attr("data-bs-toggle", "collapse")
 	mobileToggle.Attr("data-bs-target", "#navbar-menu")
+	mobileToggle.Attr("aria-controls", "navbar-menu")
+	mobileToggle.Attr("aria-expanded", "false")
+	mobileToggle.Attr("aria-label", "Toggle navigation")
 	mobileToggle.Child(hb.NewSpan().Class("navbar-toggler-icon"))
 
-	// Main navigation wrapper
-	navbarCollapse := hb.NewDiv().Class("collapse navbar-collapse")
-	navbarCollapse.Attr("id", "navbar-menu")
+	// Add logo and user menu to first row
+	firstRow.Child(logoLink)
+	firstRow.Child(userMenu)
+
+	// Second row container for main navigation
+	secondRow := hb.NewDiv().Class("navbar-expand-md")
+	navbarCollapse := hb.NewDiv().Class("collapse navbar-collapse").ID("navbar-menu")
+	navbarNav := hb.NewTag("ul").Class("navbar-nav")
 
 	// Primary navigation container
-	navbarNav := hb.NewDiv().Class("d-flex flex-column flex-md-row flex-fill align-items-stretch align-items-md-center")
-	
 	// Main navigation items (First row)
 	navbarNavInner := hb.NewTag("ul").Class("navbar-nav me-auto")
-	
+
 	// Add main menu items (first level)
 	for _, item := range d.GetMenuItems() {
 		navbarNavInner.Child(renderNavItem(item))
 	}
-	
+
 	navbarNav.Child(navbarNavInner)
 
 	// Secondary navigation (Second row) - Only shown on larger screens
 	secondaryNav := hb.NewTag("ul").Class("navbar-nav d-none d-lg-flex ms-auto")
-	
+
 	// Add secondary menu items if available
 	if secondaryItems, ok := d.(interface{ GetSecondaryMenuItems() []model.MenuItem }); ok {
 		for _, item := range secondaryItems.GetSecondaryMenuItems() {
@@ -208,7 +253,7 @@ func (t *TablerTheme) RenderHeader(d model.DashboardRenderer) *hb.Tag {
 
 	// Add both navigation rows to the navbar collapse
 	navbarCollapse.Child(navbarNav)
-	
+
 	// Check if we have any secondary navigation items by checking if the secondary nav has any children
 	// The ToHTML() check ensures we don't add an empty nav
 	if secondaryNav.ToHTML() != "<ul class=\"navbar-nav d-none d-lg-flex ms-auto\"></ul>" {
@@ -235,88 +280,115 @@ func (t *TablerTheme) RenderHeader(d model.DashboardRenderer) *hb.Tag {
 	notificationsButton.Child(hb.NewI().Class("ti ti-bell"))
 	notifications.Child(notificationsButton)
 
-	// User menu
-	userMenu := hb.NewDiv().Class("dropdown")
+	// User dropdown container
+	userDropdownContainer := hb.NewDiv().Class("dropdown")
 	userButton := hb.NewButton().Class("btn btn-ghost-secondary")
 	userButton.Attr("type", "button")
 	userButton.Attr("data-bs-toggle", "dropdown")
 	userButton.Attr("aria-expanded", "false")
-	
+
 	userAvatar := hb.NewSpan().Class("avatar avatar-sm")
 	userAvatar.Style("background-image: url('https://ui-avatars.com/api/?name=User&background=random')")
 	userButton.Child(userAvatar)
 
 	// User dropdown menu
 	userDropdown := hb.NewDiv().Class("dropdown-menu dropdown-menu-end")
-	
+
 	// Add user menu items
 	userDropdown.Child(hb.NewLink().Href("/profile").Class("dropdown-item").Child(hb.NewI().Class("ti ti-user me-2")).Text("Profile"))
 	userDropdown.Child(hb.NewLink().Href("/settings").Class("dropdown-item").Child(hb.NewI().Class("ti ti-settings me-2")).Text("Settings"))
 	userDropdown.Child(hb.NewDiv().Class("dropdown-divider"))
 	userDropdown.Child(hb.NewLink().Href("/logout").Class("dropdown-item").Child(hb.NewI().Class("ti ti-logout me-2")).Text("Logout"))
 
-	userMenu.Child(userButton).Child(userDropdown)
+	userDropdownContainer.Child(userButton).Child(userDropdown)
 
 	// Add controls to header
 	headerControls.Child(searchForm).Child(notifications).Child(userMenu)
 
-	// Main navigation menu
-	menu := hb.NewDiv().Class("collapse navbar-collapse").ID("navbar-menu")
-	menuList := hb.NewDiv().Class("navbar-nav")
+	// Main navigation menu is already rendered in navbarNav and navbarNavInner
 
-	// Add menu items
+	// Add menu items to navigation
 	for _, item := range d.GetMenuItems() {
-		menuItemClass := "nav-item"
-		if item.Active {
-			menuItemClass += " active"
-		}
-
-		menuItem := hb.NewDiv().Class(menuItemClass)
-		linkClass := "nav-link"
-		if len(item.SubMenu) > 0 {
-			linkClass += " dropdown-toggle"
-		}
-		link := hb.NewLink().Href(item.URL).Class(linkClass)
-		
-		// Add icon if exists
-		if item.Icon != "" {
-			icon := hb.NewI().Class(item.Icon + " me-1")
-			link.Child(icon)
-		}
-		
-		// Add text
-		if item.Text != "" {
-			link.Child(hb.Text(item.Text))
-		}
-
-		// Handle submenu if exists
-		if len(item.SubMenu) > 0 {
-			link.Attr("data-bs-toggle", "dropdown")
-			dropdown := hb.NewDiv().Class("dropdown-menu")
-			
-			for _, child := range item.SubMenu {
-				dropdown.Child(hb.NewLink().Href(child.URL).Class("dropdown-item").Text(child.Text))
-			}
-			
-			menuItem.Child(link).Child(dropdown)
-		} else {
-			menuItem.Child(link)
-		}
-
-		menuList.Child(menuItem)
+		navbarNav.Child(t.renderNavItem(item, 0))
 	}
 
-	menu.Child(menuList)
+	// Add navigation to second row
+	navbarCollapse.Child(navbarNav)
 
-	// Add all elements to container
-	container.Child(logoLink)
-	container.Child(mobileToggle)
-	container.Child(menu)
-	container.Child(headerControls)
+	// Add mobile toggle and navbar to second row
+	secondRow.Child(mobileToggle)
+	secondRow.Child(navbarCollapse)
+
+	// Add rows to container
+	container.Child(firstRow)
+	container.Child(secondRow)
 
 	header.Child(container)
 
+	// Add dropdown menu to user menu
+	header.Child(dropdownMenu)
+
 	return header
+}
+
+// renderNavItem renders a single navigation item
+func (t *TablerTheme) renderNavItem(item model.MenuItem, level int) *hb.Tag {
+	// Create list item
+	li := hb.NewTag("li").Class("nav-item")
+	if item.Active {
+		li.Class("active")
+	}
+
+	// Create link
+	linkClass := "nav-link"
+	if len(item.SubMenu) > 0 {
+		linkClass += " dropdown-toggle"
+	}
+
+	link := hb.NewLink().Href(item.URL).Class(linkClass)
+	if len(item.SubMenu) > 0 {
+		link.Attr("data-bs-toggle", "dropdown")
+		link.Attr("aria-expanded", "false")
+	}
+
+	// Add icon if present
+	if item.Icon != "" {
+		iconClass := item.Icon
+		if !strings.HasPrefix(iconClass, "fa-") && !strings.HasPrefix(iconClass, "ti-") {
+			iconClass = "ti ti-" + iconClass
+		}
+		link.Child(hb.NewI().Class(iconClass + " me-1"))
+	}
+
+	// Add text
+	if item.Text != "" {
+		link.Child(hb.NewSpan().Text(item.Text))
+	}
+
+	// Add badge if present
+	if item.BadgeText != "" {
+		badgeClass := "badge bg-primary ms-2"
+		if item.BadgeClass != "" {
+			badgeClass = item.BadgeClass
+		}
+		link.Child(hb.NewSpan().Class(badgeClass).Text(item.BadgeText))
+	}
+
+	// Add submenu if exists
+	if len(item.SubMenu) > 0 {
+		dropdown := hb.NewDiv().Class("dropdown-menu")
+		if level > 0 {
+			dropdown.Class("dropdown-submenu")
+		}
+
+		for _, subItem := range item.SubMenu {
+			dropdown.Child(t.renderNavItem(subItem, level+1))
+		}
+
+		return li.Child(link).Child(dropdown)
+	}
+
+	return li.Child(link)
 }
 
 // renderNavItem creates a navigation item for the header with proper Tabler styling
@@ -335,7 +407,7 @@ func renderNavItem(item model.MenuItem) *hb.Tag {
 	if item.OnClick != "" {
 		linkAttributes["onclick"] = item.OnClick
 	}
-	
+
 	navLink := hb.NewTag("a")
 	if len(item.SubMenu) > 0 {
 		navLink.Class("nav-link dropdown-toggle text-white")
@@ -345,26 +417,26 @@ func renderNavItem(item model.MenuItem) *hb.Tag {
 	} else {
 		navLink.Class("nav-link text-white")
 	}
-	
+
 	// Add hover and active states
 	navLink.Class("px-3 py-2 d-flex align-items-center")
 	if item.Active {
 		navLink.Class("active fw-bold")
 	}
-	
+
 	// Set attributes
 	for k, v := range linkAttributes {
 		navLink.Attr(k, v)
 	}
-	
+
 	// Add icon if present
 	if item.Icon != "" {
 		navLink.Child(hb.NewI().Class(item.Icon).Class("me-2"))
 	}
-	
+
 	// Add text
 	navLink.Child(hb.NewSpan().Text(item.Text))
-	
+
 	// Add badge if present
 	if item.BadgeText != "" {
 		badgeClass := "badge ms-2"
@@ -375,39 +447,39 @@ func renderNavItem(item model.MenuItem) *hb.Tag {
 		}
 		navLink.Child(hb.NewSpan().Class(badgeClass).Text(item.BadgeText))
 	}
-	
+
 	// Handle submenu if present
 	if len(item.SubMenu) > 0 {
 		dropdownMenu := hb.NewTag("ul").Class("dropdown-menu dropdown-menu-arrow dropdown-menu-dark")
 		dropdownMenu.Attr("data-bs-popper", "static")
-		
+
 		for _, subItem := range item.SubMenu {
 			dropdownItem := hb.NewTag("li")
-			
+
 			// Handle divider
 			if subItem.ID == "divider" {
 				dropdownMenu.Child(hb.NewTag("li").Child(hb.NewTag("hr").Class("dropdown-divider")))
 				continue
 			}
-			
+
 			subLink := hb.NewTag("a").Class("dropdown-item")
 			subLink.Attr("href", subItem.URL)
-			
+
 			if subItem.NewWindow {
 				subLink.Attr("target", "_blank")
 			}
 			if subItem.OnClick != "" {
 				subLink.Attr("onclick", subItem.OnClick)
 			}
-			
+
 			// Add icon if present
 			if subItem.Icon != "" {
 				subLink.Child(hb.NewI().Class(subItem.Icon).Class("me-2"))
 			}
-			
+
 			// Add text
 			subLink.Child(hb.NewSpan().Text(subItem.Text))
-			
+
 			// Add badge if present
 			if subItem.BadgeText != "" {
 				badgeClass := "badge ms-2"
@@ -418,37 +490,37 @@ func renderNavItem(item model.MenuItem) *hb.Tag {
 				}
 				subLink.Child(hb.NewSpan().Class(badgeClass).Text(subItem.BadgeText))
 			}
-			
+
 			dropdownItem.Child(subLink)
 			dropdownMenu.Child(dropdownItem)
 		}
-		
+
 		navItem.Child(navLink).Child(dropdownMenu)
 	} else {
 		navItem.Child(navLink)
 	}
-	
+
 	return navItem
 }
 
 // RenderFooter renders the Tabler theme footer
 func (t *TablerTheme) RenderFooter(d shared.DashboardRenderer) *hb.Tag {
 	fmt.Printf("[DEBUG] TablerTheme.RenderFooter called for theme: %s, dashboard theme: %s\n", t.GetName(), d.GetThemeName())
-	
+
 	// Create footer with proper Tabler classes
 	footer := hb.NewTag("footer").Class("footer footer-transparent d-print-none")
 	container := hb.NewTag("div").Class("container-xl")
-	
+
 	// Footer content row
 	row := hb.Div().Class("row text-center align-items-center flex-row-reverse")
-	
+
 	// Left side (menu links)
 	leftCol := hb.NewTag("div").Class("col-lg-auto ms-lg-auto")
 	leftList := hb.NewTag("ul").Class("list-inline list-inline-dots mb-0")
 	leftList.Child(hb.NewTag("li").Class("list-inline-item").Child(hb.NewTag("a").Attr("href", "/").Text("Home")))
 	leftList.Child(hb.NewTag("li").Class("list-inline-item").Child(hb.NewTag("a").Attr("href", "/about").Text("About")))
 	leftCol.Child(leftList)
-	
+
 	// Right side (copyright)
 	rightCol := hb.NewTag("div").Class("col-12 col-lg-auto mt-3 mt-lg-0")
 	rightCol.Child(hb.NewTag("ul").Class("list-inline list-inline-dots mb-0").
@@ -456,12 +528,12 @@ func (t *TablerTheme) RenderFooter(d shared.DashboardRenderer) *hb.Tag {
 			Text("© 2023 ").
 			Child(hb.NewTag("a").Attr("href", "https://tabler.io/").Class("link-secondary").Text("Tabler").Attr("target", "_blank")).
 			Text(" Dashboard")))
-	
+
 	// Assemble the footer
 	row.Child(leftCol)
 	row.Child(rightCol)
 	container.Child(row)
 	footer.Child(container)
-	
+
 	return footer
 }

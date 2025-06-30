@@ -353,14 +353,14 @@ func (t *AdminLTETheme) renderDashboard(dashboard omni.AtomInterface) (string, e
 
 	// Add content wrapper
 	contentWrapper := hb.NewDiv().Class("content-wrapper")
-	body.AddChild(contentWrapper)
+	body.Child(contentWrapper)
 
 	// Render dashboard content
 	content, err := t.renderAtom(dashboard)
 	if err != nil {
 		return "", err
 	}
-	contentWrapper.AddChild(content)
+	contentWrapper.Child(content)
 
 	// Add footer
 	footer := hb.NewTag("footer").Class("main-footer")

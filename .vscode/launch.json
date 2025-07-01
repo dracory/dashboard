@@ -5,11 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch Basic Example",
+            "name": "Launch Bootstrap Example",
             "type": "go",
             "request": "launch",
             "mode": "auto",
-            "program": "${workspaceFolder}/examples/basic/main.go"
+            "program": "${workspaceFolder}/examples/bootstrap/main.go"
+        },
+        {
+            "name": "Launch Tabler Example",
+            "type": "go",
+            "request": "launch",
+            "mode": "auto",
+            "program": "${workspaceFolder}/examples/tabler/main.go"
         }
     ]
 }

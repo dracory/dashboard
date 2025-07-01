@@ -32,4 +32,5 @@ go.work.sum
 # .vscode/
 tabler.zip
 assets/
-examples/basic/tmp/build-errors.log
+examples/basic/tmp/
+examples/tabler/tmp/

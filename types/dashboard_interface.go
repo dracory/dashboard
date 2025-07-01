@@ -6,11 +6,47 @@ const (
 	MENU_TYPE_OFFCANVAS = "offcanvas"
 )
 
+// BreadcrumbItem represents a single item in the breadcrumb navigation
+type BreadcrumbItem struct {
+	Title string // Display text for the breadcrumb item
+	URL   string // URL for the breadcrumb link (empty for current/last item)
+}
+
+// Modal represents a Bootstrap/Tabler modal dialog
+type Modal struct {
+	ID          string // Unique ID for the modal
+	Title       string // Modal title
+	Content     string // Modal content (HTML)
+	Size        string // Modal size (sm, lg, xl, or empty for default)
+	Footer      string // Modal footer content (HTML)
+	CloseButton bool   // Whether to show the close button (default: true)
+}
+
+// Alert represents a notification message to display to the user
+type Alert struct {
+	Type    string // Alert type (e.g., "success", "danger", "warning", "info")
+	Message string // The message to display
+}
+
+// Action represents an action button in the header
+type Action struct {
+	ID      string // Optional ID for the button
+	Title   string // Button text
+	Icon    string // Icon name (without the 'ti ti-' prefix)
+	Primary bool   // Whether this is a primary action
+	OnClick string // JavaScript to execute on click
+}
+
 type DashboardInterface interface {
 	// GetContent returns the content of the webpage
 	GetContent() string
 	// SetContent sets the content of the webpage
 	SetContent(content string)
+
+	// GetSubtitle returns the subtitle of the webpage
+	GetSubtitle() string
+	// SetSubtitle sets the subtitle of the webpage
+	SetSubtitle(subtitle string)
 
 	// GetFaviconURL returns the favicon URL of the dashboard
 	GetFaviconURL() string
@@ -135,6 +171,28 @@ type DashboardInterface interface {
 
 	// Navbar background
 	GetNavbarBackground() (string, bool)
+
+	// Sidebar state
+	GetSidebarCollapsed() bool
+	SetSidebarCollapsed(collapsed bool)
+
+	// Breadcrumb
+	GetBreadcrumb() []BreadcrumbItem
+	SetBreadcrumb(items []BreadcrumbItem)
+
+	// Actions
+	GetActions() []Action
+	SetActions(actions []Action)
+
+	// Alerts
+	GetAlerts() []Alert
+	AddAlert(alert Alert)
+	ClearAlerts()
+
+	// Modals
+	GetModals() []Modal
+	AddModal(modal Modal)
+	ClearModals()
 
 	ToHTML() string
 }

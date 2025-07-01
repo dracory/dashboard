@@ -24,6 +24,9 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 
 	// Set the template to use Bootstrap
 	d.SetTemplate(dashboard.TEMPLATE_BOOTSTRAP)
+	
+	// Set menu type to modal
+	d.SetMenuType(types.MENU_TYPE_MODAL)
 
 	// Set dashboard title
 	d.SetTitle("Admin Dashboard")

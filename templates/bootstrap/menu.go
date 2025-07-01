@@ -78,8 +78,8 @@ func dashboardMenuNavbar(dashboard types.DashboardInterface) string {
 	return nav.ToHTML()
 }
 
-// MenuOffcanvas generates the offcanvas menu HTML
-func MenuOffcanvas(dashboard types.DashboardInterface) *hb.Tag {
+// menuOffcanvas generates the offcanvas menu HTML
+func menuOffcanvas(dashboard types.DashboardInterface) *hb.Tag {
 	// Get the background class based on the current theme
 	var backgroundClass string
 	if navbarBg, ok := dashboard.GetNavbarBackground(); ok && navbarBg != "" {

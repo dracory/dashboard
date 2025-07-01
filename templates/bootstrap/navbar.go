@@ -33,34 +33,12 @@ func topNavigation(dashboard types.DashboardInterface) string {
 	dropdownThemeSwitch := navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode)
 
 	buttonTheme := navbarButtonThemeClass(navbarBackgroundColor, navbarBackgroundColorMode)
+	buttonMenuToggle := buttonMenuToggle(buttonTheme, hasNavbarTextColor, dashboard, iconStyle)
+	buttonOffcanvasToggle := buttonOffcanvasToggle(buttonTheme, hasNavbarTextColor, navbarTextColor, iconStyle, dashboard)
 
-	buttonMenuToggle := hb.Button().
-		Class("btn "+buttonTheme).
-		Style("background: none; border:none;").
-		StyleIf(hasNavbarTextColor, "color: "+dashboard.GetNavbarTextColor()+";").
-		Data("bs-toggle", "modal").
-		Data("bs-target", "#ModalDashboardMenu").
-		Children([]hb.TagInterface{
-			icons.Icon("bi-list", 24, 24, "").Style(iconStyle),
-			hb.Span().
-				Class("d-none d-md-inline-block").
-				HTML("Menu"),
-		})
-
-	buttonOffcanvasToggle := hb.Button().
-		Class("btn "+buttonTheme).
-		Style("background: none; border:none;").
-		StyleIf(hasNavbarTextColor, "color: "+navbarTextColor+";").
-		Data("bs-toggle", "offcanvas").
-		Data("bs-target", "#OffcanvasMenu").
-		Child(icons.Icon("bi-list", 24, 24, "").Style(iconStyle)).
-		ChildIf(dashboard.GetMenuShowText(), hb.Span().
-			Class("d-none d-md-inline-block").
-			HTML("Menu"))
-
-	mainMenu := buttonOffcanvasToggle
+	buttonMainMenu := buttonOffcanvasToggle
 	if dashboard.GetMenuType() == types.MENU_TYPE_MODAL {
-		mainMenu = buttonMenuToggle
+		buttonMainMenu = buttonMenuToggle
 	}
 
 	logo := lo.
@@ -96,161 +74,69 @@ func topNavigation(dashboard types.DashboardInterface) string {
 		StyleIf(hasNavbarBackgroundColor, `background-color: `+navbarBackgroundColor+`;`).
 		StyleIf(hasNavbarTextColor, `color: `+navbarTextColor+`;`).
 		ChildIf(hasLogo, logoLink).
-		Children([]hb.TagInterface{
-			mainMenu,
-
-			// User Menu
-			hb.If(!lo.IsEmpty(user) && (user.FirstName != "" || user.LastName != ""),
-				hb.Div().Class("float-end").
-					Style("margin-left:10px;").
-					Child(dropdownUser),
-			),
-
-			// Register Link
-			hb.If(lo.IsEmpty(user) && dashboard.GetRegisterURL() != "",
-				registerLink,
-			),
-
-			// Login Link
-			hb.If(lo.IsEmpty(user) && dashboard.GetLoginURL() != "",
-				loginLink,
-			),
-
-			// Theme Switcher
-			hb.If(dashboard.GetThemeHandlerUrl() != "",
-				hb.Div().Class("float-end").
-					Style("margin-left:10px;").
-					Child(dropdownThemeSwitch),
-			),
-
-			// Quick Menu (if provided)
-			hb.If(len(dashboard.GetMenuQuickAccessItems()) > 0, hb.Div().
-				Class("float-end").
+		Child(buttonMainMenu).
+		ChildIf(user != nil,
+			hb.Div().Class("float-end").
 				Style("margin-left:10px;").
-				Child(dropdownQuickAccess)),
-		})
+				Child(dropdownUser),
+		).
+		ChildIf(lo.IsEmpty(user) && dashboard.GetRegisterURL() != "", registerLink).
+		ChildIf(lo.IsEmpty(user) && dashboard.GetLoginURL() != "", loginLink).
+		ChildIf(dashboard.GetThemeHandlerUrl() != "", hb.Div().Class("float-end").Style("margin-left:10px;").Child(dropdownThemeSwitch)).
+		ChildIf(len(dashboard.GetMenuQuickAccessItems()) > 0, hb.Div().
+			Class("float-end").
+			Style("margin-left:10px;").
+			Child(dropdownQuickAccess))
 
-	return toolbar.ToHTML()
+	// Add modal menu to the DOM if menu type is modal
+	if dashboard.GetMenuType() == types.MENU_TYPE_MODAL {
+		modalMenuTag := menuModal(dashboard)
+		toolbar.Child(modalMenuTag)
+	} else {
+		offcanvasMenuTag := menuOffcanvas(dashboard)
+		toolbar.Child(offcanvasMenuTag)
+	}
+
+	mainMenu := lo.TernaryF(dashboard.GetMenuType() == types.MENU_TYPE_MODAL, func() *hb.Tag {
+		return menuModal(dashboard)
+	}, func() *hb.Tag {
+		return menuOffcanvas(dashboard)
+	})
+
+	return hb.Wrap().
+		Child(toolbar).
+		Child(mainMenu).
+		ToHTML()
 }
 
-// topNavigation returns the HTML code for the top navigation bar
-func topNavigationV1(
-	dashboard types.DashboardInterface,
-) string {
-	logoImageURL := dashboard.GetLogoImageURL()
-	logoRawHtml := dashboard.GetLogoRawHtml()
-	logoRedirectURL := dashboard.GetLogoRedirectURL()
-	mainMenuItems := dashboard.GetMenuMainItems()
-	navbarBackgroundColor := dashboard.GetNavbarBackgroundColor()
-	navbarTextColor := dashboard.GetNavbarTextColor()
-	navbarBackgroundColorMode := dashboard.GetNavbarBackgroundColorMode()
-	user := dashboard.GetUser()
+func buttonOffcanvasToggle(buttonTheme string, hasNavbarTextColor bool, navbarTextColor string, iconStyle string, dashboard types.DashboardInterface) *hb.Tag {
+	buttonOffcanvasToggle := hb.Button().
+		Class("btn "+buttonTheme).
+		Style("background: none; border:none;").
+		StyleIf(hasNavbarTextColor, "color: "+navbarTextColor+";").
+		Data("bs-toggle", "offcanvas").
+		Data("bs-target", "#OffcanvasMenu").
+		Child(icons.Icon("bi-list", 24, 24, "").Style(iconStyle)).
+		ChildIf(dashboard.GetMenuShowText(), hb.Span().
+			Class("d-none d-md-inline-block").
+			HTML("Menu"))
+	return buttonOffcanvasToggle
+}
 
-	iconStyle := lo.Ternary(navbarTextColor == "", "", "color: "+navbarTextColor)
-	bgClass := navbarBackgroundThemeClass(navbarBackgroundColor, navbarBackgroundColorMode)
-
-	dropdownQuickAccess := navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode, dashboard.GetMenuQuickAccessItems())
-	dropdownThemeSwitch := navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode)
-
-	buttonTheme := navbarButtonThemeClass(navbarBackgroundColor, navbarBackgroundColorMode)
-
-	navbar := hb.NewNavbar().
-		Class("navbar navbar-expand-lg").
-		ClassIf(bgClass != "", bgClass).
-		StyleIf(navbarTextColor != "", "color: "+navbarTextColor)
-
-	// Container
-	container := hb.NewDiv().Class("container-fluid")
-
-	// Brand/logo
-	brand := hb.NewHyperlink().
-		Class("navbar-brand d-flex align-items-center").
-		Style("margin-right: 1rem").
-		ChildIf(logoRawHtml == "", hb.Image(logoImageURL).Style("height: 32px")).
-		ChildIf(logoRawHtml != "", hb.Raw(logoRawHtml)).
-		ChildIf(logoRawHtml == "" && logoImageURL == "", hb.Text("Logo"))
-
-	if logoRedirectURL != "" {
-		brand.Href(logoRedirectURL)
-	}
-
-	// Toggle button for mobile
-	toggleButton := hb.NewButton().
-		Class("navbar-toggler"+buttonTheme).
-		Type("button").
-		Data("bs-toggle", "collapse").
-		Data("bs-target", "#navbarNav").
-		Child(hb.NewSpan().Class("navbar-toggler-icon"))
-
-	// Navbar content container - using standard Bootstrap collapse structure
-	navbarContent := hb.NewDiv().
-		Class("collapse navbar-collapse").
-		ID("navbarNav")
-
-	// Menu items - left-aligned with me-auto for proper spacing
-	nav := hb.NewUL().
-		Class("navbar-nav me-auto mb-2 mb-lg-0").
-		Children(lo.Map(mainMenuItems, func(item types.MenuItem, _ int) hb.TagInterface {
-			return hb.NewLI().Class("nav-item").
-				Child(hb.NewHyperlink().
-					Class("nav-link").
-					Href(item.URL).
-					Text(item.Title))
-		}))
-
-	// Right-aligned items
-	navbarNavRight := hb.NewUL().Class("navbar-nav ms-auto mb-2 mb-lg-0")
-
-	// Add dropdowns if they exist
-	if dropdownQuickAccess != nil && len(dashboard.GetMenuQuickAccessItems()) > 0 {
-		navbarNavRight.Child(hb.NewLI().Class("nav-item").Child(dropdownQuickAccess))
-	}
-
-	if dropdownThemeSwitch != nil {
-		navbarNavRight.Child(hb.NewLI().Class("nav-item").Child(dropdownThemeSwitch))
-	}
-
-	if user != nil {
-		dropdownUser := navbarDropdownUser(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode, *user, dashboard.GetMenuUserItems())
-		navbarNavRight.Child(hb.NewLI().Class("nav-item").Child(dropdownUser))
-	}
-
-	// Add nav and right-aligned items to the navbar content
-	navbarContent.Children([]hb.TagInterface{
-		nav,
-		navbarNavRight,
-	})
-
-	// Brand and toggle button
-	brandContainer := hb.NewDiv().Class("container-fluid")
-	brandRow := hb.NewDiv().Class("d-flex flex-wrap align-items-center justify-content-between")
-
-	// Brand
-	brandCol := hb.NewDiv().Class("d-flex align-items-center")
-	brandCol.Child(brand)
-
-	// Toggle button for mobile
-	toggleCol := hb.NewDiv()
-	toggleCol.Child(toggleButton)
-
-	// Build the structure
-	brandRow.Children([]hb.TagInterface{
-		brandCol,
-		toggleCol,
-	})
-
-	brandContainer.Child(brandRow)
-
-	// Add brand and content to container
-	container.Children([]hb.TagInterface{
-		brandContainer,
-		navbarContent,
-	})
-
-	// Add container to navbar
-	navbar.Child(container)
-
-	return navbar.ToHTML()
+func buttonMenuToggle(buttonTheme string, hasNavbarTextColor bool, dashboard types.DashboardInterface, iconStyle string) *hb.Tag {
+	buttonMenuToggle := hb.Button().
+		Class("btn "+buttonTheme).
+		Style("background: none; border:none;").
+		StyleIf(hasNavbarTextColor, "color: "+dashboard.GetNavbarTextColor()+";").
+		Data("bs-toggle", "modal").
+		Data("bs-target", "#ModalDashboardMenu").
+		Children([]hb.TagInterface{
+			icons.Icon("bi-list", 24, 24, "").Style(iconStyle),
+			hb.Span().
+				Class("d-none d-md-inline-block").
+				HTML("Menu"),
+		})
+	return buttonMenuToggle
 }
 
 // navbarDropdownUser creates a user dropdown menu

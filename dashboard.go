@@ -149,6 +149,19 @@ func (d *dashboard) SetMenuQuickAccessItems(menuItems []types.MenuItem) {
 	d.menuQuickAccessItems = menuItems
 }
 
+// GetMenuType returns the menu type (modal or offcanvas)
+func (d *dashboard) GetMenuType() string {
+	if d.menuType == "" {
+		return types.MENU_TYPE_OFFCANVAS // Default to offcanvas
+	}
+	return d.menuType
+}
+
+// SetMenuType sets the menu type (modal or offcanvas)
+func (d *dashboard) SetMenuType(menuType string) {
+	d.menuType = menuType
+}
+
 // GetRedirectTime returns the redirect time of the dashboard
 func (d *dashboard) GetRedirectTime() string {
 	return d.redirectTime
@@ -518,19 +531,6 @@ func (d *dashboard) GetMenuShowText() bool {
 // SetMenuShowText sets whether to show text in menu items
 func (d *dashboard) SetMenuShowText(showText bool) {
 	d.menuShowText = showText
-}
-
-// GetMenuType returns the menu type (modal or offcanvas)
-func (d *dashboard) GetMenuType() string {
-	if d.menuType == "" {
-		return MENU_TYPE_OFFCANVAS
-	}
-	return d.menuType
-}
-
-// SetMenuType sets the menu type (modal or offcanvas)
-func (d *dashboard) SetMenuType(menuType string) {
-	d.menuType = menuType
 }
 
 // GetNavbarBackground returns the current navbar background class and true if it's set,

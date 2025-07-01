@@ -22,17 +22,29 @@ func templateScript() string {
 				return new bootstrap.Dropdown(dropdownToggleEl);
 			});
 
-			// Enable offcanvas
-			var offcanvasElementList = [].slice.call(document.querySelectorAll('.offcanvas'));
-			var offcanvasList = offcanvasElementList.map(function (offcanvasEl) {
-				return new bootstrap.Offcanvas(offcanvasEl);
-			});
+			// Enable offcanvas - using a more defensive approach
+			var offcanvasElementList = document.querySelectorAll('.offcanvas');
+			if (offcanvasElementList.length > 0) {
+				Array.prototype.slice.call(offcanvasElementList).forEach(function (offcanvasEl) {
+					try {
+						new bootstrap.Offcanvas(offcanvasEl);
+					} catch (e) {
+						console.warn('Error initializing offcanvas:', e);
+					}
+				});
+			}
 
-			// Enable modals
-			var modalElementList = [].slice.call(document.querySelectorAll('.modal'));
-			var modalList = modalElementList.map(function (modalEl) {
-				return new bootstrap.Modal(modalEl);
-			});
+			// Enable modals - using a more defensive approach
+			var modalElementList = document.querySelectorAll('.modal');
+			if (modalElementList.length > 0) {
+				Array.prototype.slice.call(modalElementList).forEach(function (modalEl) {
+					try {
+						new bootstrap.Modal(modalEl);
+					} catch (e) {
+						console.warn('Error initializing modal:', e);
+					}
+				});
+			}
 
 			// Handle form validation
 			var forms = document.querySelectorAll('.needs-validation');

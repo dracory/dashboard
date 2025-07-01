@@ -18,18 +18,6 @@ func (t *Template) layout(dashboard types.DashboardInterface) string {
 	layout := hb.NewBorderLayout()
 	layout.AddTop(hb.Raw(topNavigation(dashboard)), hb.BORDER_LAYOUT_ALIGN_LEFT, hb.BORDER_LAYOUT_ALIGN_MIDDLE)
 	layout.AddCenter(hb.Raw(content), hb.BORDER_LAYOUT_ALIGN_LEFT, hb.BORDER_LAYOUT_ALIGN_TOP)
-	
-	// Add menu based on menu type
-	if dashboard.GetMenuType() == types.MENU_TYPE_MODAL {
-		// Add modal menu to the layout
-		modalMenu := menuModal(dashboard)
-		layout.Child(modalMenu)
-	} else {
-		// Add offcanvas menu to the layout (default)
-		offcanvasMenu := MenuOffcanvas(dashboard)
-		layout.Child(offcanvasMenu)
-	}
-	
 	return layout.ToHTML()
 }
 

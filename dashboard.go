@@ -1,6 +1,8 @@
 package dashboard
 
 import (
+	"strings"
+
 	"github.com/dracory/dashboard/templates/bootstrap"
 	"github.com/dracory/dashboard/types"
 	"github.com/gouniverse/hb"
@@ -373,46 +375,113 @@ func (d *dashboard) NavbarDropdownThemeSwitch() string {
 	buttonTheme := d.NavbarButtonThemeClass()
 	isDark := d.IsThemeDark()
 
-	// Define theme options
-	themeOptions := map[string]string{
-		"light": "Light",
-		"dark":  "Dark",
-	}
-
+	// Import theme maps from bootstrap package
 	// If themes are restricted, use those instead
 	if len(d.themesRestrict) > 0 {
-		themeOptions = d.themesRestrict
-	}
+		// Use restricted themes
+		// Create dropdown items
+		var dropdownItems []hb.TagInterface
+		for themeKey, themeName := range d.themesRestrict {
+			icon := lo.TernaryF(d.IsThemeDark(), 
+				func() string { return "bi bi-sun" }, 
+				func() string { return "bi bi-moon-stars-fill" })
 
-	// Create dropdown items
-	var dropdownItems []hb.TagInterface
-	for themeKey, themeName := range themeOptions {
-		icon := lo.Ternary(themeKey == "dark", "bi bi-moon-stars-fill", "bi bi-sun")
+			active := lo.Ternary(d.theme == themeKey, " active", "")
+			url := lo.Ternary(strings.Contains(d.themeHandlerUrl, "?"), 
+				d.themeHandlerUrl+"&theme="+themeKey, 
+				d.themeHandlerUrl+"?theme="+themeKey)
 
-		dropdownItems = append(dropdownItems,
-			hb.Hyperlink().
-				Class("dropdown-item").
-				Href(d.themeHandlerUrl+"?theme="+themeKey).
-				Child(hb.I().Class(icon+" me-2")).
-				HTML(themeName))
-	}
+			dropdownItems = append(dropdownItems,
+				hb.LI().Children([]hb.TagInterface{
+					hb.Hyperlink().
+						Class("dropdown-item"+active).
+						Href(url).
+						Child(hb.I().Class(icon+" me-2")).
+						HTML(themeName),
+				}),
+			)
+		}
 
-	button := hb.Button().
-		ID("buttonTheme").
-		Class(buttonTheme+" dropdown-toggle").
-		Style("background:none;border:0px;").
-		StyleIf(hasNavbarTextColor, "color:"+d.navbarTextColor).
-		Data("bs-toggle", "dropdown").
-		Children([]hb.TagInterface{
-			lo.Ternary(isDark, hb.I().Class("bi bi-sun"), hb.I().Class("bi bi-moon-stars-fill")),
+		button := hb.Button().
+			ID("buttonTheme").
+			Class(buttonTheme+" dropdown-toggle").
+			Style("background:none;border:0px;").
+			StyleIf(hasNavbarTextColor, "color:"+d.navbarTextColor).
+			Data("bs-toggle", "dropdown").
+			Children([]hb.TagInterface{
+				lo.Ternary(isDark, hb.I().Class("bi bi-sun"), hb.I().Class("bi bi-moon-stars-fill")),
+			})
+
+		return hb.Div().
+			Class("dropdown").
+			Child(button).
+			Child(hb.UL().
+				Class(buttonTheme + " dropdown-menu dropdown-menu-dark").
+				Children(dropdownItems)).ToHTML()
+	} else {
+		// Use all available themes
+		// Light Themes
+		lightDropdownItems := lo.Map(lo.Keys(bootstrap.ThemesLight), func(theme string, index int) hb.TagInterface {
+			name := bootstrap.ThemesLight[theme]
+			active := lo.Ternary(d.theme == theme, " active", "")
+			url := lo.Ternary(strings.Contains(d.themeHandlerUrl, "?"), 
+				d.themeHandlerUrl+"&theme="+theme, 
+				d.themeHandlerUrl+"?theme="+theme)
+
+			return hb.LI().Children([]hb.TagInterface{
+				hb.Hyperlink().
+					Class("dropdown-item"+active).
+					Child(hb.I().Class("bi bi-sun me-2")).
+					HTML(name).
+					Href(url).
+					Attr("ref", "nofollow"),
+			})
 		})
 
-	return hb.Div().
-		Class("dropdown").
-		Child(button).
-		Child(hb.UL().
-			Class(buttonTheme + " dropdown-menu dropdown-menu-dark").
-			Children(dropdownItems)).ToHTML()
+		// Dark Themes
+		darkDropdownItems := lo.Map(lo.Keys(bootstrap.ThemesDark), func(theme string, index int) hb.TagInterface {
+			name := bootstrap.ThemesDark[theme]
+			active := lo.Ternary(d.theme == theme, " active", "")
+			url := lo.Ternary(strings.Contains(d.themeHandlerUrl, "?"), 
+				d.themeHandlerUrl+"&theme="+theme, 
+				d.themeHandlerUrl+"?theme="+theme)
+
+			return hb.LI().Children([]hb.TagInterface{
+				hb.Hyperlink().
+					Class("dropdown-item"+active).
+					Child(hb.I().Class("bi bi-moon-stars-fill me-2")).
+					HTML(name).
+					Href(url).
+					Attr("ref", "nofollow"),
+			})
+		})
+
+		button := hb.Button().
+			ID("buttonTheme").
+			Class(buttonTheme+" dropdown-toggle").
+			Style("background:none;border:0px;").
+			StyleIf(hasNavbarTextColor, "color:"+d.navbarTextColor).
+			Data("bs-toggle", "dropdown").
+			Children([]hb.TagInterface{
+				lo.Ternary(isDark, hb.I().Class("bi bi-sun"), hb.I().Class("bi bi-moon-stars-fill")),
+			})
+
+		return hb.Div().
+			Class("dropdown").
+			Child(button).
+			Child(hb.UL().
+				Class(buttonTheme + " dropdown-menu dropdown-menu-dark").
+				Children(lightDropdownItems).
+				ChildIf(
+					len(lo.Filter(darkDropdownItems, func(item hb.TagInterface, _ int) bool { return item != nil })) > 0 && 
+					len(lo.Filter(lightDropdownItems, func(item hb.TagInterface, _ int) bool { return item != nil })) > 0,
+					hb.LI().Children([]hb.TagInterface{
+						hb.HR().Class("dropdown-divider"),
+					}),
+				).
+				Children(darkDropdownItems)).ToHTML()
+	}
+
 }
 
 func (d *dashboard) NavbarDropdownUser(iconStyle string) string {
@@ -488,8 +557,12 @@ func (d *dashboard) SetRegisterURL(url string) {
 
 // Theme methods
 func (d *dashboard) IsThemeDark() bool {
-	// TODO: Implement actual theme detection logic
-	return d.theme == "dark"
+	// Check if the theme is in the list of dark themes
+	darkThemes := []string{
+		"cyborg", "darkly", "slate", "solar", "superhero", "vapor", "dark",
+	}
+	
+	return lo.Contains(darkThemes, d.theme)
 }
 
 func (d *dashboard) GetTheme() string {

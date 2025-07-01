@@ -4,15 +4,10 @@ import (
 	"github.com/samber/lo"
 )
 
-// Theme related constants and variables
-var themesDark = map[string]bool{
-	"dark":  true,
-	"slate": true,
-}
-
 // isThemeDark checks if the given theme is a dark theme
 func isThemeDark(theme string) bool {
-	return lo.Contains(lo.Keys(themesDark), theme)
+	_, isDark := ThemesDark[theme]
+	return isDark
 }
 
 // navbarHasBackgroundThemeClass determines if the navbar should use a background theme class

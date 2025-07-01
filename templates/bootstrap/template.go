@@ -44,8 +44,24 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 		webpage.AddScript(script)
 	}
 
-	// Add Bootstrap CSS
-	webpage.AddStyleURL(cdn.BootstrapCss_5_3_3())
+	// Add theme CSS or default Bootstrap CSS
+	theme := dashboard.GetTheme()
+	if theme != "" && theme != ThemeDefault {
+		// Check if it's a known theme
+		_, isLightTheme := ThemesLight[theme]
+		_, isDarkTheme := ThemesDark[theme]
+		
+		if isLightTheme || isDarkTheme {
+			// Use Bootswatch theme
+			webpage.AddStyleURL("https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/" + theme + "/bootstrap.min.css")
+		} else {
+			// Fallback to default Bootstrap
+			webpage.AddStyleURL(cdn.BootstrapCss_5_3_3())
+		}
+	} else {
+		// Use default Bootstrap
+		webpage.AddStyleURL(cdn.BootstrapCss_5_3_3())
+	}
 
 	// Add Bootstrap Icons
 	webpage.AddStyleURL(cdn.BootstrapIconsCss_1_11_3())

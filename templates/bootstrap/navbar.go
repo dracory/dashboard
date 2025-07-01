@@ -1,6 +1,8 @@
 package bootstrap
 
 import (
+	"strings"
+
 	"github.com/dracory/dashboard/types"
 	"github.com/gouniverse/hb"
 	"github.com/gouniverse/icons"
@@ -30,7 +32,7 @@ func topNavigation(dashboard types.DashboardInterface) string {
 
 	dropdownUser := navbarDropdownUser(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode, *user, dashboard.GetMenuUserItems())
 	dropdownQuickAccess := navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode, dashboard.GetMenuQuickAccessItems())
-	dropdownThemeSwitch := navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode)
+	dropdownThemeSwitch := navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode, dashboard.GetTheme(), dashboard.GetThemeHandlerUrl())
 
 	buttonTheme := navbarButtonThemeClass(navbarBackgroundColor, navbarBackgroundColorMode)
 	buttonMenuToggle := buttonMenuToggle(buttonTheme, hasNavbarTextColor, dashboard, iconStyle)
@@ -91,18 +93,42 @@ func topNavigation(dashboard types.DashboardInterface) string {
 		}
 	}
 
-	toolbar := hb.Div().
+	// Create items array and add conditionally
+	var items []hb.TagInterface
+	
+	// Add main menu button
+	items = append(items, buttonMainMenu)
+	
+	// User Menu - add conditionally
+	hasUser := user != nil && (user.FirstName != "" || user.LastName != "")
+	if hasUser {
+		userDiv := hb.Div().Class("float-end").Style("margin-left:10px;").Child(dropdownUser)
+		items = append(items, userDiv)
+	}
+	
+	// Theme Switcher - add conditionally
+	hasThemeHandler := dashboard.GetThemeHandlerUrl() != ""
+	if hasThemeHandler {
+		themeDiv := hb.Div().Class("float-end").Style("margin-left:10px;").Child(dropdownThemeSwitch)
+		items = append(items, themeDiv)
+	}
+	
+	// Quick Access Menu - add conditionally
+	hasQuickAccess := len(dashboard.GetMenuQuickAccessItems()) > 0
+	if hasQuickAccess {
+		quickAccessDiv := hb.Div().Class("float-end").Style("margin-left:10px;").Child(dropdownQuickAccess)
+		items = append(items, quickAccessDiv)
+	}
+	
+	toolbar := hb.Nav().
 		ID("Toolbar").
-		Class("navbar navbar-expand-lg d-flex justify-content-between py-1").
+		Class("navbar").
 		ClassIf(navbarHasBackgroundThemeClass(navbarBackgroundColor, navbarBackgroundColorMode), navbarThemeBackgroundClass).
-		Style("z-index: 3;box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);transition: all .2s ease;padding-left: 15px;padding-right: 15px;").
+		Style("z-index: 3;box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);transition: all .2s ease;padding-left: 20px;padding-right: 20px; display:block;").
 		StyleIf(hasNavbarBackgroundColor, `background-color: `+navbarBackgroundColor+`;`).
 		StyleIf(hasNavbarTextColor, `color: `+navbarTextColor+`;`).
-		Child(hb.Div().
-			Class("d-flex align-items-center").
-			ChildIf(hasLogo, logoLink).
-			Child(buttonMainMenu)).
-		Child(rightItems)
+		ChildIf(hasLogo, logoLink).
+		Children(items)
 
 	// Create the main menu based on menu type
 	mainMenu := lo.TernaryF(dashboard.GetMenuType() == types.MENU_TYPE_MODAL, func() *hb.Tag {
@@ -260,37 +286,54 @@ func navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor
 }
 
 // navbarDropdownThemeSwitch creates a theme switcher dropdown
-func navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode string) *hb.Tag {
+func navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode, currentTheme, themeHandlerUrl string) *hb.Tag {
 	hasNavbarTextColor := navbarTextColor != ""
 	buttonTheme := navbarButtonThemeClass(navbarBackgroundColor, navbarBackgroundColorMode)
 
 	isDark := isThemeDark(navbarBackgroundColorMode)
 
-	darkDropdownItems := []hb.TagInterface{
-		hb.Hyperlink().
-			Class("dropdown-item").
-			Href("/?theme=light").
-			Child(hb.I().Class("bi bi-sun me-2")).
-			HTML("Light"),
-		hb.Hyperlink().
-			Class("dropdown-item").
-			Href("/?theme=dark").
-			Child(hb.I().Class("bi bi-moon-stars-fill me-2")).
-			HTML("Dark"),
-	}
+	// Use default handler URL if none provided
+	handlerUrl := lo.Ternary(themeHandlerUrl == "", "/", themeHandlerUrl)
 
-	lightDropdownItems := []hb.TagInterface{
-		hb.Hyperlink().
-			Class("dropdown-item").
-			Href("/?theme=light").
-			Child(hb.I().Class("bi bi-sun me-2")).
-			HTML("Light"),
-		hb.Hyperlink().
-			Class("dropdown-item").
-			Href("/?theme=dark").
-			Child(hb.I().Class("bi bi-moon-stars-fill me-2")).
-			HTML("Dark"),
-	}
+	// Generate Light Theme dropdown items
+	lightDropdownItems := lo.Map(lo.Keys(ThemesLight), func(theme string, index int) hb.TagInterface {
+		name := ThemesLight[theme]
+		// Mark current theme as active
+		active := lo.Ternary(currentTheme == theme, " active", "")
+		// Build URL with proper query parameter handling
+		url := lo.Ternary(strings.Contains(handlerUrl, "?"), 
+			handlerUrl+"&theme="+theme, 
+			handlerUrl+"?theme="+theme)
+
+		return hb.LI().Children([]hb.TagInterface{
+			hb.Hyperlink().
+				Class("dropdown-item"+active).
+				Child(hb.I().Class("bi bi-sun me-2")).
+				HTML(name).
+				Href(url).
+				Attr("ref", "nofollow"),
+		})
+	})
+
+	// Generate Dark Theme dropdown items
+	darkDropdownItems := lo.Map(lo.Keys(ThemesDark), func(theme string, index int) hb.TagInterface {
+		name := ThemesDark[theme]
+		// Mark current theme as active
+		active := lo.Ternary(currentTheme == theme, " active", "")
+		// Build URL with proper query parameter handling
+		url := lo.Ternary(strings.Contains(handlerUrl, "?"), 
+			handlerUrl+"&theme="+theme, 
+			handlerUrl+"?theme="+theme)
+
+		return hb.LI().Children([]hb.TagInterface{
+			hb.Hyperlink().
+				Class("dropdown-item"+active).
+				Child(hb.I().Class("bi bi-moon-stars-fill me-2")).
+				HTML(name).
+				Href(url).
+				Attr("ref", "nofollow"),
+		})
+	})
 
 	button := hb.Button().
 		ID("buttonTheme").

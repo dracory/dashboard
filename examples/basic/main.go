@@ -6,6 +6,7 @@ import (
 
 	"github.com/dracory/dashboard"
 	"github.com/dracory/dashboard/types"
+	"github.com/samber/lo"
 )
 
 func main() {
@@ -19,6 +20,28 @@ func main() {
 }
 
 func handleHome(w http.ResponseWriter, r *http.Request) {
+	// Get theme from query parameter
+	theme := r.URL.Query().Get("theme")
+	
+	// If theme is provided in query, set cookie
+	lo.If(theme != "", func() {
+		cookie := &http.Cookie{
+			Name:     "theme",
+			Value:    theme,
+			Path:     "/",
+			MaxAge:   86400 * 30, // 30 days
+			HttpOnly: false,
+		}
+		http.SetCookie(w, cookie)
+	})
+	
+	// If no theme in query, try to get from cookie
+	if theme == "" {
+		cookie, err := r.Cookie("theme")
+		// Use cookie value if available, otherwise default to bootstrap
+		theme = lo.Ternary(err == nil && cookie != nil && cookie.Value != "", cookie.Value, "bootstrap")
+	}
+
 	// Create a new dashboard instance
 	d := dashboard.New()
 
@@ -37,6 +60,10 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 	d.SetNavbarBackgroundColor("#ffffff") // White background
 	d.SetNavbarTextColor("#000000")       // Black text
 	d.SetNavbarBackgroundColorMode("light")
+	
+	// Set theme and theme handler URL
+	d.SetTheme(theme)
+	d.SetThemeHandlerUrl("/")
 
 	// Add required CSS and JS
 	d.SetStyles([]string{``})

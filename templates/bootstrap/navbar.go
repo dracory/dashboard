@@ -9,41 +9,29 @@ import (
 
 // topNavigation returns the HTML code for the top navigation bar
 func topNavigation(
-	d types.DashboardInterface,
-	menuItems []types.MenuItem,
-	logoImageURL, logoRawHtml, logoRedirectURL, navbarBackgroundColor, navbarTextColor string,
+	dashboard types.DashboardInterface,
 ) string {
-	iconStyle := ""
-	if navbarTextColor != "" {
-		iconStyle = "color: " + navbarTextColor
-	}
+	logoImageURL := dashboard.GetLogoImageURL()
+	logoRawHtml := dashboard.GetLogoRawHtml()
+	logoRedirectURL := dashboard.GetLogoRedirectURL()
+	mainMenuItems := dashboard.GetMenuMainItems()
+	navbarBackgroundColor := dashboard.GetNavbarBackgroundColor()
+	navbarTextColor := dashboard.GetNavbarTextColor()
+	navbarBackgroundColorMode := dashboard.GetNavbarBackgroundColorMode()
+	user := dashboard.GetUser()
 
-	// Get user from dashboard if available
-	user := d.GetUser()
-
-	// Get theme and background colors from dashboard if available
-	navbarBackgroundColorMode := ""
-	if d, ok := d.(interface{ GetNavbarBackgroundColorMode() string }); ok {
-		navbarBackgroundColorMode = d.GetNavbarBackgroundColorMode()
-	}
+	iconStyle := lo.Ternary(navbarTextColor == "", "", "color: "+navbarTextColor)
+	bgClass := navbarBackgroundThemeClass(navbarBackgroundColor, navbarBackgroundColorMode)
 
 	dropdownQuickAccess := navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode)
 	dropdownThemeSwitch := navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode)
 
 	buttonTheme := navbarButtonThemeClass(navbarBackgroundColor, navbarBackgroundColorMode)
 
-	navbar := hb.NewNavbar()
-	navbar.Class("navbar navbar-expand-lg")
-
-	// Add background color class if specified
-	if bgClass := navbarBackgroundThemeClass(navbarBackgroundColor, navbarBackgroundColorMode); bgClass != "" {
-		navbar.Class(bgClass)
-	}
-
-	// Set text color if specified
-	if navbarTextColor != "" {
-		navbar.Style("color: " + navbarTextColor)
-	}
+	navbar := hb.NewNavbar().
+		Class("navbar navbar-expand-lg").
+		ClassIf(bgClass != "", bgClass).
+		StyleIf(navbarTextColor != "", "color: "+navbarTextColor)
 
 	// Container
 	container := hb.NewDiv().Class("container-fluid")
@@ -73,14 +61,15 @@ func topNavigation(
 		ID("navbarNav")
 
 	// Menu items
-	nav := hb.NewUL().Class("navbar-nav me-auto mb-2 mb-lg-0")
-	for _, item := range menuItems {
-		nav.Child(hb.NewLI().Class("nav-item").
-			Child(hb.NewHyperlink().
-				Class("nav-link").
-				Href(item.URL).
-				Text(item.Title)))
-	}
+	nav := hb.NewUL().
+		Class("navbar-nav me-auto mb-2 mb-lg-0").
+		Children(lo.Map(mainMenuItems, func(item types.MenuItem, _ int) hb.TagInterface {
+			return hb.NewLI().Class("nav-item").
+				Child(hb.NewHyperlink().
+					Class("nav-link").
+					Href(item.URL).
+					Text(item.Title))
+		}))
 
 	// Right-aligned items
 	navbarNavRight := hb.NewUL().Class("navbar-nav ms-auto")
@@ -95,7 +84,7 @@ func topNavigation(
 	}
 
 	if user != nil {
-		dropdownUser := navbarDropdownUser(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode, *user, d.GetMenuUserItems())
+		dropdownUser := navbarDropdownUser(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode, *user, dashboard.GetMenuUserItems())
 		navbarNavRight.Child(hb.NewLI().Class("nav-item").Child(dropdownUser))
 	}
 

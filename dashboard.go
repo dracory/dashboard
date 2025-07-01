@@ -9,23 +9,29 @@ const TEMPLATE_BOOTSTRAP = "bootstrap"
 const TEMPLATE_DEFAULT = TEMPLATE_BOOTSTRAP
 
 type dashboard struct {
-	content              string
-	faviconURL           string
-	logoImageURL         string
-	logoRawHtml          string
-	logoRedirectURL      string
-	menuMainItems        []types.MenuItem
-	menuUserItems        []types.MenuItem
-	menuQuickAccessItems []types.MenuItem
-	redirectTime         string
-	redirectUrl          string
-	scripts              []string
-	scriptURLs           []string
-	styles               []string
-	styleURLs            []string
-	template             string
-	title                string
-	user                 *types.User
+	content                   string
+	faviconURL                string
+	logoImageURL              string
+	logoRawHtml               string
+	logoRedirectURL           string
+	menuMainItems             []types.MenuItem
+	menuUserItems             []types.MenuItem
+	menuQuickAccessItems      []types.MenuItem
+	navbarBackgroundColorMode string
+	navbarBackgroundColor     string
+	navbarTextColor           string
+	redirectTime              string
+	redirectUrl               string
+	scripts                   []string
+	scriptURLs                []string
+	styles                    []string
+	styleURLs                 []string
+	theme                     string // color mode: default, dark, light
+	template                  string // bootstrap (default), adminlte, tabler
+	title                     string
+	user                      *types.User
+	loginURL                  string
+	registerURL               string
 }
 
 var _ types.DashboardInterface = (*dashboard)(nil)
@@ -220,4 +226,98 @@ func (d *dashboard) GetUser() *types.User {
 // SetUser sets the user
 func (d *dashboard) SetUser(user types.User) {
 	d.user = &user
+}
+
+// Navbar theming methods
+func (d *dashboard) GetNavbarBackgroundColorMode() string {
+	return d.navbarBackgroundColorMode
+}
+
+func (d *dashboard) SetNavbarBackgroundColorMode(mode string) {
+	d.navbarBackgroundColorMode = mode
+}
+
+func (d *dashboard) GetNavbarBackgroundColor() string {
+	return d.navbarBackgroundColor
+}
+
+func (d *dashboard) SetNavbarBackgroundColor(color string) {
+	d.navbarBackgroundColor = color
+}
+
+func (d *dashboard) GetNavbarTextColor() string {
+	return d.navbarTextColor
+}
+
+func (d *dashboard) SetNavbarTextColor(color string) {
+	d.navbarTextColor = color
+}
+
+// Navbar utility methods
+func (d *dashboard) NavbarHasBackgroundThemeClass() bool {
+	hasNavbarBackgroundColor := d.navbarBackgroundColor != ""
+	hasNavbarBackgroundTheme := !hasNavbarBackgroundColor && d.navbarBackgroundColorMode != ""
+	return hasNavbarBackgroundTheme
+}
+
+func (d *dashboard) NavbarBackgroundThemeClass() string {
+	if d.NavbarHasBackgroundThemeClass() {
+		return "bg-" + d.navbarBackgroundColorMode
+	}
+	return ""
+}
+
+func (d *dashboard) NavbarButtonThemeClass() string {
+	if d.NavbarHasBackgroundThemeClass() {
+		return "btn-" + d.navbarBackgroundColorMode
+	}
+	return ""
+}
+
+// Navbar dropdown methods - these are stubs that need to be implemented
+// with actual HTML generation logic
+func (d *dashboard) NavbarDropdownQuickAccess(iconStyle string) string {
+	// TODO: Implement actual quick access dropdown HTML generation
+	return ""
+}
+
+func (d *dashboard) NavbarDropdownThemeSwitch() string {
+	// TODO: Implement actual theme switch dropdown HTML generation
+	return ""
+}
+
+func (d *dashboard) NavbarDropdownUser(iconStyle string) string {
+	// TODO: Implement actual user dropdown HTML generation
+	return ""
+}
+
+// Login/register URLs
+func (d *dashboard) GetLoginURL() string {
+	return d.loginURL
+}
+
+func (d *dashboard) SetLoginURL(url string) {
+	d.loginURL = url
+}
+
+func (d *dashboard) GetRegisterURL() string {
+	return d.registerURL
+}
+
+func (d *dashboard) SetRegisterURL(url string) {
+	d.registerURL = url
+}
+
+// Theme methods
+func (d *dashboard) IsThemeDark() bool {
+	// TODO: Implement actual theme detection logic
+	return d.theme == "dark"
+}
+
+func (d *dashboard) GetTheme() string {
+	return d.theme
+}
+
+func (d *dashboard) SetTheme(theme string) {
+	d.theme = theme
 }

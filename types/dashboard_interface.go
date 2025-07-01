@@ -1,5 +1,11 @@
 package types
 
+// MenuType constants for dashboard menu types
+const (
+	MENU_TYPE_MODAL     = "modal"
+	MENU_TYPE_OFFCANVAS = "offcanvas"
+)
+
 type DashboardInterface interface {
 	// GetContent returns the content of the webpage
 	GetContent() string
@@ -88,8 +94,34 @@ type DashboardInterface interface {
 
 	// SetLoginURL(loginURL string) DashboardInterface
 	// SetRegisterURL(registerURL string) DashboardInterface
-	// SetNavbarBackgroundColorMode(navbarBackgroundColorMode string) DashboardInterface
-	// SetNavbarBackgroundColor(navbarBackgroundColor string) DashboardInterface
-	// SetNavbarTextColor(navbarTextColor string) DashboardInterface
+	// Navbar theming methods
+	GetNavbarBackgroundColorMode() string
+	SetNavbarBackgroundColorMode(mode string)
+	GetNavbarBackgroundColor() string
+	SetNavbarBackgroundColor(color string)
+	GetNavbarTextColor() string
+	SetNavbarTextColor(color string)
+
+	// Navbar utility methods
+	NavbarHasBackgroundThemeClass() bool
+	NavbarBackgroundThemeClass() string
+	NavbarButtonThemeClass() string
+
+	// Navbar dropdown methods
+	NavbarDropdownQuickAccess(iconStyle string) string
+	NavbarDropdownThemeSwitch() string
+	NavbarDropdownUser(iconStyle string) string
+
+	// Login/register URLs
+	GetLoginURL() string
+	SetLoginURL(url string)
+	GetRegisterURL() string
+	SetRegisterURL(url string)
+
+	// Theme methods
+	IsThemeDark() bool
+	GetTheme() string
+	SetTheme(theme string)
+
 	ToHTML() string
 }

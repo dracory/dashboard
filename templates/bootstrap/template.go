@@ -11,6 +11,20 @@ type Template struct{}
 // Ensure Template implements the TemplateInterface
 var _ types.TemplateInterface = (*Template)(nil)
 
+// layout generates the main layout structure for the dashboard
+func (t *Template) layout(dashboard types.DashboardInterface) string {
+	content := dashboard.GetContent()
+	layout := hb.NewBorderLayout()
+	layout.AddTop(hb.Raw(dashboardMenuNavbar(dashboard)), hb.BORDER_LAYOUT_ALIGN_LEFT, hb.BORDER_LAYOUT_ALIGN_MIDDLE)
+	layout.AddCenter(hb.Raw(center(content)), hb.BORDER_LAYOUT_ALIGN_LEFT, hb.BORDER_LAYOUT_ALIGN_TOP)
+	return layout.ToHTML()
+}
+
+// center is a helper function to center content
+func (t *Template) center(content string) string {
+	return content
+}
+
 // ToHTML generates the complete HTML for the dashboard page
 func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	// Create a new webpage
@@ -53,49 +67,11 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 		webpage.AddScript(script)
 	}
 
-	// Get menu items
-	menuItems := []types.MenuItem{}
-	if menuProvider, ok := dashboard.(interface{ GetMenuItems() []types.MenuItem }); ok {
-		menuItems = menuProvider.GetMenuItems()
-	}
+	// Generate the layout
+	layoutHTML := t.layout(dashboard)
 
-	// Get theme and branding settings
-	navbarBackgroundColor := ""
-	if bgProvider, ok := dashboard.(interface{ GetNavbarBackgroundColor() string }); ok {
-		navbarBackgroundColor = bgProvider.GetNavbarBackgroundColor()
-	}
-
-	navbarTextColor := ""
-	if textColorProvider, ok := dashboard.(interface{ GetNavbarTextColor() string }); ok {
-		navbarTextColor = textColorProvider.GetNavbarTextColor()
-	}
-
-	// Create the main container
-	container := hb.NewDiv().Class("container-fluid p-0").Style("min-height: 100vh;")
-
-	// Add the top navigation
-	navbar := topNavigation(dashboard, menuItems, "", "", "", navbarBackgroundColor, navbarTextColor)
-	container.Child(hb.Raw(navbar))
-
-	// Create the main content area
-	contentRow := hb.NewDiv().Class("row g-0")
-
-	// Add the sidebar if there are menu items
-	if len(menuItems) > 0 {
-		sidebar := hb.NewDiv().Class("col-md-3 col-lg-2 d-md-block bg-light sidebar collapse")
-		sidebar.Child(hb.NewDiv().Class("position-sticky pt-3").Child(hb.Raw(dashboardMenuNavbar(menuItems))))
-		contentRow.Child(sidebar)
-	}
-
-	// Add the main content area
-	mainContent := hb.NewMain().Class("col-md-9 ms-sm-auto col-lg-10 px-md-4")
-	mainContent.Child(hb.NewDiv().Class("container-fluid py-4").Child(hb.Raw(dashboard.GetContent())))
-
-	contentRow.Child(mainContent)
-	container.Child(contentRow)
-
-	// Add the container to the webpage
-	webpage.Body().Child(container)
+	// Add the layout to the webpage
+	webpage.Body().Child(hb.Raw(layoutHTML))
 
 	// Handle redirect if needed
 	if redirectURL := dashboard.GetRedirectUrl(); redirectURL != "" {

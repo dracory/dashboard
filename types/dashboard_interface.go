@@ -92,8 +92,6 @@ type DashboardInterface interface {
 	// SetStyleURLs sets the style URLs of the dashboard
 	SetStyleURLs(styleURLs []string)
 
-	// SetLoginURL(loginURL string) DashboardInterface
-	// SetRegisterURL(registerURL string) DashboardInterface
 	// Navbar theming methods
 	GetNavbarBackgroundColorMode() string
 	SetNavbarBackgroundColorMode(mode string)
@@ -123,9 +121,17 @@ type DashboardInterface interface {
 	GetTheme() string
 	SetTheme(theme string)
 	GetThemeHandlerUrl() string
+	SetThemeHandlerUrl(url string)
+	GetThemesRestrict() map[string]string
+	SetThemesRestrict(themes map[string]string)
 
 	// UI Configuration
 	GetMenuShowText() bool
+	SetMenuShowText(showText bool)
+
+	// Menu Type Configuration
+	GetMenuType() string
+	SetMenuType(menuType string)
 
 	// Navbar background
 	GetNavbarBackground() (string, bool)

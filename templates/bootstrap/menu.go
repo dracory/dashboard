@@ -69,7 +69,7 @@ func buildMenuItem(menuItem types.MenuItem, index int) *hb.Tag {
 
 // dashboardMenuNavbar generates the HTML for the dashboard menu navbar
 func dashboardMenuNavbar(dashboard types.DashboardInterface) string {
-	nav := hb.NewNav().Class("nav nav-pills flex-column mb-auto")
+	nav := hb.NewNav().Class("nav nav-pills flex-column mb-auto").ID("DashboardMenu")
 
 	for i, item := range dashboard.GetMenuMainItems() {
 		nav.Child(buildMenuItem(item, i))
@@ -94,10 +94,12 @@ func MenuOffcanvas(dashboard types.DashboardInterface) *hb.Tag {
 		Class(backgroundClass).
 		ClassIfElse(backgroundClass == "bg-light", "text-bg-light", "text-bg-dark").
 		Attr("tabindex", "-1").
+		Attr("aria-labelledby", "OffcanvasMenuLabel").
 		Children([]hb.TagInterface{
 			hb.NewDiv().Class("offcanvas-header").
 				Children([]hb.TagInterface{
 					hb.NewH5().
+						ID("OffcanvasMenuLabel").
 						Class("offcanvas-title").
 						Text("Menu"),
 					hb.NewButton().
@@ -120,7 +122,7 @@ func MenuOffcanvas(dashboard types.DashboardInterface) *hb.Tag {
 func menuModal(dashboard types.DashboardInterface) *hb.Tag {
 	modalHeader := hb.NewDiv().Class("modal-header").
 		Children([]hb.TagInterface{
-			hb.NewH5().HTML("Menu").Class("modal-title"),
+			hb.NewH5().HTML("Menu").Class("modal-title").ID("ModalDashboardMenuLabel"),
 			hb.NewButton().Attrs(map[string]string{
 				"type":            "button",
 				"class":           "btn-close",
@@ -145,6 +147,9 @@ func menuModal(dashboard types.DashboardInterface) *hb.Tag {
 	modal := hb.NewDiv().
 		ID("ModalDashboardMenu").
 		Class("modal fade").
+		Attr("tabindex", "-1").
+		Attr("aria-labelledby", "ModalDashboardMenuLabel").
+		Attr("aria-hidden", "true").
 		Children([]hb.TagInterface{
 			hb.NewDiv().Class("modal-dialog modal-lg").
 				Children([]hb.TagInterface{

@@ -38,8 +38,8 @@ func topNavigation(dashboard types.DashboardInterface) string {
 		Class("btn "+buttonTheme).
 		Style("background: none; border:none;").
 		StyleIf(hasNavbarTextColor, "color: "+dashboard.GetNavbarTextColor()+";").
-		Data("bs-toggle", "offcanvas").
-		Data("bs-target", "#OffcanvasMenu").
+		Data("bs-toggle", "modal").
+		Data("bs-target", "#ModalDashboardMenu").
 		Children([]hb.TagInterface{
 			icons.Icon("bi-list", 24, 24, "").Style(iconStyle),
 			hb.Span().
@@ -59,8 +59,7 @@ func topNavigation(dashboard types.DashboardInterface) string {
 			HTML("Menu"))
 
 	mainMenu := buttonOffcanvasToggle
-	//if dashboard.GetMenuType() == MENU_TYPE_MODAL {
-	if false {
+	if dashboard.GetMenuType() == types.MENU_TYPE_MODAL {
 		mainMenu = buttonMenuToggle
 	}
 

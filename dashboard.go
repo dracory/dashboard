@@ -3,10 +3,17 @@ package dashboard
 import (
 	"github.com/dracory/dashboard/templates/bootstrap"
 	"github.com/dracory/dashboard/types"
+	"github.com/gouniverse/hb"
+	"github.com/gouniverse/icons"
+	"github.com/samber/lo"
 )
 
 const TEMPLATE_BOOTSTRAP = "bootstrap"
 const TEMPLATE_DEFAULT = TEMPLATE_BOOTSTRAP
+
+// Menu type constants
+const MENU_TYPE_MODAL = "modal"
+const MENU_TYPE_OFFCANVAS = "offcanvas"
 
 type dashboard struct {
 	content                   string
@@ -15,24 +22,27 @@ type dashboard struct {
 	logoRawHtml               string
 	logoRedirectURL           string
 	menuMainItems             []types.MenuItem
-	menuShowText              bool // controls whether to show text in menu items
+	menuShowText              bool   // controls whether to show text in menu items
+	menuType                  string // modal or offcanvas
 	menuUserItems             []types.MenuItem
 	menuQuickAccessItems      []types.MenuItem
 	navbarBackgroundColorMode string
 	navbarBackgroundColor     string
 	navbarTextColor           string
-	redirectTime              string      // redirect time (if any, in seconds)
-	redirectUrl               string      // redirect URL (if any)
-	scripts                   []string    // custom scripts defined by the user
-	scriptURLs                []string    // custom script URLs defined by the user
-	styles                    []string    // custom styles defined by the user
-	styleURLs                 []string    // custom style URLs defined by the user
-	theme                     string      // color mode: default, dark, light
-	template                  string      // bootstrap (default), adminlte, tabler
-	title                     string      // title of the webpage
-	user                      *types.User // user object (if any)
-	loginURL                  string      // login URL
-	registerURL               string      // register URL
+	redirectTime              string            // redirect time (if any, in seconds)
+	redirectUrl               string            // redirect URL (if any)
+	scripts                   []string          // custom scripts defined by the user
+	scriptURLs                []string          // custom script URLs defined by the user
+	styles                    []string          // custom styles defined by the user
+	styleURLs                 []string          // custom style URLs defined by the user
+	theme                     string            // color mode: default, dark, light
+	themesRestrict            map[string]string // restricted theme options
+	themeHandlerUrl           string            // URL for theme handler
+	template                  string            // bootstrap (default), adminlte, tabler
+	title                     string            // title of the webpage
+	user                      *types.User       // user object (if any)
+	loginURL                  string            // login URL
+	registerURL               string            // register URL
 }
 
 var _ types.DashboardInterface = (*dashboard)(nil)
@@ -275,21 +285,175 @@ func (d *dashboard) NavbarButtonThemeClass() string {
 	return ""
 }
 
-// Navbar dropdown methods - these are stubs that need to be implemented
-// with actual HTML generation logic
+// Navbar dropdown methods
 func (d *dashboard) NavbarDropdownQuickAccess(iconStyle string) string {
-	// TODO: Implement actual quick access dropdown HTML generation
-	return ""
+	if len(d.menuQuickAccessItems) == 0 {
+		return ""
+	}
+
+	hasNavbarTextColor := d.navbarTextColor != ""
+	buttonTheme := d.NavbarButtonThemeClass()
+
+	button := hb.Button().
+		ID("ButtonQuickAccess").
+		Class("btn "+buttonTheme+" dropdown-toggle").
+		Style("background:none;border:0px;").
+		StyleIf(hasNavbarTextColor, "color: "+d.navbarTextColor+";").
+		Type(hb.TYPE_BUTTON).
+		Data("bs-toggle", "dropdown").
+		Child(icons.Icon("bi bi-grid", 24, 24, ""))
+
+	dropdownMenu := hb.Div().
+		Class("dropdown-menu dropdown-menu-end").
+		Style("min-width:300px;padding:0.5rem;")
+
+	// Add quick access items from configuration
+	if len(d.menuQuickAccessItems) > 0 {
+		var menuItems []hb.TagInterface
+
+		// Group items into rows of 3
+		for i := 0; i < len(d.menuQuickAccessItems); i += 3 {
+			end := i + 3
+			if end > len(d.menuQuickAccessItems) {
+				end = len(d.menuQuickAccessItems)
+			}
+			rowItems := d.menuQuickAccessItems[i:end]
+
+			row := hb.Div().Class("row g-0")
+
+			for _, item := range rowItems {
+				icon := item.Icon
+				if icon == "" {
+					icon = "bi bi-app"
+				}
+
+				col := hb.Div().Class("col-4 text-center").
+					Child(hb.Hyperlink().
+						Class("dropdown-item d-flex flex-column align-items-center").
+						Href(item.URL).
+						Child(icons.Icon(icon, 24, 24, "")).
+						Child(hb.Span().Text(item.Title).Class("mt-1")),
+					)
+				row.Child(col)
+			}
+
+			menuItems = append(menuItems, row)
+		}
+
+		dropdownMenu.Children(menuItems)
+	}
+
+	return hb.Div().
+		Class("dropdown").
+		Children([]hb.TagInterface{
+			button,
+			dropdownMenu,
+		}).ToHTML()
 }
 
 func (d *dashboard) NavbarDropdownThemeSwitch() string {
-	// TODO: Implement actual theme switch dropdown HTML generation
-	return ""
+	if d.themeHandlerUrl == "" {
+		return ""
+	}
+
+	hasNavbarTextColor := d.navbarTextColor != ""
+	buttonTheme := d.NavbarButtonThemeClass()
+	isDark := d.IsThemeDark()
+
+	// Define theme options
+	themeOptions := map[string]string{
+		"light": "Light",
+		"dark":  "Dark",
+	}
+
+	// If themes are restricted, use those instead
+	if len(d.themesRestrict) > 0 {
+		themeOptions = d.themesRestrict
+	}
+
+	// Create dropdown items
+	var dropdownItems []hb.TagInterface
+	for themeKey, themeName := range themeOptions {
+		icon := lo.Ternary(themeKey == "dark", "bi bi-moon-stars-fill", "bi bi-sun")
+
+		dropdownItems = append(dropdownItems,
+			hb.Hyperlink().
+				Class("dropdown-item").
+				Href(d.themeHandlerUrl+"?theme="+themeKey).
+				Child(hb.I().Class(icon+" me-2")).
+				HTML(themeName))
+	}
+
+	button := hb.Button().
+		ID("buttonTheme").
+		Class(buttonTheme+" dropdown-toggle").
+		Style("background:none;border:0px;").
+		StyleIf(hasNavbarTextColor, "color:"+d.navbarTextColor).
+		Data("bs-toggle", "dropdown").
+		Children([]hb.TagInterface{
+			lo.Ternary(isDark, hb.I().Class("bi bi-sun"), hb.I().Class("bi bi-moon-stars-fill")),
+		})
+
+	return hb.Div().
+		Class("dropdown").
+		Child(button).
+		Child(hb.UL().
+			Class(buttonTheme + " dropdown-menu dropdown-menu-dark").
+			Children(dropdownItems)).ToHTML()
 }
 
 func (d *dashboard) NavbarDropdownUser(iconStyle string) string {
-	// TODO: Implement actual user dropdown HTML generation
-	return ""
+	if d.user == nil {
+		return ""
+	}
+
+	hasNavbarTextColor := d.navbarTextColor != ""
+	buttonTheme := d.NavbarButtonThemeClass()
+	userName := d.user.FirstName + " " + d.user.LastName
+
+	dropdownUser := hb.Div().
+		Class("dropdown").
+		Children([]hb.TagInterface{
+			hb.Button().
+				ID("ButtonUser").
+				Class("btn "+buttonTheme+" dropdown-toggle").
+				Style("background:none;border:0px;").
+				StyleIf(hasNavbarTextColor, "color: "+d.navbarTextColor+";").
+				Type(hb.TYPE_BUTTON).
+				Data("bs-toggle", "dropdown").
+				Children([]hb.TagInterface{
+					icons.Icon("bi-person", 24, 24, "").Style(iconStyle),
+					hb.Span().
+						Class("d-none d-md-inline-block").
+						Text(userName).
+						Style("margin-right:10px;"),
+				}),
+			hb.UL().
+				Class("dropdown-menu dropdown-menu-dark").
+				Class(buttonTheme).
+				Children(lo.Map(d.menuUserItems, func(item types.MenuItem, _ int) hb.TagInterface {
+					target := lo.Ternary(item.Target == "", "_self", item.Target)
+					url := lo.Ternary(item.URL == "", "#", item.URL)
+
+					return hb.LI().Children([]hb.TagInterface{
+						hb.If(item.Title == "",
+							hb.HR().
+								Class("dropdown-divider"),
+						),
+
+						hb.If(item.Title != "",
+							hb.Hyperlink().
+								Class("dropdown-item").
+								ChildIf(item.Icon != "", hb.Span().Class("icon").Style("margin-right: 5px;").HTML(item.Icon)).
+								Text(item.Title).
+								Href(url).
+								Target(target),
+						),
+					})
+				})),
+		})
+
+	return dropdownUser.ToHTML()
 }
 
 // Login/register URLs
@@ -325,13 +489,48 @@ func (d *dashboard) SetTheme(theme string) {
 
 // GetThemeHandlerUrl returns the URL for the theme handler endpoint
 func (d *dashboard) GetThemeHandlerUrl() string {
-	// Default to "/theme" if not set
-	return "/theme"
+	if d.themeHandlerUrl == "" {
+		return "/theme"
+	}
+	return d.themeHandlerUrl
+}
+
+// SetThemeHandlerUrl sets the URL for the theme handler endpoint
+func (d *dashboard) SetThemeHandlerUrl(url string) {
+	d.themeHandlerUrl = url
+}
+
+// GetThemesRestrict returns the map of restricted themes
+func (d *dashboard) GetThemesRestrict() map[string]string {
+	return d.themesRestrict
+}
+
+// SetThemesRestrict sets the map of restricted themes
+func (d *dashboard) SetThemesRestrict(themes map[string]string) {
+	d.themesRestrict = themes
 }
 
 // GetMenuShowText returns whether to show text in menu items
 func (d *dashboard) GetMenuShowText() bool {
 	return d.menuShowText
+}
+
+// SetMenuShowText sets whether to show text in menu items
+func (d *dashboard) SetMenuShowText(showText bool) {
+	d.menuShowText = showText
+}
+
+// GetMenuType returns the menu type (modal or offcanvas)
+func (d *dashboard) GetMenuType() string {
+	if d.menuType == "" {
+		return MENU_TYPE_OFFCANVAS
+	}
+	return d.menuType
+}
+
+// SetMenuType sets the menu type (modal or offcanvas)
+func (d *dashboard) SetMenuType(menuType string) {
+	d.menuType = menuType
 }
 
 // GetNavbarBackground returns the current navbar background class and true if it's set,

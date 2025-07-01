@@ -150,6 +150,7 @@ func menuModal(dashboard types.DashboardInterface) *hb.Tag {
 		Attr("tabindex", "-1").
 		Attr("aria-labelledby", "ModalDashboardMenuLabel").
 		Attr("aria-hidden", "true").
+		Style("z-index: 1060;"). // Ensure modal appears above backdrop (default Bootstrap backdrop is 1050)
 		Children([]hb.TagInterface{
 			hb.NewDiv().Class("modal-dialog modal-lg").
 				Children([]hb.TagInterface{

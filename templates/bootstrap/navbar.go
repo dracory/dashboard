@@ -66,37 +66,44 @@ func topNavigation(dashboard types.DashboardInterface) string {
 		StyleIf(hasNavbarTextColor, "color: "+navbarTextColor+";").
 		Style("margin-left:10px;  border:none;")
 
-	toolbar := hb.Nav().
+	// Create a container for the right-aligned items
+	rightItems := hb.Div().Class("d-flex align-items-center ms-auto")
+	
+	// Add quick access dropdown if items exist
+	if len(dashboard.GetMenuQuickAccessItems()) > 0 {
+		rightItems.Child(dropdownQuickAccess)
+	}
+	
+	// Add theme switch dropdown if handler URL exists
+	if dashboard.GetThemeHandlerUrl() != "" {
+		rightItems.Child(hb.Div().Style("margin-left:10px;").Child(dropdownThemeSwitch))
+	}
+	
+	// Add user dropdown or login/register links
+	if user != nil {
+		rightItems.Child(hb.Div().Style("margin-left:10px;").Child(dropdownUser))
+	} else {
+		if dashboard.GetLoginURL() != "" {
+			rightItems.Child(loginLink)
+		}
+		if dashboard.GetRegisterURL() != "" {
+			rightItems.Child(registerLink)
+		}
+	}
+	
+	toolbar := hb.Div().
 		ID("Toolbar").
-		Class("navbar").
+		Class("navbar d-flex justify-content-between").
 		ClassIf(navbarHasBackgroundThemeClass(navbarBackgroundColor, navbarBackgroundColorMode), navbarThemeBackgroundClass).
-		Style("z-index: 3;box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);transition: all .2s ease;padding-left: 20px;padding-right: 20px; display:block;").
+		Style("z-index: 3;box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);transition: all .2s ease;padding-left: 20px;padding-right: 20px;").
 		StyleIf(hasNavbarBackgroundColor, `background-color: `+navbarBackgroundColor+`;`).
 		StyleIf(hasNavbarTextColor, `color: `+navbarTextColor+`;`).
-		ChildIf(hasLogo, logoLink).
-		Child(buttonMainMenu).
-		ChildIf(user != nil,
-			hb.Div().Class("float-end").
-				Style("margin-left:10px;").
-				Child(dropdownUser),
-		).
-		ChildIf(lo.IsEmpty(user) && dashboard.GetRegisterURL() != "", registerLink).
-		ChildIf(lo.IsEmpty(user) && dashboard.GetLoginURL() != "", loginLink).
-		ChildIf(dashboard.GetThemeHandlerUrl() != "", hb.Div().Class("float-end").Style("margin-left:10px;").Child(dropdownThemeSwitch)).
-		ChildIf(len(dashboard.GetMenuQuickAccessItems()) > 0, hb.Div().
-			Class("float-end").
-			Style("margin-left:10px;").
-			Child(dropdownQuickAccess))
+		Child(hb.Div().Class("d-flex align-items-center").
+			ChildIf(hasLogo, logoLink).
+			Child(buttonMainMenu)).
+		Child(rightItems)
 
-	// Add modal menu to the DOM if menu type is modal
-	if dashboard.GetMenuType() == types.MENU_TYPE_MODAL {
-		modalMenuTag := menuModal(dashboard)
-		toolbar.Child(modalMenuTag)
-	} else {
-		offcanvasMenuTag := menuOffcanvas(dashboard)
-		toolbar.Child(offcanvasMenuTag)
-	}
-
+	// Create the main menu based on menu type
 	mainMenu := lo.TernaryF(dashboard.GetMenuType() == types.MENU_TYPE_MODAL, func() *hb.Tag {
 		return menuModal(dashboard)
 	}, func() *hb.Tag {

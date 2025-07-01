@@ -333,3 +333,18 @@ func (d *dashboard) GetThemeHandlerUrl() string {
 func (d *dashboard) GetMenuShowText() bool {
 	return d.menuShowText
 }
+
+// GetNavbarBackground returns the current navbar background class and true if it's set,
+// or an empty string and false if using the default
+func (d *dashboard) GetNavbarBackground() (string, bool) {
+	// If a specific background color is set, use it
+	if d.navbarBackgroundColor != "" {
+		return d.navbarBackgroundColor, true
+	}
+
+	// Otherwise, determine background based on theme
+	if d.IsThemeDark() {
+		return "bg-dark", false
+	}
+	return "bg-light", false
+}

@@ -127,5 +127,8 @@ type DashboardInterface interface {
 	// UI Configuration
 	GetMenuShowText() bool
 
+	// Navbar background
+	GetNavbarBackground() (string, bool)
+
 	ToHTML() string
 }

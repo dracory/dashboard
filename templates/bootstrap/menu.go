@@ -78,21 +78,15 @@ func dashboardMenuNavbar(dashboard types.DashboardInterface) string {
 	return nav.ToHTML()
 }
 
-// menuOffcanvas generates the offcanvas menu HTML
-func menuOffcanvas(dashboard types.DashboardInterface) *hb.Tag {
-	// TODO: Get the actual background class from dashboard settings
-	backgroundClass := "bg-light"
-
-	menuTitle := hb.NewH5().
-		Class("offcanvas-title").
-		Text("Menu")
-
-	closeButton := hb.NewButton().
-		Class("btn-close btn-close-white").
-		ClassIf(backgroundClass == "bg-light", "text-bg-light").
-		Type(hb.TYPE_BUTTON).
-		Data("bs-dismiss", "offcanvas").
-		Attr("aria-label", "Close")
+// MenuOffcanvas generates the offcanvas menu HTML
+func MenuOffcanvas(dashboard types.DashboardInterface) *hb.Tag {
+	// Get the background class based on the current theme
+	var backgroundClass string
+	if navbarBg, ok := dashboard.GetNavbarBackground(); ok && navbarBg != "" {
+		backgroundClass = navbarBg
+	} else {
+		backgroundClass = "bg-dark"
+	}
 
 	offcanvas := hb.NewDiv().
 		ID("OffcanvasMenu").
@@ -103,8 +97,15 @@ func menuOffcanvas(dashboard types.DashboardInterface) *hb.Tag {
 		Children([]hb.TagInterface{
 			hb.NewDiv().Class("offcanvas-header").
 				Children([]hb.TagInterface{
-					menuTitle,
-					closeButton,
+					hb.NewH5().
+						Class("offcanvas-title").
+						Text("Menu"),
+					hb.NewButton().
+						Class("btn-close btn-close-white").
+						ClassIf(backgroundClass == "bg-light", "text-bg-light").
+						Type(hb.TYPE_BUTTON).
+						Data("bs-dismiss", "offcanvas").
+						Attr("aria-label", "Close"),
 				}),
 			hb.NewDiv().Class("offcanvas-body").
 				Children([]hb.TagInterface{

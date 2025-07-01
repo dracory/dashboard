@@ -43,7 +43,7 @@ func topNavigation(dashboard types.DashboardInterface) string {
 
 	logo := lo.
 		If(hasLogoRawHTML, hb.Raw(dashboard.GetLogoRawHtml())).
-		ElseIf(hasLogoImage, hb.Image(dashboard.GetLogoImageURL()).Style("max-height:35px;")).
+		ElseIf(hasLogoImage, hb.Image(dashboard.GetLogoImageURL()).Style("max-height:35px;height:35px; width:auto;")).
 		Else(nil)
 
 	logoLink := hb.Hyperlink().
@@ -68,17 +68,17 @@ func topNavigation(dashboard types.DashboardInterface) string {
 
 	// Create a container for the right-aligned items
 	rightItems := hb.Div().Class("d-flex align-items-center ms-auto")
-	
+
 	// Add quick access dropdown if items exist
 	if len(dashboard.GetMenuQuickAccessItems()) > 0 {
 		rightItems.Child(dropdownQuickAccess)
 	}
-	
+
 	// Add theme switch dropdown if handler URL exists
 	if dashboard.GetThemeHandlerUrl() != "" {
 		rightItems.Child(hb.Div().Style("margin-left:10px;").Child(dropdownThemeSwitch))
 	}
-	
+
 	// Add user dropdown or login/register links
 	if user != nil {
 		rightItems.Child(hb.Div().Style("margin-left:10px;").Child(dropdownUser))
@@ -90,7 +90,7 @@ func topNavigation(dashboard types.DashboardInterface) string {
 			rightItems.Child(registerLink)
 		}
 	}
-	
+
 	toolbar := hb.Div().
 		ID("Toolbar").
 		Class("navbar navbar-expand-lg d-flex justify-content-between py-1").
@@ -98,7 +98,8 @@ func topNavigation(dashboard types.DashboardInterface) string {
 		Style("z-index: 3;box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);transition: all .2s ease;padding-left: 15px;padding-right: 15px;").
 		StyleIf(hasNavbarBackgroundColor, `background-color: `+navbarBackgroundColor+`;`).
 		StyleIf(hasNavbarTextColor, `color: `+navbarTextColor+`;`).
-		Child(hb.Div().Class("d-flex align-items-center").
+		Child(hb.Div().
+			Class("d-flex align-items-center").
 			ChildIf(hasLogo, logoLink).
 			Child(buttonMainMenu)).
 		Child(rightItems)
@@ -212,56 +213,46 @@ func navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor
 	button := hb.Button().
 		ID("ButtonQuickAccess").
 		Class("btn "+buttonTheme).
-		Style("background:none;border:0px;").
+		Style("background:none;border:0px;padding:0.375rem;").
 		StyleIf(hasNavbarTextColor, "color: "+navbarTextColor+";").
 		Type(hb.TYPE_BUTTON).
 		Data("bs-toggle", "dropdown").
-		Children([]hb.TagInterface{
+		Aria("expanded", "false").
+		Child(hb.Span().Class("d-flex align-items-center").Children([]hb.TagInterface{
 			icons.Icon("bi-grid-3x3-gap-fill", 24, 24, "").Style(iconStyle),
-		})
+		}))
 
 	dropdownMenu := hb.Div().
-		Class("dropdown-menu dropdown-menu-end").
-		Style("min-width:300px;padding:0.5rem;")
+		Class("dropdown-menu dropdown-menu-end shadow").
+		Style("min-width:300px;padding:0.5rem;").
+		Aria("labelledby", "ButtonQuickAccess")
 
 	// Add quick access items from configuration
 	if len(quickAccessItems) > 0 {
 		var menuItems []hb.TagInterface
 
-		// Group items into rows of 3
-		for i := 0; i < len(quickAccessItems); i += 3 {
-			end := i + 3
-			if end > len(quickAccessItems) {
-				end = len(quickAccessItems)
-			}
-			rowItems := quickAccessItems[i:end]
-
-			row := hb.Div().Class("row g-0")
-
-			for _, item := range rowItems {
-				icon := item.Icon
-				if icon == "" {
-					icon = "bi bi-app"
-				}
-
-				col := hb.Div().Class("col-4 text-center").
-					Child(hb.Hyperlink().
-						Class("dropdown-item d-flex flex-column align-items-center").
-						Href(item.URL).
-						Child(icons.Icon(icon, 24, 24, "")).
-						Child(hb.Span().Text(item.Title).Class("mt-1")),
-					)
-				row.Child(col)
+		for _, item := range quickAccessItems {
+			icon := item.Icon
+			if icon == "" {
+				icon = "bi-app"
 			}
 
-			menuItems = append(menuItems, row)
+			menuItem := hb.Hyperlink().
+				Class("dropdown-item d-flex align-items-center").
+				Href(item.URL).
+				Children([]hb.TagInterface{
+					hb.Span().Class("me-2").HTML(icon),
+					hb.Span().Text(item.Title),
+				})
+
+			menuItems = append(menuItems, menuItem)
 		}
 
 		dropdownMenu.Children(menuItems)
 	}
 
 	return hb.Div().
-		Class("dropdown").
+		Class("nav-item dropdown").
 		Children([]hb.TagInterface{
 			button,
 			dropdownMenu,

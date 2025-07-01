@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"github.com/dracory/dashboard/types"
+	"github.com/gouniverse/cdn"
 	"github.com/gouniverse/hb"
 )
 
@@ -15,14 +16,9 @@ var _ types.TemplateInterface = (*Template)(nil)
 func (t *Template) layout(dashboard types.DashboardInterface) string {
 	content := dashboard.GetContent()
 	layout := hb.NewBorderLayout()
-	layout.AddTop(hb.Raw(dashboardMenuNavbar(dashboard)), hb.BORDER_LAYOUT_ALIGN_LEFT, hb.BORDER_LAYOUT_ALIGN_MIDDLE)
-	layout.AddCenter(hb.Raw(center(content)), hb.BORDER_LAYOUT_ALIGN_LEFT, hb.BORDER_LAYOUT_ALIGN_TOP)
+	layout.AddTop(hb.Raw(topNavigation(dashboard)), hb.BORDER_LAYOUT_ALIGN_LEFT, hb.BORDER_LAYOUT_ALIGN_MIDDLE)
+	layout.AddCenter(hb.Raw(content), hb.BORDER_LAYOUT_ALIGN_LEFT, hb.BORDER_LAYOUT_ALIGN_TOP)
 	return layout.ToHTML()
-}
-
-// center is a helper function to center content
-func (t *Template) center(content string) string {
-	return content
 }
 
 // ToHTML generates the complete HTML for the dashboard page
@@ -49,13 +45,13 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	}
 
 	// Add Bootstrap CSS
-	webpage.AddStyleURL("https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css")
+	webpage.AddStyleURL(cdn.BootstrapCss_5_3_3())
 
 	// Add Bootstrap Icons
-	webpage.AddStyleURL("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css")
+	webpage.AddStyleURL(cdn.BootstrapIconsCss_1_11_3())
 
 	// Add Bootstrap JS Bundle with Popper
-	webpage.AddScriptURL("https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js")
+	webpage.AddScriptURL(cdn.BootstrapJs_5_3_3())
 
 	// Add custom CSS if any
 	for _, style := range dashboard.GetStyles() {
@@ -86,9 +82,4 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 
 	// Generate the final HTML
 	return webpage.ToHTML()
-}
-
-// center is a helper function to center content
-func center(content string) string {
-	return `<div class="d-flex justify-content-center align-items-center" style="height: 100vh;">` + content + `</div>`
 }

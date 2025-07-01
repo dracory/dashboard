@@ -23,7 +23,7 @@ func topNavigation(
 	iconStyle := lo.Ternary(navbarTextColor == "", "", "color: "+navbarTextColor)
 	bgClass := navbarBackgroundThemeClass(navbarBackgroundColor, navbarBackgroundColorMode)
 
-	dropdownQuickAccess := navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode)
+	dropdownQuickAccess := navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode, dashboard.GetMenuQuickAccessItems())
 	dropdownThemeSwitch := navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode)
 
 	buttonTheme := navbarButtonThemeClass(navbarBackgroundColor, navbarBackgroundColorMode)
@@ -38,8 +38,9 @@ func topNavigation(
 
 	// Brand/logo
 	brand := hb.NewHyperlink().
-		Class("navbar-brand").
-		ChildIf(logoRawHtml == "", hb.Image(logoImageURL).Style("height:40px")).
+		Class("navbar-brand d-flex align-items-center").
+		Style("margin-right: 1rem").
+		ChildIf(logoRawHtml == "", hb.Image(logoImageURL).Style("height: 32px")).
 		ChildIf(logoRawHtml != "", hb.Raw(logoRawHtml)).
 		ChildIf(logoRawHtml == "" && logoImageURL == "", hb.Text("Logo"))
 
@@ -57,7 +58,7 @@ func topNavigation(
 
 	// Navbar content
 	navbarContent := hb.NewDiv().
-		Class("collapse navbar-collapse").
+		Class("collapse navbar-collapse justify-content-between").
 		ID("navbarNav")
 
 	// Menu items
@@ -75,7 +76,7 @@ func topNavigation(
 	navbarNavRight := hb.NewUL().Class("navbar-nav ms-auto")
 
 	// Add dropdowns if they exist
-	if dropdownQuickAccess != nil {
+	if dropdownQuickAccess != nil && len(dashboard.GetMenuQuickAccessItems()) > 0 {
 		navbarNavRight.Child(hb.NewLI().Class("nav-item").Child(dropdownQuickAccess))
 	}
 
@@ -94,9 +95,15 @@ func topNavigation(
 		navbarNavRight,
 	})
 
-	container.Children([]hb.TagInterface{
+	// Wrap brand and toggle in a flex container
+	brandContainer := hb.NewDiv().Class("d-flex align-items-center")
+	brandContainer.Children([]hb.TagInterface{
 		brand,
 		toggleButton,
+	})
+
+	container.Children([]hb.TagInterface{
+		brandContainer,
 		navbarContent,
 	})
 
@@ -164,7 +171,7 @@ func navbarDropdownUser(
 }
 
 // navbarDropdownQuickAccess creates a quick access dropdown menu
-func navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode string) *hb.Tag {
+func navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode string, quickAccessItems []types.MenuItem) *hb.Tag {
 	hasNavbarTextColor := navbarTextColor != ""
 	buttonTheme := navbarButtonThemeClass(navbarBackgroundColor, navbarBackgroundColorMode)
 
@@ -181,37 +188,41 @@ func navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor
 		Class("dropdown-menu dropdown-menu-end").
 		Style("min-width:300px;padding:0.5rem;")
 
-	// Add quick access items here
-	dropdownMenu.Children([]hb.TagInterface{
-		hb.Div().
-			Class("row g-0").
-			Children([]hb.TagInterface{
-				hb.Div().
-					Class("col-4 text-center").
+	// Add quick access items from configuration
+	if len(quickAccessItems) > 0 {
+		var menuItems []hb.TagInterface
+		
+		// Group items into rows of 3
+		for i := 0; i < len(quickAccessItems); i += 3 {
+			end := i + 3
+			if end > len(quickAccessItems) {
+				end = len(quickAccessItems)
+			}
+			rowItems := quickAccessItems[i:end]
+			
+			row := hb.Div().Class("row g-0")
+			
+			for _, item := range rowItems {
+				icon := item.Icon
+				if icon == "" {
+					icon = "bi bi-app"
+				}
+				
+				col := hb.Div().Class("col-4 text-center").
 					Child(hb.Hyperlink().
 						Class("dropdown-item d-flex flex-column align-items-center").
-						Href("/dashboard").
-						Child(icons.Icon("bi bi-speedometer2", 24, 24, "")).
-						Child(hb.Span().Text("Dashboard").Class("mt-1")),
-					),
-				hb.Div().
-					Class("col-4 text-center").
-					Child(hb.Hyperlink().
-						Class("dropdown-item d-flex flex-column align-items-center").
-						Href("/profile").
-						Child(icons.Icon("bi bi-person", 24, 24, "")).
-						Child(hb.Span().Text("Profile").Class("mt-1")),
-					),
-				hb.Div().
-					Class("col-4 text-center").
-					Child(hb.Hyperlink().
-						Class("dropdown-item d-flex flex-column align-items-center").
-						Href("/settings").
-						Child(icons.Icon("bi bi-gear", 24, 24, "")).
-						Child(hb.Span().Text("Settings").Class("mt-1")),
-					),
-			}),
-	})
+						Href(item.URL).
+						Child(icons.Icon(icon, 24, 24, "")).
+						Child(hb.Span().Text(item.Title).Class("mt-1")),
+					)
+				row.Child(col)
+			}
+			
+			menuItems = append(menuItems, row)
+		}
+		
+		dropdownMenu.Children(menuItems)
+	}
 
 	return hb.Div().
 		Class("dropdown").

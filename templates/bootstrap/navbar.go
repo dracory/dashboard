@@ -93,9 +93,9 @@ func topNavigation(dashboard types.DashboardInterface) string {
 	
 	toolbar := hb.Div().
 		ID("Toolbar").
-		Class("navbar d-flex justify-content-between").
+		Class("navbar navbar-expand-lg d-flex justify-content-between py-1").
 		ClassIf(navbarHasBackgroundThemeClass(navbarBackgroundColor, navbarBackgroundColorMode), navbarThemeBackgroundClass).
-		Style("z-index: 3;box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);transition: all .2s ease;padding-left: 20px;padding-right: 20px;").
+		Style("z-index: 3;box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);transition: all .2s ease;padding-left: 15px;padding-right: 15px;").
 		StyleIf(hasNavbarBackgroundColor, `background-color: `+navbarBackgroundColor+`;`).
 		StyleIf(hasNavbarTextColor, `color: `+navbarTextColor+`;`).
 		Child(hb.Div().Class("d-flex align-items-center").
@@ -211,12 +211,14 @@ func navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor
 
 	button := hb.Button().
 		ID("ButtonQuickAccess").
-		Class("btn "+buttonTheme+" dropdown-toggle").
+		Class("btn "+buttonTheme).
 		Style("background:none;border:0px;").
 		StyleIf(hasNavbarTextColor, "color: "+navbarTextColor+";").
 		Type(hb.TYPE_BUTTON).
 		Data("bs-toggle", "dropdown").
-		Child(icons.Icon("bi bi-grid", 24, 24, ""))
+		Children([]hb.TagInterface{
+			icons.Icon("bi-grid-3x3-gap-fill", 24, 24, "").Style(iconStyle),
+		})
 
 	dropdownMenu := hb.Div().
 		Class("dropdown-menu dropdown-menu-end").

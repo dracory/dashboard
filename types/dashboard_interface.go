@@ -122,6 +122,10 @@ type DashboardInterface interface {
 	IsThemeDark() bool
 	GetTheme() string
 	SetTheme(theme string)
+	GetThemeHandlerUrl() string
+
+	// UI Configuration
+	GetMenuShowText() bool
 
 	ToHTML() string
 }

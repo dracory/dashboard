@@ -15,23 +15,24 @@ type dashboard struct {
 	logoRawHtml               string
 	logoRedirectURL           string
 	menuMainItems             []types.MenuItem
+	menuShowText              bool // controls whether to show text in menu items
 	menuUserItems             []types.MenuItem
 	menuQuickAccessItems      []types.MenuItem
 	navbarBackgroundColorMode string
 	navbarBackgroundColor     string
 	navbarTextColor           string
-	redirectTime              string
-	redirectUrl               string
-	scripts                   []string
-	scriptURLs                []string
-	styles                    []string
-	styleURLs                 []string
-	theme                     string // color mode: default, dark, light
-	template                  string // bootstrap (default), adminlte, tabler
-	title                     string
-	user                      *types.User
-	loginURL                  string
-	registerURL               string
+	redirectTime              string      // redirect time (if any, in seconds)
+	redirectUrl               string      // redirect URL (if any)
+	scripts                   []string    // custom scripts defined by the user
+	scriptURLs                []string    // custom script URLs defined by the user
+	styles                    []string    // custom styles defined by the user
+	styleURLs                 []string    // custom style URLs defined by the user
+	theme                     string      // color mode: default, dark, light
+	template                  string      // bootstrap (default), adminlte, tabler
+	title                     string      // title of the webpage
+	user                      *types.User // user object (if any)
+	loginURL                  string      // login URL
+	registerURL               string      // register URL
 }
 
 var _ types.DashboardInterface = (*dashboard)(nil)
@@ -320,4 +321,15 @@ func (d *dashboard) GetTheme() string {
 
 func (d *dashboard) SetTheme(theme string) {
 	d.theme = theme
+}
+
+// GetThemeHandlerUrl returns the URL for the theme handler endpoint
+func (d *dashboard) GetThemeHandlerUrl() string {
+	// Default to "/theme" if not set
+	return "/theme"
+}
+
+// GetMenuShowText returns whether to show text in menu items
+func (d *dashboard) GetMenuShowText() bool {
+	return d.menuShowText
 }

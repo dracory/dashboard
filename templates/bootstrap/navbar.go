@@ -39,7 +39,7 @@ func topNavigation(dashboard types.DashboardInterface) string {
 	buttonOffcanvasToggle := buttonOffcanvasToggle(buttonTheme, hasNavbarTextColor, navbarTextColor, iconStyle, dashboard)
 
 	buttonMainMenu := buttonOffcanvasToggle
-	if dashboard.GetMenuType() == types.MENU_TYPE_MODAL {
+	if dashboard.GetMenuType() == types.TEMPLATE_BOOTSTRAP_MENU_TYPE_MODAL {
 		buttonMainMenu = buttonMenuToggle
 	}
 
@@ -95,31 +95,31 @@ func topNavigation(dashboard types.DashboardInterface) string {
 
 	// Create items array and add conditionally
 	var items []hb.TagInterface
-	
+
 	// Add main menu button
 	items = append(items, buttonMainMenu)
-	
+
 	// User Menu - add conditionally
 	hasUser := user != nil && (user.FirstName != "" || user.LastName != "")
 	if hasUser {
 		userDiv := hb.Div().Class("float-end").Style("margin-left:10px;").Child(dropdownUser)
 		items = append(items, userDiv)
 	}
-	
+
 	// Theme Switcher - add conditionally
 	hasThemeHandler := dashboard.GetThemeHandlerUrl() != ""
 	if hasThemeHandler {
 		themeDiv := hb.Div().Class("float-end").Style("margin-left:10px;").Child(dropdownThemeSwitch)
 		items = append(items, themeDiv)
 	}
-	
+
 	// Quick Access Menu - add conditionally
 	hasQuickAccess := len(dashboard.GetMenuQuickAccessItems()) > 0
 	if hasQuickAccess {
 		quickAccessDiv := hb.Div().Class("float-end").Style("margin-left:10px;").Child(dropdownQuickAccess)
 		items = append(items, quickAccessDiv)
 	}
-	
+
 	toolbar := hb.Nav().
 		ID("Toolbar").
 		Class("navbar").
@@ -131,7 +131,7 @@ func topNavigation(dashboard types.DashboardInterface) string {
 		Children(items)
 
 	// Create the main menu based on menu type
-	mainMenu := lo.TernaryF(dashboard.GetMenuType() == types.MENU_TYPE_MODAL, func() *hb.Tag {
+	mainMenu := lo.TernaryF(dashboard.GetMenuType() == types.TEMPLATE_BOOTSTRAP_MENU_TYPE_MODAL, func() *hb.Tag {
 		return menuModal(dashboard)
 	}, func() *hb.Tag {
 		return menuOffcanvas(dashboard)
@@ -301,8 +301,8 @@ func navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBac
 		// Mark current theme as active
 		active := lo.Ternary(currentTheme == theme, " active", "")
 		// Build URL with proper query parameter handling
-		url := lo.Ternary(strings.Contains(handlerUrl, "?"), 
-			handlerUrl+"&theme="+theme, 
+		url := lo.Ternary(strings.Contains(handlerUrl, "?"),
+			handlerUrl+"&theme="+theme,
 			handlerUrl+"?theme="+theme)
 
 		return hb.LI().Children([]hb.TagInterface{
@@ -321,8 +321,8 @@ func navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBac
 		// Mark current theme as active
 		active := lo.Ternary(currentTheme == theme, " active", "")
 		// Build URL with proper query parameter handling
-		url := lo.Ternary(strings.Contains(handlerUrl, "?"), 
-			handlerUrl+"&theme="+theme, 
+		url := lo.Ternary(strings.Contains(handlerUrl, "?"),
+			handlerUrl+"&theme="+theme,
 			handlerUrl+"?theme="+theme)
 
 		return hb.LI().Children([]hb.TagInterface{

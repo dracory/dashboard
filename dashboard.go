@@ -21,38 +21,39 @@ const MENU_TYPE_OFFCANVAS = "offcanvas"
 
 type dashboard struct {
 	content                   string
-	subtitle                  string              // page subtitle
-	actions                   []types.Action      // header action buttons
-	alerts                    []types.Alert       // alert messages to display
-	modals                    []types.Modal       // modal dialogs
+	subtitle                  string         // page subtitle
+	actions                   []types.Action // header action buttons
+	alerts                    []types.Alert  // alert messages to display
+	modals                    []types.Modal  // modal dialogs
 	faviconURL                string
+	layout                    string // layout: some templates support different layouts
 	logoImageURL              string
 	logoRawHtml               string
 	logoRedirectURL           string
 	menuMainItems             []types.MenuItem
-	menuShowText              bool                // controls whether to show text in menu items
-	menuType                  string              // modal or offcanvas
+	menuShowText              bool   // controls whether to show text in menu items
+	menuType                  string // modal or offcanvas
 	menuUserItems             []types.MenuItem
 	menuQuickAccessItems      []types.MenuItem
 	navbarBackgroundColorMode string
 	navbarBackgroundColor     string
 	navbarTextColor           string
-	redirectTime              string              // redirect time (if any, in seconds)
-	redirectUrl               string              // redirect URL (if any)
-	scripts                   []string            // custom scripts defined by the user
-	scriptURLs                []string            // custom script URLs defined by the user
-	sidebarCollapsed          bool                // whether the sidebar is collapsed
+	redirectTime              string                 // redirect time (if any, in seconds)
+	redirectUrl               string                 // redirect URL (if any)
+	scripts                   []string               // custom scripts defined by the user
+	scriptURLs                []string               // custom script URLs defined by the user
+	sidebarCollapsed          bool                   // whether the sidebar is collapsed
 	breadcrumb                []types.BreadcrumbItem // breadcrumb navigation items
-	styles                    []string            // custom styles defined by the user
-	styleURLs                 []string            // custom style URLs defined by the user
-	theme                     string              // color mode: default, dark, light
-	themesRestrict            map[string]string   // restricted theme options
-	themeHandlerUrl           string              // URL for theme handler
-	template                  string              // bootstrap (default), adminlte, tabler
-	title                     string              // title of the webpage
-	user                      *types.User         // user object (if any)
-	loginURL                  string              // login URL
-	registerURL               string              // register URL
+	styles                    []string               // custom styles defined by the user
+	styleURLs                 []string               // custom style URLs defined by the user
+	theme                     string                 // color mode: default, dark, light
+	themesRestrict            map[string]string      // restricted theme options
+	themeHandlerUrl           string                 // URL for theme handler
+	template                  string                 // bootstrap (default), adminlte, tabler
+	title                     string                 // title of the webpage
+	user                      *types.User            // user object (if any)
+	loginURL                  string                 // login URL
+	registerURL               string                 // register URL
 }
 
 var _ types.DashboardInterface = (*dashboard)(nil)
@@ -283,15 +284,12 @@ func (d *dashboard) SetMenuQuickAccessItems(menuItems []types.MenuItem) {
 	d.menuQuickAccessItems = menuItems
 }
 
-// GetMenuType returns the menu type (modal or offcanvas)
+// GetMenuType returns the menu type
 func (d *dashboard) GetMenuType() string {
-	if d.menuType == "" {
-		return types.MENU_TYPE_OFFCANVAS // Default to offcanvas
-	}
 	return d.menuType
 }
 
-// SetMenuType sets the menu type (modal or offcanvas)
+// SetMenuType sets the menu type
 func (d *dashboard) SetMenuType(menuType string) {
 	d.menuType = menuType
 }

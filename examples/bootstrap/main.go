@@ -22,7 +22,7 @@ func main() {
 func handleHome(w http.ResponseWriter, r *http.Request) {
 	// Get theme from query parameter
 	theme := r.URL.Query().Get("theme")
-	
+
 	// If theme is provided in query, set cookie
 	lo.If(theme != "", func() {
 		cookie := &http.Cookie{
@@ -34,7 +34,7 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 		}
 		http.SetCookie(w, cookie)
 	})
-	
+
 	// If no theme in query, try to get from cookie
 	if theme == "" {
 		cookie, err := r.Cookie("theme")
@@ -47,9 +47,9 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 
 	// Set the template to use Bootstrap
 	d.SetTemplate(dashboard.TEMPLATE_BOOTSTRAP)
-	
+
 	// Set menu type to modal
-	d.SetMenuType(types.MENU_TYPE_MODAL)
+	d.SetMenuType(types.TEMPLATE_BOOTSTRAP_MENU_TYPE_MODAL)
 
 	// Set dashboard title
 	d.SetTitle("Admin Dashboard")
@@ -60,7 +60,7 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 	d.SetNavbarBackgroundColor("#ffffff") // White background
 	d.SetNavbarTextColor("#000000")       // Black text
 	d.SetNavbarBackgroundColorMode("light")
-	
+
 	// Set theme and theme handler URL
 	d.SetTheme(theme)
 	d.SetThemeHandlerUrl("/")

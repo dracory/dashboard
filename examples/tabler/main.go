@@ -22,7 +22,7 @@ func main() {
 func handleHome(w http.ResponseWriter, r *http.Request) {
 	// Get theme from query parameter
 	theme := r.URL.Query().Get("theme")
-	
+
 	// If theme is provided in query, set cookie
 	lo.If(theme != "", func() {
 		cookie := &http.Cookie{
@@ -34,7 +34,7 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 		}
 		http.SetCookie(w, cookie)
 	})
-	
+
 	// If no theme in query, try to get from cookie
 	if theme == "" {
 		cookie, err := r.Cookie("theme")
@@ -48,19 +48,16 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 	// Set the template to use Tabler
 	d.SetTemplate(dashboard.TEMPLATE_TABLER)
 
-	// Set menu type to modal
-	d.SetMenuType(types.MENU_TYPE_MODAL)
-
 	// Set dashboard title
 	d.SetTitle("Tabler Dashboard")
 
 	// Set logo and navbar settings
-	d.SetLogoImageURL("https://tabler.io/img/logo.svg")
+	d.SetLogoImageURL("https://tabler.bootmb.com/static/logo.svg")
 	d.SetLogoRedirectURL("/")
 	d.SetNavbarBackgroundColor("#206bc4") // Tabler primary blue
 	d.SetNavbarTextColor("#ffffff")       // White text
 	d.SetNavbarBackgroundColorMode("light")
-	
+
 	// Set theme and theme handler URL
 	d.SetTheme(theme)
 	d.SetThemeHandlerUrl("/")

@@ -3,6 +3,7 @@ package dashboard
 import (
 	"strings"
 
+	"github.com/dracory/dashboard/templates/adminlte"
 	"github.com/dracory/dashboard/templates/bootstrap"
 	"github.com/dracory/dashboard/templates/tabler"
 	"github.com/dracory/dashboard/types"
@@ -84,6 +85,10 @@ func (d *dashboard) findTemplate() (templateName string, template types.Template
 
 	if templateName == TEMPLATE_TABLER {
 		return templateName, &tabler.Template{}
+	}
+
+	if templateName == TEMPLATE_ADMINLTE {
+		return templateName, &adminlte.Template{}
 	}
 
 	return templateName, &bootstrap.Template{}

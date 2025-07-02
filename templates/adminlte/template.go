@@ -12,12 +12,47 @@ type Template struct{}
 var _ types.TemplateInterface = (*Template)(nil)
 
 // layout generates the main layout structure for the dashboard
-func (t *Template) layout(dashboard types.DashboardInterface) string {
-	content := dashboard.GetContent()
-	layout := hb.NewBorderLayout()
-	layout.AddTop(topNavigation(dashboard), hb.BORDER_LAYOUT_ALIGN_LEFT, hb.BORDER_LAYOUT_ALIGN_MIDDLE)
-	layout.AddCenter(hb.Raw(content), hb.BORDER_LAYOUT_ALIGN_LEFT, hb.BORDER_LAYOUT_ALIGN_TOP)
-	return layout.ToHTML()
+func (t *Template) layout(dashboard types.DashboardInterface) *hb.Tag {
+	// Main content wrapper
+	contentWrapper := hb.Div().Class("content-wrapper")
+
+	// Content header
+	contentHeader := hb.Div().Class("content-header")
+	containerFluid := hb.Div().Class("container-fluid")
+
+	// Page title row
+	row := hb.Div().Class("row mb-2")
+
+	// Left side (page title)
+	colSm6Left := hb.Div().Class("col-sm-6")
+	colSm6Left.Child(hb.H1().Class("m-0").HTML(dashboard.GetTitle()))
+	row.Child(colSm6Left)
+
+	// Right side (breadcrumb)
+	colSm6Right := hb.Div().Class("col-sm-6")
+	breadcrumb := hb.Ol().Class("breadcrumb float-sm-right")
+
+	homeLink := hb.Hyperlink().Href("/").HTML("Home")
+	breadcrumb.Child(hb.Li().Class("breadcrumb-item").Child(homeLink))
+
+	dashboardItem := hb.Li().Class("breadcrumb-item active").HTML("Dashboard")
+	breadcrumb.Child(dashboardItem)
+
+	colSm6Right.Child(breadcrumb)
+	row.Child(colSm6Right)
+
+	containerFluid.Child(row)
+	contentHeader.Child(containerFluid)
+	contentWrapper.Child(contentHeader)
+
+	// Main content
+	contentSection := hb.Section().Class("content")
+	contentContainer := hb.Div().Class("container-fluid")
+	contentContainer.Child(hb.Raw(dashboard.GetContent()))
+	contentSection.Child(contentContainer)
+	contentWrapper.Child(contentSection)
+
+	return contentWrapper
 }
 
 // ToHTML generates the complete HTML for the dashboard page
@@ -93,10 +128,8 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 		}
 	}
 
-	// Add content wrapper
-	contentWrapper := hb.NewDiv().Class("content-wrapper")
-	contentWrapper.Child(hb.Raw(t.layout(dashboard)))
-	wrapper.Child(contentWrapper)
+	// Add content wrapper with proper AdminLTE structure
+	wrapper.Child(t.layout(dashboard))
 
 	// Add footer
 	footer := hb.NewFooter().Class("main-footer")

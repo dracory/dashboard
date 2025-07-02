@@ -11,6 +11,7 @@ import (
 	"github.com/samber/lo"
 )
 
+const TEMPLATE_ADMINLTE = "adminlte"
 const TEMPLATE_BOOTSTRAP = "bootstrap"
 const TEMPLATE_TABLER = "tabler"
 const TEMPLATE_DEFAULT = TEMPLATE_BOOTSTRAP

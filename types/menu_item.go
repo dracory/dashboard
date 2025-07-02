@@ -6,5 +6,6 @@ type MenuItem struct {
 	Target   string
 	Icon     string
 	Sequence int
+	IsActive bool
 	Children []MenuItem
 }

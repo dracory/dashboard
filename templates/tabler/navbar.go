@@ -49,7 +49,7 @@ func navbarHeader1(dashboard types.DashboardInterface) *hb.Tag {
 // navbarHeader2 creates the second navbar with main navigation menu
 func navbarHeader2(dashboard types.DashboardInterface) *hb.Tag {
 	nav := buildNavigation(dashboard.GetMenuMainItems())
-	
+
 	headerClass := "navbar navbar-expand-md"
 	if dashboard.GetNavbarBackgroundColorMode() == "dark" {
 		headerClass += " navbar-dark"
@@ -90,21 +90,45 @@ func navLink(item types.MenuItem) *hb.Tag {
 		Href(lo.Ternary(item.URL != "", item.URL, "#")).
 		Attr("target", item.Target)
 
-	if item.Icon != "" {
-		link.Child(hb.Raw(item.Icon)).AddClass("me-2")
+	// Add active class if the item is active
+	if item.IsActive {
+		link.AddClass("active")
 	}
 
-	return link.Child(hb.Text(item.Title))
+	// Add icon if present
+	if item.Icon != "" {
+		icon := hb.Span().Class("nav-link-icon")
+		icon.Child(hb.Raw(item.Icon))
+		link.Child(icon)
+	}
+
+	// Add title
+	title := hb.Span().Class("nav-link-title").Child(hb.Text(item.Title))
+	return link.Child(title)
 }
 
 // navDropdown creates a dropdown menu for navigation items with children
 func navDropdown(item types.MenuItem) *hb.Tag {
 	li := hb.Li().Class("nav-item dropdown")
+
+	// Add active class to dropdown parent if any child is active
+	isChildActive := false
+	for _, child := range item.Children {
+		if child.IsActive {
+			isChildActive = true
+			break
+		}
+	}
+
 	link := navLink(item).
 		AddClass("dropdown-toggle").
 		Attr("data-bs-toggle", "dropdown").
 		Attr("role", "button").
 		Attr("aria-expanded", "false")
+
+	if isChildActive {
+		link.AddClass("active")
+	}
 
 	dropdownMenu := hb.Div().Class("dropdown-menu")
 	for _, child := range item.Children {
@@ -112,7 +136,12 @@ func navDropdown(item types.MenuItem) *hb.Tag {
 			dropdownMenu.Child(navDivider())
 			continue
 		}
-		dropdownMenu.Child(navLink(child).AddClass("dropdown-item"))
+
+		link := navLink(child).AddClass("dropdown-item")
+		if child.IsActive {
+			link.AddClass("active")
+		}
+		dropdownMenu.Child(link)
 	}
 
 	return li.Child(link).Child(dropdownMenu)
@@ -124,13 +153,18 @@ func navItem(item types.MenuItem) *hb.Tag {
 		return navDivider()
 	}
 
+	li := hb.Li().Class("nav-item")
+
+	// Add active class to parent li if the item is active
+	if item.IsActive {
+		li.AddClass("active")
+	}
+
 	if len(item.Children) > 0 {
 		return navDropdown(item)
 	}
 
-	return hb.Li().
-		Class("nav-item").
-		Child(navLink(item))
+	return li.Child(navLink(item))
 }
 
 // buildNavigation builds the complete navigation menu

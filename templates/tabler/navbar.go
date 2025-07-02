@@ -6,45 +6,62 @@ import (
 	"github.com/samber/lo"
 )
 
-// topNavigation generates the top navigation bar
+// topNavigation generates the top navigation bar with two headers
 func topNavigation(dashboard types.DashboardInterface) string {
+	header1 := navbarHeader1(dashboard)
+	header2 := navbarHeader2(dashboard)
 
-	// Build main navigation
-	nav := buildNavigation(dashboard.GetMenuMainItems())
-	navMenu := navMenuContainer().
-		Child(hb.Div().
-			Class("d-flex flex-column flex-md-row flex-fill align-items-stretch align-items-md-center").
-			Child(nav))
+	// Wrap both headers in a parent container
+	return hb.Wrap(header1, header2).ToHTML()
+}
 
+// navbarHeader1 creates the first header with logo and user menu
+func navbarHeader1(dashboard types.DashboardInterface) *hb.Tag {
 	dropdownTheme := themedropdown(dashboard)
 
-	rightNav := navbarRightContainer().
-		ChildIfF(dropdownTheme != nil, func() hb.TagInterface {
-			dropdownTheme.AddClass("nav-link px-0")
-			return hb.Div().
-				Class("nav-item dropdown d-none d-md-flex me-3").
-				Child(dropdownTheme)
-		}).
-		Child(lo.TernaryF(dashboard.GetUser() != nil, func() *hb.Tag {
-			return navbarUserMenu(dashboard, dashboard.GetUser())
-		}, func() *hb.Tag {
-			return navbarLoginButton()
-		}))
+	rightNav := navbarRightContainer()
+	if dropdownTheme != nil {
+		dropdownTheme.AddClass("nav-link px-0")
+		rightNav = rightNav.Child(hb.Div().
+			Class("nav-item dropdown d-none d-md-flex me-3").
+			Child(dropdownTheme))
+	}
 
-	// Assemble the navbar - rightNav will be on the far right
-	container := navbarContainer().
-		Child(navbarButtonToggler()).
-		Child(navbarBrand(dashboard)).
-		Child(navMenu).
-		// Add an auto-margin to push rightNav to the far right
-		Child(hb.Div().
-			Class("d-flex ms-auto").
-			Child(rightNav))
+	rightNav = rightNav.Child(lo.TernaryF(dashboard.GetUser() != nil,
+		func() *hb.Tag { return navbarUserMenu(dashboard, dashboard.GetUser()) },
+		func() *hb.Tag { return navbarLoginButton() }))
 
-	header := navbarHeader().
-		Child(container)
+	headerClass := "navbar-expand-md"
+	if dashboard.GetNavbarBackgroundColorMode() == "dark" {
+		headerClass += " navbar-dark"
+	}
 
-	return header.ToHTML()
+	return navbarHeader().
+		Class(headerClass).
+		Child(navbarContainer().
+			Child(navbarButtonToggler()).
+			Child(navbarBrand(dashboard)).
+			Child(hb.Div().
+				Class("d-flex ms-auto").
+				Child(rightNav)))
+}
+
+// navbarHeader2 creates the second navbar with main navigation menu
+func navbarHeader2(dashboard types.DashboardInterface) *hb.Tag {
+	nav := buildNavigation(dashboard.GetMenuMainItems())
+	
+	headerClass := "navbar navbar-expand-md"
+	if dashboard.GetNavbarBackgroundColorMode() == "dark" {
+		headerClass += " navbar-dark"
+	}
+
+	container := hb.Div().Class("container-xl")
+	navMenu := navMenuContainer()
+	navContainer := hb.Div().Class("navbar-nav flex-row").Child(nav)
+
+	return hb.Div().
+		Class(headerClass).
+		Child(container.Child(navMenu.Child(navContainer)))
 }
 
 // navMenuContainer creates the main navigation menu container

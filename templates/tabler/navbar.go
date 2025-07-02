@@ -8,41 +8,6 @@ import (
 	"github.com/samber/lo"
 )
 
-// navbarHeader creates the main navbar container
-func navbarHeader() *hb.Tag {
-	return hb.NewHeader().Class("navbar navbar-expand-md d-print-none")
-}
-
-// navbarContainer creates the main container for navbar content
-func navbarContainer() *hb.Tag {
-	return hb.NewDiv().Class("container-xl")
-}
-
-// navbarBrand creates the brand/logo section
-func navbarBrand(dashboard types.DashboardInterface) *hb.Tag {
-	brand := hb.NewDiv().Class("navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3")
-	brandLink := hb.NewA().Href(".").Attr("aria-label", "Tabler")
-
-	// Set logo or title
-	switch {
-	case dashboard.GetLogoImageURL() != "":
-		brandLink.Child(hb.Img(dashboard.GetLogoImageURL()).Class("navbar-brand-image"))
-	case dashboard.GetLogoRawHtml() != "":
-		brandLink.Child(hb.Raw(dashboard.GetLogoRawHtml()))
-	default:
-		brandLink.Child(hb.Span().Text(dashboard.GetTitle()))
-	}
-
-	// Set redirect URL
-	brandLink.Attr("href", lo.Ternary(dashboard.GetLogoRedirectURL() != "", dashboard.GetLogoRedirectURL(), "#"))
-	return brand.Child(brandLink)
-}
-
-// navbarRightContainer creates the right-aligned navigation container
-func navbarRightContainer() *hb.Tag {
-	return hb.NewDiv().Class("navbar-nav flex-row order-md-last")
-}
-
 // topNavigation generates the top navigation bar
 func topNavigation(dashboard types.DashboardInterface) string {
 	header := navbarHeader()
@@ -259,16 +224,54 @@ func topNavigation(dashboard types.DashboardInterface) string {
 	navMenu.Child(hb.NewDiv().Class("d-flex flex-column flex-md-row flex-fill align-items-stretch align-items-md-center").
 		Child(nav))
 
-	container.Children(
+	container.Children([]hb.TagInterface{
 		navbarButtonToggler(),
 		navbarBrand(dashboard),
 		navMenu,
 		rightNav,
-	)
+	})
 
 	header.Child(container)
 
 	return header.ToHTML()
+}
+
+// navbarHeader creates the main navbar container
+func navbarHeader() *hb.Tag {
+	return hb.Header().
+		Class("navbar navbar-expand-md d-print-none")
+}
+
+// navbarContainer creates the main container for navbar content
+func navbarContainer() *hb.Tag {
+	return hb.Div().
+		Class("container-xl")
+}
+
+// navbarBrand creates the brand/logo section
+func navbarBrand(dashboard types.DashboardInterface) *hb.Tag {
+	brand := hb.Div().
+		Class("navbar-brand navbar-brand-autodark d-none-navbar-horizontal pe-0 pe-md-3")
+	brandLink := hb.A().Href(".").Attr("aria-label", "Tabler")
+
+	// Set logo or title
+	switch {
+	case dashboard.GetLogoImageURL() != "":
+		brandLink.Child(hb.Img(dashboard.GetLogoImageURL()).Class("navbar-brand-image"))
+	case dashboard.GetLogoRawHtml() != "":
+		brandLink.Child(hb.Raw(dashboard.GetLogoRawHtml()))
+	default:
+		brandLink.Child(hb.Span().Text(dashboard.GetTitle()))
+	}
+
+	// Set redirect URL
+	brandLink.Attr("href", lo.Ternary(dashboard.GetLogoRedirectURL() != "", dashboard.GetLogoRedirectURL(), "#"))
+	return brand.Child(brandLink)
+}
+
+// navbarRightContainer creates the right-aligned navigation container
+func navbarRightContainer() *hb.Tag {
+	return hb.NewDiv().Class("navbar-nav flex-row order-md-last")
 }
 
 func navbarButtonToggler() *hb.Tag {

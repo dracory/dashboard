@@ -8,26 +8,26 @@ import (
 // menuModal generates the modal menu HTML
 func menuModal(dashboard types.DashboardInterface) *hb.Tag {
 	// Create modal container
-	modal := hb.NewDiv().Class("modal fade").ID("mainMenuModal")
+	modal := hb.Div().Class("modal fade").ID("mainMenuModal")
 	modal.Attr("tabindex", "-1")
 	modal.Attr("role", "dialog")
 
 	// Modal dialog
-	modalDialog := hb.NewDiv().Class("modal-dialog")
+	modalDialog := hb.Div().Class("modal-dialog")
 	modal.Child(modalDialog)
 
 	// Modal content
-	modalContent := hb.NewDiv().Class("modal-content")
+	modalContent := hb.Div().Class("modal-content")
 	modalDialog.Child(modalContent)
 
 	// Modal header
-	header := hb.NewDiv().Class("modal-header")
-	header.Child(hb.NewH5().Class("modal-title").Text(dashboard.GetTitle()))
-	header.Child(hb.NewButton().Class("close").Attr("data-dismiss", "modal").HTML("&times;"))
+	header := hb.Div().Class("modal-header")
+	header.Child(hb.H5().Class("modal-title").Text(dashboard.GetTitle()))
+	header.Child(hb.Button().Class("close").Attr("data-dismiss", "modal").HTML("&times;"))
 	modalContent.Child(header)
 
 	// Modal body with menu
-	body := hb.NewDiv().Class("modal-body")
+	body := hb.Div().Class("modal-body")
 	menu := BuildSidebarMenu(dashboard)
 	if menu != nil {
 		body.Child(menu)
@@ -35,7 +35,7 @@ func menuModal(dashboard types.DashboardInterface) *hb.Tag {
 	modalContent.Child(body)
 
 	// Add script to handle modal
-	script := hb.NewScript(`
+	script := hb.Script(`
 		document.addEventListener('DOMContentLoaded', function() {
 			var menuModal = document.getElementById('mainMenuModal');
 			if (menuModal) {

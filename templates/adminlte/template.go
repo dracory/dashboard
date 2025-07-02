@@ -112,7 +112,7 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	}
 
 	// Create main wrapper
-	wrapper := hb.NewDiv().Class("wrapper")
+	wrapper := hb.Div().Class("wrapper")
 
 	// Add navigation
 	navbar := topNavigation(dashboard)

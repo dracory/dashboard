@@ -15,22 +15,22 @@ func navbarMessagesDropdown(navbarTextColor string, messages []types.MenuItem) *
 		visibleMessages = visibleMessages[:4]
 	}
 
-	dropdown := hb.NewLI().Class("nav-item dropdown")
+	dropdown := hb.Li().Class("nav-item dropdown")
 	a := hb.A().Href("#").Class("nav-link").Data("toggle", "dropdown")
 
 	// Message icon with badge
-	icon := hb.NewI().Class("far fa-comments")
+	icon := hb.I().Class("far fa-comments")
 	if navbarTextColor != "" {
 		icon.Style("color: " + navbarTextColor + " !important")
 	}
 	a.Child(icon)
-	a.Child(hb.NewSpan().Class("badge badge-danger navbar-badge").HTML(strconv.Itoa(len(messages))))
+	a.Child(hb.Span().Class("badge badge-danger navbar-badge").HTML(strconv.Itoa(len(messages))))
 
 	// Dropdown menu
-	menu := hb.NewDiv().Class("dropdown-menu dropdown-menu-lg dropdown-menu-right")
+	menu := hb.Div().Class("dropdown-menu dropdown-menu-lg dropdown-menu-right")
 
 	// Header
-	header := hb.NewSpan().Class("dropdown-item dropdown-header").HTML(strconv.Itoa(len(messages)) + " Messages")
+	header := hb.Span().Class("dropdown-item dropdown-header").HTML(strconv.Itoa(len(messages)) + " Messages")
 	menu.Child(header)
 
 	// Messages
@@ -39,7 +39,7 @@ func navbarMessagesDropdown(navbarTextColor string, messages []types.MenuItem) *
 	}
 
 	// Footer
-	footer := hb.NewA().Href("#").Class("dropdown-item dropdown-footer").HTML("See All Messages")
+	footer := hb.A().Href("#").Class("dropdown-item dropdown-footer").HTML("See All Messages")
 	menu.Child(footer)
 
 	dropdown.Child(a)
@@ -50,24 +50,24 @@ func navbarMessagesDropdown(navbarTextColor string, messages []types.MenuItem) *
 
 // createMessageItem creates a single message item for the messages dropdown
 func createMessageItem(msg types.MenuItem, textColor string) *hb.Tag {
-	item := hb.NewDiv().Class("dropdown-item")
+	item := hb.Div().Class("dropdown-item")
 
 	// Message header
-	header := hb.NewDiv().Class("media")
+	header := hb.Div().Class("media")
 
 	// User image
 	userImg := hb.Img("https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y")
 	userImg.Class("img-size-50 mr-3 img-circle")
 	header.Child(userImg)
 
-	mediaBody := hb.NewDiv().Class("media-body")
-	mediaBody.Child(hb.NewH3().Class("dropdown-item-title").HTML(msg.Title))
+	mediaBody := hb.Div().Class("media-body")
+	mediaBody.Child(hb.H3().Class("dropdown-item-title").HTML(msg.Title))
 
 	// Only add icon if it's not empty
 	if msg.Icon != "" {
-		mediaBody.Child(hb.NewP().Class("text-sm text-muted").Child(hb.NewI().Class(msg.Icon + " mr-2")).HTML(msg.URL))
+		mediaBody.Child(hb.P().Class("text-sm text-muted").Child(hb.I().Class(msg.Icon + " mr-2")).HTML(msg.URL))
 	} else {
-		mediaBody.Child(hb.NewP().Class("text-sm text-muted").HTML(msg.URL))
+		mediaBody.Child(hb.P().Class("text-sm text-muted").HTML(msg.URL))
 	}
 
 	header.Child(mediaBody)
@@ -75,7 +75,7 @@ func createMessageItem(msg types.MenuItem, textColor string) *hb.Tag {
 
 	// Make the entire item clickable if URL is provided
 	if msg.URL != "" {
-		link := hb.NewA().Href(msg.URL).Class("dropdown-item")
+		link := hb.A().Href(msg.URL).Class("dropdown-item")
 		if msg.Target != "" {
 			link.Attr("target", msg.Target)
 		}
@@ -94,22 +94,22 @@ func navbarNotificationsDropdown(navbarTextColor string, notifications []types.A
 		visibleNotifications = visibleNotifications[:5]
 	}
 
-	dropdown := hb.NewLI().Class("nav-item dropdown")
+	dropdown := hb.Li().Class("nav-item dropdown")
 	a := hb.A().Href("#").Class("nav-link").Data("toggle", "dropdown")
 
 	// Notification icon with badge
-	icon := hb.NewI().Class("far fa-bell")
+	icon := hb.I().Class("far fa-bell")
 	if navbarTextColor != "" {
 		icon.Style("color: " + navbarTextColor + " !important")
 	}
 	a.Child(icon)
-	a.Child(hb.NewSpan().Class("badge badge-warning navbar-badge").HTML(strconv.Itoa(len(notifications))))
+	a.Child(hb.Span().Class("badge badge-warning navbar-badge").HTML(strconv.Itoa(len(notifications))))
 
 	// Dropdown menu
-	menu := hb.NewDiv().Class("dropdown-menu dropdown-menu-lg dropdown-menu-right")
+	menu := hb.Div().Class("dropdown-menu dropdown-menu-lg dropdown-menu-right")
 
 	// Header
-	header := hb.NewSpan().Class("dropdown-item dropdown-header").HTML(strconv.Itoa(len(notifications)) + " Notifications")
+	header := hb.Span().Class("dropdown-item dropdown-header").HTML(strconv.Itoa(len(notifications)) + " Notifications")
 	menu.Child(header)
 
 	// Notifications
@@ -129,7 +129,7 @@ func navbarNotificationsDropdown(navbarTextColor string, notifications []types.A
 
 // createNotificationItem creates a single notification item for the notifications dropdown
 func createNotificationItem(alert types.Alert, textColor string) *hb.Tag {
-	item := hb.NewDiv().Class("dropdown-item")
+	item := hb.Div().Class("dropdown-item")
 
 	// Notification icon based on alert type
 	iconClass := "fas fa-info-circle"
@@ -142,15 +142,15 @@ func createNotificationItem(alert types.Alert, textColor string) *hb.Tag {
 		iconClass = "fas fa-exclamation-triangle"
 	}
 
-	icon := hb.NewI().Class(iconClass + " mr-2")
+	icon := hb.I().Class(iconClass + " mr-2")
 	if textColor != "" {
 		icon.Style("color: " + textColor + " !important")
 	}
 
 	// Notification content
-	content := hb.NewDiv().Class("d-flex align-items-center")
+	content := hb.Div().Class("d-flex align-items-center")
 	content.Child(icon)
-	content.Child(hb.NewDiv().HTML(alert.Message))
+	content.Child(hb.Div().HTML(alert.Message))
 
 	item.Child(content)
 	return item
@@ -158,7 +158,7 @@ func createNotificationItem(alert types.Alert, textColor string) *hb.Tag {
 
 // navbarUserMenu creates the user menu dropdown
 func navbarUserMenu(navbarTextColor string, user types.User, userMenuItems []types.MenuItem) *hb.Tag {
-	dropdown := hb.NewLI().Class("nav-item dropdown user-menu")
+	dropdown := hb.Li().Class("nav-item dropdown user-menu")
 
 	// User menu toggle
 	toggle := hb.A().Href("#").Class("nav-link").Data("toggle", "dropdown")
@@ -171,26 +171,27 @@ func navbarUserMenu(navbarTextColor string, user types.User, userMenuItems []typ
 
 	// User name
 	if user.FirstName != "" {
-		toggle.Child(hb.NewSpan().Class("d-none d-md-inline").HTML(user.FirstName))
+		toggle.Child(hb.Span().Class("d-none d-md-inline").HTML(user.FirstName))
 	}
 
 	dropdown.Child(toggle)
 
 	// Dropdown menu
-	dropdownMenu := hb.NewDiv().Class("dropdown-menu dropdown-menu-lg dropdown-menu-right")
+	dropdownMenu := hb.Div().Class("dropdown-menu dropdown-menu-lg dropdown-menu-right")
 
 	// User info section
-	userInfo := hb.NewDiv().Class("dropdown-item dropdown-header")
+	userInfo := hb.Div().Class("dropdown-item dropdown-header")
 
 	// User image in menu
 	userInfo.Child(userImage.Class("img-size-50 mr-3 img-circle"))
 
 	// User details
-	userDetails := hb.NewDiv()
-	userDetails.Child(hb.NewP().HTML(user.FirstName))
+	userDetails := hb.Div()
+	userDetails.Child(hb.P().HTML(user.FirstName))
 
 	if user.Email != "" {
-		userDetails.Child(hb.NewTag("small").Class("text-muted").HTML(user.Email))
+		emailSpan := hb.Span().Class("text-muted").Style("font-size: 0.875em;").HTML(user.Email)
+		userDetails.Child(emailSpan)
 	}
 
 	userInfo.Child(userDetails)
@@ -198,12 +199,12 @@ func navbarUserMenu(navbarTextColor string, user types.User, userMenuItems []typ
 
 	// Menu items
 	if len(userMenuItems) > 0 {
-		dropdownMenu.Child(hb.NewDiv().Class("dropdown-divider"))
+		dropdownMenu.Child(hb.Div().Class("dropdown-divider"))
 
 		for _, item := range userMenuItems {
 			// Handle dividers (empty title indicates a divider)
 			if item.Title == "" && item.URL == "" && item.Icon == "" {
-				dropdownMenu.Child(hb.NewDiv().Class("dropdown-divider"))
+				dropdownMenu.Child(hb.Div().Class("dropdown-divider"))
 				continue
 			}
 
@@ -211,19 +212,20 @@ func navbarUserMenu(navbarTextColor string, user types.User, userMenuItems []typ
 
 			// Add icon if available
 			if item.Icon != "" {
-				icon := hb.NewI().Class(item.Icon + " mr-2")
+				iconHTML := "<i class=\"" + item.Icon + " mr-2"
 				if navbarTextColor != "" {
-					icon.Style("color: " + navbarTextColor + " !important")
+					iconHTML += " style=\"color: " + navbarTextColor + " !important\""
 				}
-				link.Child(icon)
+				iconHTML += "></i>"
+				link.Child(hb.Raw(iconHTML))
 			}
 
 			// Add title
-			link.Child(hb.NewSpan().HTML(item.Title))
+			link.Child(hb.Span().HTML(item.Title))
 
 			// Show sequence number as a badge if it's greater than 0
 			if item.Sequence > 0 {
-				badge := hb.NewSpan().Class("float-right text-muted text-sm badge badge-secondary")
+				badge := hb.Span().Class("float-right text-muted text-sm badge badge-secondary")
 				badge.HTML(strconv.Itoa(item.Sequence))
 				link.Child(badge)
 			}
@@ -239,21 +241,22 @@ func navbarUserMenu(navbarTextColor string, user types.User, userMenuItems []typ
 
 // navbarThemeSwitcher creates a theme switcher dropdown
 func navbarThemeSwitcher(navbarTextColor, currentTheme, themeHandlerUrl string) *hb.Tag {
-	dropdown := hb.NewLI().Class("nav-item dropdown")
+	dropdown := hb.Li().Class("nav-item dropdown")
 	a := hb.A().Href("#").Class("nav-link").Data("toggle", "dropdown")
 
 	// Theme icon
-	icon := hb.NewI().Class("fas fa-moon")
+	iconHTML := "<i class=\"fas fa-moon"
 	if navbarTextColor != "" {
-		icon.Style("color: " + navbarTextColor + " !important")
+		iconHTML += " style=\"color: " + navbarTextColor + " !important\""
 	}
-	a.Child(icon)
+	iconHTML += "></i>"
+	a.Child(hb.Raw(iconHTML))
 
 	// Dropdown menu
-	menu := hb.NewDiv().Class("dropdown-menu dropdown-menu-right")
+	menu := hb.Div().Class("dropdown-menu dropdown-menu-right")
 
 	// Header
-	header := hb.NewH6().Class("dropdown-header").HTML("Theme")
+	header := hb.H6().Class("dropdown-header").HTML("Theme")
 	menu.Child(header)
 
 	// Theme options
@@ -274,13 +277,14 @@ func navbarThemeSwitcher(navbarTextColor, currentTheme, themeHandlerUrl string) 
 		link := hb.A().Href("#").Class("dropdown-item theme-switch")
 		link.Data("theme", theme)
 
-		icon := hb.NewI().Class(themeIcons[theme] + " mr-2")
-		link.Child(icon)
+		iconHTML := "<i class=\"" + themeIcons[theme] + " mr-2\"></i>"
+		link.Child(hb.Raw(iconHTML))
 
-		link.Child(hb.NewSpan().HTML(themeTitles[theme]))
+		link.Child(hb.Span().HTML(themeTitles[theme]))
 
 		if theme == currentTheme {
-			link.Child(hb.NewI().Class("fas fa-check float-right mt-1"))
+			checkIcon := "<i class=\"fas fa-check float-right mt-1\"></i>"
+			link.Child(hb.Raw(checkIcon))
 		}
 
 		menu.Child(link)

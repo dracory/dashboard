@@ -14,7 +14,7 @@ func topNavigation(dashboard types.DashboardInterface) *hb.Tag {
 	hasNavbarTextColor := dashboard.GetNavbarTextColor() != ""
 
 	// Navbar
-	navbar := hb.NewNav().Class("main-header navbar navbar-expand")
+	navbar := hb.Nav().Class("main-header navbar navbar-expand")
 
 	// Left navbar container
 	leftContainer := hb.Div().Class("container-fluid")
@@ -38,14 +38,14 @@ func topNavigation(dashboard types.DashboardInterface) *hb.Tag {
 	)
 
 	// Logo
-	logo := hb.NewDiv()
+	logo := hb.Div()
 	switch {
 	case hasLogoRawHTML:
 		logo.Child(hb.Raw(dashboard.GetLogoRawHtml()))
 	case hasLogoImage:
-		logo.Child(hb.NewImg().Src(dashboard.GetLogoImageURL()).Style("max-height:35px;height:35px;width:auto;"))
+		logo.Child(hb.Img(dashboard.GetLogoImageURL()).Style("max-height:35px;height:35px;width:auto;"))
 	default:
-		logo.Child(hb.NewDiv().Text(dashboard.GetTitle()))
+		logo.Child(hb.Div().Text(dashboard.GetTitle()))
 	}
 
 	leftNavbar.Child(

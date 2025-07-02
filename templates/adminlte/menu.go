@@ -22,27 +22,28 @@ func buildMenuItem(menuItem types.MenuItem, index int) *hb.Tag {
 	hasChildren := len(children) > 0
 
 	// Create the main list item
-	li := hb.NewLI().Class("nav-item")
+	li := hb.Li().Class("nav-item")
 	if hasChildren {
 		li.Class("has-treeview")
 	}
 
 	// Create the link
-	link := hb.NewHyperlink().Class("nav-link")
+	link := hb.Hyperlink().Class("nav-link")
 
 	// Add icon if present
 	if icon != "" {
-		link.Child(hb.NewI().Class(icon + " nav-icon"))
+		iconHTML := "<i class=\"" + icon + " nav-icon\"></i>"
+		link.Child(hb.Raw(iconHTML))
 	} else {
-		link.Child(hb.NewI().Class("far fa-circle nav-icon"))
+		link.Child(hb.Raw("<i class=\"far fa-circle nav-icon\"></i>"))
 	}
 
 	// Add title
-	link.Child(hb.NewP().HTML(title))
+	link.Child(hb.P().HTML(title))
 
 	// Add caret for dropdown if has children
 	if hasChildren {
-		link.Child(hb.NewI().Class("right fas fa-angle-left"))
+		link.Child(hb.Raw("<i class=\"right fas fa-angle-left\"></i>"))
 	}
 
 	// Set URL
@@ -53,7 +54,7 @@ func buildMenuItem(menuItem types.MenuItem, index int) *hb.Tag {
 
 	// Add children if present
 	if hasChildren {
-		ul := hb.NewUL().Class("nav nav-treeview")
+		ul := hb.Ul().Class("nav nav-treeview")
 		for i, child := range children {
 			childItem := buildMenuItem(child, i)
 			ul.Child(childItem)
@@ -67,7 +68,7 @@ func buildMenuItem(menuItem types.MenuItem, index int) *hb.Tag {
 // dashboardMenuNavbar generates the HTML for the dashboard menu navbar
 func dashboardMenuNavbar(dashboard types.DashboardInterface) string {
 	menuItems := dashboard.GetMenuMainItems()
-	menu := hb.NewUL().Class("navbar-nav")
+	menu := hb.Ul().Class("navbar-nav")
 
 	for i, item := range menuItems {
 		menuItem := buildMenuItem(item, i)
@@ -80,35 +81,35 @@ func dashboardMenuNavbar(dashboard types.DashboardInterface) string {
 // menuOffcanvas generates the offcanvas menu HTML
 func menuOffcanvas(dashboard types.DashboardInterface) *hb.Tag {
 	// Main sidebar container
-	sidebar := hb.NewDiv().Class("main-sidebar sidebar-dark-primary elevation-4")
+	sidebar := hb.Div().Class("main-sidebar sidebar-dark-primary elevation-4")
 
 	// Brand logo
-	brandLink := hb.NewDiv().Class("brand-link text-center")
+	brandLink := hb.Div().Class("brand-link text-center")
 	if dashboard.GetLogoImageURL() != "" {
 		brandLink.Child(hb.Img(dashboard.GetLogoImageURL()).Class("brand-image img-circle elevation-3"))
 	}
-	brandLink.Child(hb.NewSpan().Class("brand-text font-weight-light").HTML(dashboard.GetTitle()))
+	brandLink.Child(hb.Span().Class("brand-text font-weight-light").HTML(dashboard.GetTitle()))
 	sidebar.Child(brandLink)
 
 	// Sidebar
-	sidebarInner := hb.NewDiv().Class("sidebar")
+	sidebarInner := hb.Div().Class("sidebar")
 
 	// User panel
 	user := dashboard.GetUser()
 	if user != nil && user.FirstName != "" {
-		userPanel := hb.NewDiv().Class("user-panel mt-3 pb-3 mb-3 d-flex")
-		userPanel.Child(hb.NewDiv().Class("image").Child(
+		userPanel := hb.Div().Class("user-panel mt-3 pb-3 mb-3 d-flex")
+		userPanel.Child(hb.Div().Class("image").Child(
 			hb.Img("https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y").Class("img-circle elevation-2").Style("width: 2.1rem"),
 		))
-		userPanel.Child(hb.NewDiv().Class("info").Child(
-			hb.NewA().Href("#").Class("d-block").HTML(user.FirstName + " " + user.LastName),
+		userPanel.Child(hb.Div().Class("info").Child(
+			hb.A().Href("#").Class("d-block").HTML(user.FirstName + " " + user.LastName),
 		))
 		sidebarInner.Child(userPanel)
 	}
 
 	// Sidebar menu
-	nav := hb.NewNav().Class("mt-2")
-	nav.Child(hb.NewUL().Class("nav nav-pills nav-sidebar flex-column").Data("widget", "treeview").Role("menu").Data("accordion", "false").Child(BuildSidebarMenu(dashboard)))
+	nav := hb.Nav().Class("mt-2")
+	nav.Child(hb.Ul().Class("nav nav-pills nav-sidebar flex-column").Data("widget", "treeview").Role("menu").Data("accordion", "false").Child(BuildSidebarMenu(dashboard)))
 
 	sidebarInner.Child(nav)
 	sidebar.Child(sidebarInner)
@@ -119,7 +120,7 @@ func menuOffcanvas(dashboard types.DashboardInterface) *hb.Tag {
 // BuildSidebarMenu builds the sidebar menu structure
 func BuildSidebarMenu(dashboard types.DashboardInterface) *hb.Tag {
 	menuItems := dashboard.GetMenuMainItems()
-	menu := hb.NewUL().Class("nav nav-pills nav-sidebar flex-column").Data("widget", "treeview").Role("menu")
+	menu := hb.Ul().Class("nav nav-pills nav-sidebar flex-column").Data("widget", "treeview").Role("menu")
 
 	for i, item := range menuItems {
 		menuItem := buildSidebarMenuItem(item, i)
@@ -140,36 +141,36 @@ func buildSidebarMenuItem(item types.MenuItem, index int) *hb.Tag {
 	}
 
 	// Create list item
-	li := hb.NewLI().Class("nav-item")
+	li := hb.Li().Class("nav-item")
 	if hasChildren {
 		li.Class("has-treeview")
 	}
 
 	// Create link
-	link := hb.NewA().Href(item.URL).Class("nav-link")
+	link := hb.A().Href(item.URL).Class("nav-link")
 	if hasChildren {
 		link.Attr("onclick", "return false;")
 	}
 
 	// Add icon
-	iconEl := hb.NewI().Class("nav-icon " + icon)
-	link.Child(iconEl)
+	iconHTML := "<i class=\"nav-icon " + icon + "\"></i>"
+	link.Child(hb.Raw(iconHTML))
 
 	// Add title
-	title := hb.NewP().HTML(item.Title)
+	title := hb.P().HTML(item.Title)
 	link.Child(title)
 
 	// Add dropdown arrow for items with children
 	if hasChildren {
-		arrow := hb.NewI().Class("right fas fa-angle-left")
-		title.Child(arrow)
+		arrowHTML := "<i class=\"right fas fa-angle-left\"></i>"
+		title.Child(hb.Raw(arrowHTML))
 	}
 
 	li.Child(link)
 
 	// Add child items if they exist
 	if hasChildren {
-		childList := hb.NewUL().Class("nav nav-treeview")
+		childList := hb.Ul().Class("nav nav-treeview")
 		for _, child := range item.Children {
 			childList.Child(buildSidebarMenuItem(child, index+1))
 		}

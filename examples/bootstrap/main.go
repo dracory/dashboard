@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dracory/dashboard"
+	"github.com/dracory/dashboard/shared"
 	"github.com/dracory/dashboard/types"
 	"github.com/samber/lo"
 )
@@ -49,7 +50,7 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 	d.SetTemplate(dashboard.TEMPLATE_BOOTSTRAP)
 
 	// Set menu type to modal
-	d.SetMenuType(types.TEMPLATE_BOOTSTRAP_MENU_TYPE_MODAL)
+	d.SetMenuType(shared.TEMPLATE_BOOTSTRAP_MENU_TYPE_MODAL)
 
 	// Set dashboard title
 	d.SetTitle("Admin Dashboard")

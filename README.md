@@ -1,16 +1,21 @@
 # Dracory Dashboard
 
-A modern, responsive dashboard implementation using the [Tabler](https://github.com/tabler/tabler) template. This dashboard is designed to be easy to use, customizable, and feature-rich.
+A modern, responsive dashboard framework that supports multiple UI frameworks,
+including [Bootstrap](https://getbootstrap.com/), [Tabler](https://tabler.io/),
+and [AdminLTE](https://adminlte.io/). This dashboard is designed to be easy to use,
+highly customizable, and feature-rich.
 
 ## Features
 
-- **Modern UI**: Built on top of the Tabler template for a clean, modern look
+- **Multiple UI Frameworks**: Choose between Bootstrap, Tabler, or AdminLTE
 - **Responsive Design**: Works on all screen sizes and devices
-- **Theme Switching**: Support for light and dark themes
+- **Theme Switching**: Support for light and dark themes with persistent user preferences
 - **Customizable Navigation**: Configure main menu, user menu, and quick access menu
-- **Component-Based Rendering**: Modular rendering system using the gouniverse/hb HTML builder
+- **Component-Based Rendering**: Modular rendering system
 - **Flexible Layout**: Various layout components (cards, grids, tabs, shadow boxes)
 - **User Management**: Built-in user authentication UI components
+- **Modern Icons**: Built-in support for Tabler Icons
+- **Custom Styling**: Easy to customize with your own CSS
 
 ## Installation
 
@@ -20,124 +25,160 @@ go get github.com/dracory/dashboard
 
 ## Usage
 
-### Basic Example
+### Basic Example with Bootstrap
 
 ```go
 package main
 
 import (
+    "fmt"
     "net/http"
     
     "github.com/dracory/dashboard"
+    "github.com/dracory/dashboard/shared"
+    "github.com/dracory/dashboard/types"
+    "github.com/samber/lo"
 )
 
 func main() {
-    http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-        // Create dashboard configuration
-        config := dashboard.Config{
-            Content: "<h1>Welcome to Dashboard</h1>",
-            MenuItems: []dashboard.MenuItem{
-                {
-                    ID:   "home",
-                    Icon: "ti ti-home",
-                    Text: "Home",
-                    URL:  "/",
-                    Active: true,
-                },
-                {
-                    ID:   "settings",
-                    Icon: "ti ti-settings",
-                    Text: "Settings",
-                    URL:  "/settings",
-                },
-            },
-        }
-        
-        // Create dashboard from config
-        dash := dashboard.NewFromConfig(config)
-        
-        // Render dashboard
-        html := dash.ToHTML()
-        
-        // Write response
-        w.Header().Set("Content-Type", "text/html")
-        w.Write([]byte(html))
-    })
-    
+    http.HandleFunc("/", handleHome)
+    fmt.Println("Server started at http://localhost:8080")
     http.ListenAndServe(":8080", nil)
 }
+
+func handleHome(w http.ResponseWriter, r *http.Request) {
+    // Create a new dashboard instance
+    d := dashboard.New()
+
+    // Set the template to use Bootstrap
+    d.SetTemplate(dashboard.TEMPLATE_BOOTSTRAP)
+    
+    // Set dashboard title and basic configuration
+    d.SetTitle("My Dashboard")
+    d.SetLogoImageURL("https://example.com/logo.png")
+    d.SetLogoRedirectURL("/")
+    
+    // Set theme handling
+    d.SetThemeHandlerUrl("/")
+    
+    // Set up main menu
+    mainMenuItems := []types.MenuItem{
+        {
+            Title: "Dashboard",
+            URL:   "/",
+            Icon:  `<i class="bi bi-speedometer2"></i>`,
+        },
+        {
+            Title: "Users",
+            URL:   "/users",
+            Icon:  `<i class="bi bi-people"></i>`,
+        },
+    }
+    d.SetMenuMainItems(mainMenuItems)
+    
+    // Set user information
+    user := types.User{
+        FirstName: "John",
+        LastName:  "Doe",
+    }
+    d.SetUser(user)
+    
+    // Set the dashboard content
+    d.SetContent(`
+        <div class="container-fluid">
+            <h1>Welcome to Your Dashboard</h1>
+            <p>This is a sample dashboard using Bootstrap.</p>
+        </div>
+    `)
+    
+    // Render and write the response
+    w.Header().Set("Content-Type", "text/html")
+    w.Write([]byte(d.ToHTML()))
+}
 ```
+
+### Available Templates
+
+The dashboard supports multiple UI frameworks:
+
+1. **Bootstrap** - `dashboard.TEMPLATE_BOOTSTRAP`
+   - Modern, responsive design
+   - Built with Bootstrap 5
+   - Clean and simple interface
+
+2. **Tabler** - `dashboard.TEMPLATE_TABLER`
+   - Open Source dashboard template
+   - Responsive and accessible
+   - Modern UI components
+
+3. **AdminLTE** - `dashboard.TEMPLATE_ADMINLTE`
+   - AdminLTE 3 based dashboard
+   - Responsive admin template
+   - Wide range of components
 
 ### Architecture
 
 The dashboard uses a component-based rendering architecture with these key packages:
 
 - **dashboard**: Core dashboard configuration and implementation
-- **model**: Shared interfaces and types to avoid import cycles
-- **render**: Component-based rendering logic using gouniverse/hb
+- **types**: Shared data structures and interfaces
+- **shared**: Common constants and utilities
 
-### Components
+## Components
 
-The dashboard includes several UI components rendered using the gouniverse/hb HTML builder:
+The dashboard includes several UI components that work across all supported frameworks:
 
-#### Header Components
+### Navigation Components
 
-- Top navbar with logo and user menu
-- Main menu with customizable items
-- User dropdown with profile information
-- Theme switcher for light/dark mode
-- Quick access menu for frequently used actions
+- **Main Menu**: Customizable sidebar navigation
+- **User Menu**: Dropdown menu for user actions
+- **Breadcrumbs**: Navigation hierarchy
+- **Quick Access**: Frequently used actions
 
-#### Content Components
+### Content Components
+
+#### Cards
 
 ```go
-// Example of creating content with cards
 content := `
 <div class="row">
   <div class="col-md-4">
-    <div class="card" style="margin: 15px;">
-      <div class="card-header">Users</div>
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Users</h3>
+      </div>
       <div class="card-body">
-        <h3>1,234</h3>
-        <p>Total users</p>
+        <h2>1,234</h2>
+        <p>Total registered users</p>
       </div>
     </div>
   </div>
 </div>
 `
-
-// Set the content in the dashboard config
-config := dashboard.Config{
-    Content: content,
-    // other config options...
-}
 ```
 
-#### Tab Component
+#### Tabs
 
 ```go
-// Example of creating tabs in your content
-tabsHTML := `
-<div class="tab-container mt-3 mb-3" id="tab-example">
-  <ul class="nav nav-tabs" role="tablist">
-    <li class="nav-item" role="presentation">
-      <a class="nav-link active" data-bs-toggle="tab" href="#overview" role="tab">
-        <i class="ti ti-chart-bar me-2"></i>Overview
-      </a>
-    </li>
-    <li class="nav-item" role="presentation">
-      <a class="nav-link" data-bs-toggle="tab" href="#details" role="tab">
-        <i class="ti ti-list me-2"></i>Details
-      </a>
-    </li>
-  </ul>
-  <div class="tab-content">
-    <div class="tab-pane fade show active" id="overview" role="tabpanel">
-      <p>Overview content</p>
-    </div>
-    <div class="tab-pane fade" id="details" role="tabpanel">
-      <p>Details content</p>
-    </div>
+tabs := `
+<ul class="nav nav-tabs" role="tablist">
+  <li class="nav-item">
+    <a class="nav-link active" data-bs-toggle="tab" href="#overview">
+      <i class="ti ti-chart-bar me-1"></i> Overview
+    </a>
+  </li>
+  <li class="nav-item">
+    <a class="nav-link" data-bs-toggle="tab" href="#details">
+      <i class="ti ti-list-details me-1"></i> Details
+    </a>
+  </li>
+</ul>
+<div class="tab-content p-3 border border-top-0 rounded-bottom">
+  <div class="tab-pane fade show active" id="overview">
+    <p>Overview content goes here</p>
+  </div>
+  <div class="tab-pane fade" id="details">
+    <p>Detailed information here</p>
   </div>
 </div>
 `
@@ -145,25 +186,103 @@ tabsHTML := `
 
 ## Configuration Options
 
-The dashboard can be configured with the following options:
+### Dashboard Settings
 
-- **Content**: The main content to display in the dashboard
-- **FaviconURL**: URL for the favicon
-- **LogoImageURL**: URL for the logo image
-- **LogoRawHtml**: Raw HTML for the logo (overrides LogoImageURL if set)
-- **LogoRedirectURL**: URL to redirect to when the logo is clicked
-- **MenuItems**: Array of menu items for the main menu
-- **MenuShowText**: Whether to show text for menu items
-- **NavbarBackgroundColorMode**: Background color mode for the navbar (light or dark)
-- **NavbarBackgroundColor**: Background color for the navbar
-- **NavbarTextColor**: Text color for the navbar
-- **LoginURL**: URL for the login page
-- **RegisterURL**: URL for the registration page
-- **QuickAccessMenu**: Array of menu items for the quick access menu
-- **User**: User information for the user dropdown
-- **UserMenu**: Array of menu items for the user dropdown
-- **ThemeName**: Name of the theme to use (light or dark)
+| Method | Description |
+|--------|-------------|
+| `SetTemplate(template string)` | Set the UI framework (Bootstrap, Tabler, or AdminLTE) |
+| `SetTitle(title string)` | Set the page title |
+| `SetFaviconURL(url string)` | Set the favicon URL |
+| `SetTheme(theme string)` | Set the color theme (i.e. default, dark, light) |
+| `SetThemeHandlerUrl(url string)` | Set the URL for theme switching |
+
+### Navigation
+
+| Method | Description |
+|--------|-------------|
+| `SetMenuMainItems(items []MenuItem)` | Set main menu items |
+| `SetMenuUserItems(items []MenuItem)` | Set user menu items |
+| `SetMenuQuickAccessItems(items []MenuItem)` | Set quick access menu items |
+| `SetBreadcrumb(items []BreadcrumbItem)` | Set breadcrumb navigation |
+
+### User Interface
+
+| Method | Description |
+|--------|-------------|
+| `SetLogoImageURL(url string)` | Set the logo image URL |
+| `SetLogoRedirectURL(url string)` | Set the logo click URL |
+| `SetNavbarBackgroundColor(color string)` | Set navbar background color |
+| `SetNavbarTextColor(color string)` | Set navbar text color |
+| `SetNavbarBackgroundColorMode(mode string)` | Set navbar color mode (light/dark) |
+```
+
+## Advanced Usage
+
+### Theme Switching
+
+The dashboard includes built-in theme switching support:
+
+```go
+// In your request handler
+theme := r.URL.Query().Get("theme")
+if theme != "" {
+    // Set theme cookie
+    cookie := &http.Cookie{
+        Name:     "theme",
+        Value:    theme,
+        Path:     "/",
+        MaxAge:   86400 * 30, // 30 days
+        HttpOnly: false,
+    }
+    http.SetCookie(w, cookie)
+}
+
+// Apply theme to dashboard
+d.SetTheme(theme)
+```
+
+### Custom Styling
+
+Add custom CSS to your dashboard:
+
+```go
+d.SetStyles([]string{
+    `/* Custom styles */
+    .my-custom-class { 
+        background-color: #f8f9fa;
+        padding: 1rem;
+    }`,
+})
+```
+
+### Adding JavaScript
+
+Add custom JavaScript:
+
+```go
+d.SetScripts([]string{
+    `// Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function() {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });`,
+})
+```
+
+## Examples
+
+Check the `examples/` directory for complete working examples:
+
+- `bootstrap/` - Example using Bootstrap template
+- `tabler/` - Example using Tabler template
+- `adminlte/` - Example using AdminLTE template
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.

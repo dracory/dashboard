@@ -348,8 +348,11 @@ func (d *dashboard) SetStyleURLs(styleURLs []string) {
 	d.styleURLs = styleURLs
 }
 
-// GetTemplate returns the template name
+// GetTemplate returns the template name, or the default template if not set
 func (d *dashboard) GetTemplate() string {
+	if d.template == "" {
+		return shared.TEMPLATE_DEFAULT
+	}
 	return d.template
 }
 

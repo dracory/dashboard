@@ -181,6 +181,7 @@ func navbarUserMenu(navbarTextColor string, user types.User, userMenuItems []typ
 
 	// User info section
 	userInfo := hb.Div().Class("dropdown-item dropdown-header")
+	userInfo.Style("color: #495057 !important")
 
 	// User image in menu
 	userInfo.Child(userImage.Class("img-size-50 mr-3 img-circle"))
@@ -209,15 +210,15 @@ func navbarUserMenu(navbarTextColor string, user types.User, userMenuItems []typ
 			}
 
 			link := hb.A().Href(item.URL).Class("dropdown-item")
+			link.Style("color: #495057 !important")
 
 			// Add icon if available
 			if item.Icon != "" {
-				iconHTML := "<i class=\"" + item.Icon + " mr-2"
+				icon := hb.I().Class(item.Icon + " mr-2")
 				if navbarTextColor != "" {
-					iconHTML += " style=\"color: " + navbarTextColor + " !important\""
+					icon.Style("color: " + navbarTextColor + " !important")
 				}
-				iconHTML += "></i>"
-				link.Child(hb.Raw(iconHTML))
+				link.Child(icon)
 			}
 
 			// Add title
@@ -241,26 +242,33 @@ func navbarUserMenu(navbarTextColor string, user types.User, userMenuItems []typ
 
 // navbarThemeSwitcher creates a theme switcher dropdown
 func navbarThemeSwitcher(navbarTextColor, currentTheme, themeHandlerUrl string) *hb.Tag {
-	dropdown := hb.Li().Class("nav-item dropdown")
-	a := hb.A().Href("#").Class("nav-link").Data("toggle", "dropdown")
-
 	// Theme icon
-	iconHTML := "<i class=\"fas fa-moon"
-	if navbarTextColor != "" {
-		iconHTML += " style=\"color: " + navbarTextColor + " !important\""
-	}
-	iconHTML += "></i>"
-	a.Child(hb.Raw(iconHTML))
+	iconMoon := hb.I().
+		Class("fas fa-moon").
+		StyleIf(navbarTextColor != "", "color: "+navbarTextColor+" !important")
+
+	linkThemeSwitcher := hb.A().
+		Href("#").
+		Class("nav-link").
+		Data("toggle", "dropdown").
+		Child(iconMoon)
 
 	// Dropdown menu
-	menu := hb.Div().Class("dropdown-menu dropdown-menu-right")
+	headerMenu := hb.H6().
+		Class("dropdown-header").
+		HTML("Theme")
 
-	// Header
-	header := hb.H6().Class("dropdown-header").HTML("Theme")
-	menu.Child(header)
+	menuDropdown := hb.Div().
+		Class("dropdown-menu dropdown-menu-right").
+		Child(headerMenu)
 
 	// Theme options
-	themes := []string{"default", "light", "dark"}
+	themes := []string{
+		"default",
+		"light",
+		"dark",
+	}
+
 	themeTitles := map[string]string{
 		"default": "Default",
 		"light":   "Light",
@@ -287,11 +295,13 @@ func navbarThemeSwitcher(navbarTextColor, currentTheme, themeHandlerUrl string) 
 			link.Child(hb.Raw(checkIcon))
 		}
 
-		menu.Child(link)
+		menuDropdown.Child(link)
 	}
 
-	dropdown.Child(a)
-	dropdown.Child(menu)
+	dropdown := hb.Li().
+		Class("nav-item dropdown").
+		Child(linkThemeSwitcher).
+		Child(menuDropdown)
 
 	return dropdown
 }

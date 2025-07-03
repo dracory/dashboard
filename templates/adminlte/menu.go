@@ -28,35 +28,36 @@ func buildMenuItem(menuItem types.MenuItem, index int) *hb.Tag {
 	}
 
 	// Create the link
-	link := hb.Hyperlink().Class("nav-link")
+	link := hb.A().Href(url).Class("nav-link")
 
 	// Add icon if present
+	iconClass := "far fa-circle"
 	if icon != "" {
-		iconHTML := "<i class=\"" + icon + " nav-icon\"></i>"
-		link.Child(hb.Raw(iconHTML))
-	} else {
-		link.Child(hb.Raw("<i class=\"far fa-circle nav-icon\"></i>"))
+		iconClass = icon
 	}
 
-	// Add title
-	link.Child(hb.P().HTML(title))
+	iconEl := hb.I().Class("nav-icon " + iconClass)
+	link.Child(iconEl)
 
-	// Add caret for dropdown if has children
+	// Add title and caret for dropdown if has children
+	titleEl := hb.P()
+	titleEl.Child(hb.Span().HTML(title))
+
 	if hasChildren {
-		link.Child(hb.Raw("<i class=\"right fas fa-angle-left\"></i>"))
+		caret := hb.I().Class("right fas fa-angle-left")
+		titleEl.Child(caret)
 	}
 
-	// Set URL
-	link.Href(url)
+	link.Child(titleEl)
 
-	// Add the link to the list item
+	// Add link to list item
 	li.Child(link)
 
-	// Add children if present
+	// Add child items if they exist
 	if hasChildren {
 		ul := hb.Ul().Class("nav nav-treeview")
-		for i, child := range children {
-			childItem := buildMenuItem(child, i)
+		for _, child := range children {
+			childItem := buildMenuItem(child, index+1)
 			ul.Child(childItem)
 		}
 		li.Child(ul)
@@ -84,7 +85,7 @@ func menuOffcanvas(dashboard types.DashboardInterface) *hb.Tag {
 	sidebar := hb.Div().Class("main-sidebar sidebar-dark-primary elevation-4")
 
 	// Brand logo
-	brandLink := hb.Div().Class("brand-link text-center")
+	brandLink := hb.A().Href("#").Class("brand-link")
 	if dashboard.GetLogoImageURL() != "" {
 		brandLink.Child(hb.Img(dashboard.GetLogoImageURL()).Class("brand-image img-circle elevation-3"))
 	}
@@ -107,9 +108,24 @@ func menuOffcanvas(dashboard types.DashboardInterface) *hb.Tag {
 		sidebarInner.Child(userPanel)
 	}
 
-	// Sidebar menu
+	// Sidebar search
+	searchDiv := hb.Div().Class("form-inline mt-2")
+	inputGroup := hb.Div().Class("input-group").Data("widget", "sidebar-search")
+	input := hb.Input().Class("form-control form-control-sidebar").Type("search").Placeholder("Search...").Attr("aria-label", "Search")
+	inputGroup.Child(input)
+	inputGroupAppend := hb.Div().Class("input-group-append")
+	button := hb.Button().Class("btn btn-sidebar").Type("submit")
+	iconHTML := "<i class=\"fas fa-search fa-fw\"></i>"
+	button.Child(hb.Raw(iconHTML))
+	inputGroupAppend.Child(button)
+	inputGroup.Child(inputGroupAppend)
+	searchDiv.Child(inputGroup)
+	sidebarInner.Child(searchDiv)
+
 	nav := hb.Nav().Class("mt-2")
-	nav.Child(hb.Ul().Class("nav nav-pills nav-sidebar flex-column").Data("widget", "treeview").Role("menu").Data("accordion", "false").Child(BuildSidebarMenu(dashboard)))
+	ul := hb.Ul().Class("nav nav-pills nav-sidebar flex-column").Data("widget", "treeview").Role("menu").Data("accordion", "false")
+	ul.Child(BuildSidebarMenu(dashboard))
+	nav.Child(ul)
 
 	sidebarInner.Child(nav)
 	sidebar.Child(sidebarInner)
@@ -147,32 +163,36 @@ func buildSidebarMenuItem(item types.MenuItem, index int) *hb.Tag {
 	}
 
 	// Create link
-	link := hb.A().Href(item.URL).Class("nav-link")
-	if hasChildren {
-		link.Attr("onclick", "return false;")
+	link := hb.A()
+	if item.URL != "" {
+		link.Href(item.URL)
+	} else {
+		link.Href("#")
 	}
+	link.Class("nav-link")
 
 	// Add icon
-	iconHTML := "<i class=\"nav-icon " + icon + "\"></i>"
-	link.Child(hb.Raw(iconHTML))
+	iconEl := hb.I().Class("nav-icon " + icon)
+	link.Child(iconEl)
 
-	// Add title
-	title := hb.P().HTML(item.Title)
-	link.Child(title)
+	// Add title and caret
+	titleContainer := hb.P()
+	titleContainer.Child(hb.Span().HTML(item.Title))
 
-	// Add dropdown arrow for items with children
 	if hasChildren {
-		arrowHTML := "<i class=\"right fas fa-angle-left\"></i>"
-		title.Child(hb.Raw(arrowHTML))
+		caret := hb.I().Class("right fas fa-angle-left")
+		titleContainer.Child(caret)
 	}
 
+	link.Child(titleContainer)
 	li.Child(link)
 
 	// Add child items if they exist
 	if hasChildren {
 		childList := hb.Ul().Class("nav nav-treeview")
 		for _, child := range item.Children {
-			childList.Child(buildSidebarMenuItem(child, index+1))
+			childItem := buildSidebarMenuItem(child, index+1)
+			childList.Child(childItem)
 		}
 		li.Child(childList)
 	}

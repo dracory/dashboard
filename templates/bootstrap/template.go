@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"github.com/dracory/dashboard/templates/shared"
 	"github.com/dracory/dashboard/types"
 	"github.com/gouniverse/cdn"
 	"github.com/gouniverse/hb"
@@ -30,7 +31,7 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	webpage.SetTitle(dashboard.GetTitle())
 
 	// Add favicon
-	if favicon := favicon(); favicon != "" {
+	if favicon := shared.Favicon(); favicon != "" {
 		webpage.SetFavicon(favicon)
 	}
 
@@ -50,7 +51,7 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 		// Check if it's a known theme
 		_, isLightTheme := ThemesLight[theme]
 		_, isDarkTheme := ThemesDark[theme]
-		
+
 		if isLightTheme || isDarkTheme {
 			// Use Bootswatch theme
 			webpage.AddStyleURL("https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/" + theme + "/bootstrap.min.css")

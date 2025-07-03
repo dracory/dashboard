@@ -1,6 +1,7 @@
 package adminlte
 
 import (
+	"github.com/dracory/dashboard/templates/shared"
 	"github.com/dracory/dashboard/types"
 	"github.com/gouniverse/hb"
 )
@@ -64,51 +65,55 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	webpage.SetTitle(dashboard.GetTitle())
 
 	// Add favicon
-	if favicon := favicon(); favicon != "" {
-		webpage.SetFavicon(favicon)
-	}
+	webpage.SetFavicon(shared.Favicon())
 
 	// Add AdminLTE CSS
-	webpage.AddStyle("https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css")
+	webpage.AddStyleURL("https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css")
 
 	// Add Font Awesome
-	webpage.AddStyle("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css")
+	webpage.AddStyleURL("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css")
 
 	// Add Google Font: Source Sans Pro
-	webpage.AddStyle("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback")
-
-	// Add custom CSS
-	if style := templateStyle(); style != "" {
-		webpage.AddStyle(style)
-	}
+	webpage.AddStyleURL("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback")
 
 	// Add jQuery (required for Bootstrap and AdminLTE)
-	webpage.AddScript("https://code.jquery.com/jquery-3.6.0.min.js")
+	webpage.AddScriptURL("https://code.jquery.com/jquery-3.6.0.min.js")
 
 	// Add Bootstrap 4 JS Bundle with Popper (required for AdminLTE)
-	webpage.AddScript("https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js")
+	webpage.AddScriptURL("https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js")
 
 	// Add overlayScrollbars (required by AdminLTE)
-	webpage.AddScript("https://cdn.jsdelivr.net/npm/overlayscrollbars@1.13.1/js/jquery.overlayScrollbars.min.js")
+	webpage.AddScriptURL("https://cdn.jsdelivr.net/npm/overlayscrollbars@1.13.1/js/jquery.overlayScrollbars.min.js")
 
 	// Add AdminLTE JS
-	webpage.AddScript("https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js")
+	webpage.AddScriptURL("https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js")
 
-	// Add custom JavaScript
+	// Initialize AdminLTE with default options
+	webpage.AddScript("$(document).ready(function() { $('body').addClass('sidebar-mini'); });")
+
+	// Add our custom scripts
 	if script := templateScript(); script != "" {
 		webpage.AddScript(script)
 	}
 
-	// Add theme CSS or default AdminLTE CSS
+	// Apply theme classes to body
 	theme := dashboard.GetTheme()
-	if theme != "" && theme != ThemeDefault {
-		// Check if it's a known theme
-		if theme == ThemeDark || theme == ThemeLight {
-			webpage.AddStyle("https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/skins/" + theme + ".min.css")
-		}
-	} else {
-		// Default theme
-		webpage.AddStyle("https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/skins/skin-blue.min.css")
+	body := webpage.Body()
+
+	// Add dark mode class if theme is dark
+	if theme == ThemeDark {
+		body.Class("dark-mode")
+	}
+
+	// Apply navbar and sidebar theming
+	switch theme {
+	case ThemeDark:
+		body.Class("sidebar-dark-primary")
+	case "blue":
+		body.Class("sidebar-light-primary")
+	default:
+		// Default to light theme with primary color
+		body.Class("sidebar-light-primary")
 	}
 
 	// Create main wrapper
@@ -157,19 +162,8 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 		}
 	}
 
-	// Add initialization script
-	webpage.AddScript(`
-		document.addEventListener('DOMContentLoaded', function() {
-			// Initialize AdminLTE
-			if (typeof $ !== 'undefined' && $.fn.AdminLTE) {
-				$('body').AdminLTE({
-					sidebarExpandOnHover: false,
-					enableControlSidebar: true,
-					controlSidebarOptions: {}
-				});
-			}
-		});
-	`)
+	// Initialize AdminLTE with default options
+	webpage.AddScript("$(document).ready(function() { $('body').addClass('sidebar-mini'); });")
 
 	// Generate the final HTML
 	return webpage.ToHTML()

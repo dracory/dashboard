@@ -12,8 +12,8 @@ import (
 func main() {
 	// Start the web server
 	http.HandleFunc("/", handleHome)
-	fmt.Println("Server started at http://localhost:8080")
-	err := http.ListenAndServe(":8080", nil)
+	fmt.Println("Server started at http://localhost:8081")
+	err := http.ListenAndServe(":8081", nil)
 	if err != nil {
 		fmt.Printf("Error starting server: %v\n", err)
 	}

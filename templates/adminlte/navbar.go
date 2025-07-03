@@ -13,8 +13,8 @@ func topNavigation(dashboard types.DashboardInterface) *hb.Tag {
 	hasNavbarBackgroundColor := dashboard.GetNavbarBackgroundColor() != ""
 	hasNavbarTextColor := dashboard.GetNavbarTextColor() != ""
 
-	// Navbar
-	navbar := hb.Nav().Class("main-header navbar navbar-expand")
+	// Navbar with proper text color classes
+	navbar := hb.Nav().Class("main-header navbar navbar-expand navbar-white navbar-light")
 
 	// Left navbar container
 	leftContainer := hb.Div().Class("container-fluid")

@@ -46,15 +46,17 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	}
 
 	// Add theme CSS or default Bootstrap CSS
-	theme := dashboard.GetTheme()
-	if theme != "" && theme != ThemeDefault {
+	themeName := dashboard.GetTheme()
+	themeName = themeNameVerifyAndFix(themeName)
+
+	if themeName != "" && themeName != THEME_DEFAULT {
 		// Check if it's a known theme
-		_, isLightTheme := ThemesLight[theme]
-		_, isDarkTheme := ThemesDark[theme]
+		_, isLightTheme := themesLight[themeName]
+		_, isDarkTheme := themesDark[themeName]
 
 		if isLightTheme || isDarkTheme {
 			// Use Bootswatch theme
-			webpage.AddStyleURL("https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/" + theme + "/bootstrap.min.css")
+			webpage.AddStyleURL("https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/" + themeName + "/bootstrap.min.css")
 		} else {
 			// Fallback to default Bootstrap
 			webpage.AddStyleURL(cdn.BootstrapCss_5_3_3())

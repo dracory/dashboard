@@ -1,21 +1,19 @@
 package bootstrap
 
 // Dark theme constants
-const (
-	ThemeCyborg    = "cyborg"
-	ThemeDarkly    = "darkly"
-	ThemeSlate     = "slate"
-	ThemeSolar     = "solar"
-	ThemeSuperhero = "superhero"
-	ThemeVapor     = "vapor"
-)
+const THEME_CYBORG = "cyborg"
+const THEME_DARKLY = "darkly"
+const THEME_SLATE = "slate"
+const THEME_SOLAR = "solar"
+const THEME_SUPERHERO = "superhero"
+const THEME_VAPOR = "vapor"
 
 // ThemesDark maps theme identifiers to display names
-var ThemesDark = map[string]string{
-	ThemeCyborg:    "Cyborg",
-	ThemeDarkly:    "Darkly",
-	ThemeSlate:     "Slate",
-	ThemeSolar:     "Solar",
-	ThemeSuperhero: "Superhero",
-	ThemeVapor:     "Vapor",
+var themesDark = map[string]string{
+	THEME_CYBORG:    "Cyborg",
+	THEME_DARKLY:    "Darkly",
+	THEME_SLATE:     "Slate",
+	THEME_SOLAR:     "Solar",
+	THEME_SUPERHERO: "Superhero",
+	THEME_VAPOR:     "Vapor",
 }

@@ -99,16 +99,6 @@ type DashboardInterface interface {
 	GetNavbarTextColor() string
 	SetNavbarTextColor(color string)
 
-	// Navbar utility methods
-	NavbarHasBackgroundThemeClass() bool
-	NavbarBackgroundThemeClass() string
-	NavbarButtonThemeClass() string
-
-	// Navbar dropdown methods
-	NavbarDropdownQuickAccess(iconStyle string) string
-	NavbarDropdownThemeSwitch() string
-	NavbarDropdownUser(iconStyle string) string
-
 	// Login/register URLs
 	GetLoginURL() string
 	SetLoginURL(url string)

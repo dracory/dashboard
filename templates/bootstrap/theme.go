@@ -6,7 +6,7 @@ import (
 
 // isThemeDark checks if the given theme is a dark theme
 func isThemeDark(theme string) bool {
-	_, isDark := ThemesDark[theme]
+	_, isDark := themesDark[theme]
 	return isDark
 }
 

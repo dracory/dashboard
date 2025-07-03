@@ -1,8 +1,10 @@
 package dashboard
 
+import "github.com/dracory/dashboard/shared"
+
 func New() *dashboard {
 	return &dashboard{
 		theme:    "default",
-		template: TEMPLATE_DEFAULT,
+		template: shared.TEMPLATE_DEFAULT,
 	}
 }

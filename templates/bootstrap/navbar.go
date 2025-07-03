@@ -3,6 +3,7 @@ package bootstrap
 import (
 	"strings"
 
+	"github.com/dracory/dashboard/shared"
 	"github.com/dracory/dashboard/types"
 	"github.com/gouniverse/hb"
 	"github.com/gouniverse/icons"
@@ -39,7 +40,7 @@ func topNavigation(dashboard types.DashboardInterface) string {
 	buttonOffcanvasToggle := buttonOffcanvasToggle(buttonTheme, hasNavbarTextColor, navbarTextColor, iconStyle, dashboard)
 
 	buttonMainMenu := buttonOffcanvasToggle
-	if dashboard.GetMenuType() == types.TEMPLATE_BOOTSTRAP_MENU_TYPE_MODAL {
+	if dashboard.GetMenuType() == shared.TEMPLATE_BOOTSTRAP_MENU_TYPE_MODAL {
 		buttonMainMenu = buttonMenuToggle
 	}
 
@@ -131,7 +132,7 @@ func topNavigation(dashboard types.DashboardInterface) string {
 		Children(items)
 
 	// Create the main menu based on menu type
-	mainMenu := lo.TernaryF(dashboard.GetMenuType() == types.TEMPLATE_BOOTSTRAP_MENU_TYPE_MODAL, func() *hb.Tag {
+	mainMenu := lo.TernaryF(dashboard.GetMenuType() == shared.TEMPLATE_BOOTSTRAP_MENU_TYPE_MODAL, func() *hb.Tag {
 		return menuModal(dashboard)
 	}, func() *hb.Tag {
 		return menuOffcanvas(dashboard)
@@ -296,8 +297,8 @@ func navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBac
 	handlerUrl := lo.Ternary(themeHandlerUrl == "", "/", themeHandlerUrl)
 
 	// Generate Light Theme dropdown items
-	lightDropdownItems := lo.Map(lo.Keys(ThemesLight), func(theme string, index int) hb.TagInterface {
-		name := ThemesLight[theme]
+	lightDropdownItems := lo.Map(lo.Keys(themesLight), func(theme string, index int) hb.TagInterface {
+		name := themesLight[theme]
 		// Mark current theme as active
 		active := lo.Ternary(currentTheme == theme, " active", "")
 		// Build URL with proper query parameter handling
@@ -316,8 +317,8 @@ func navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBac
 	})
 
 	// Generate Dark Theme dropdown items
-	darkDropdownItems := lo.Map(lo.Keys(ThemesDark), func(theme string, index int) hb.TagInterface {
-		name := ThemesDark[theme]
+	darkDropdownItems := lo.Map(lo.Keys(themesDark), func(theme string, index int) hb.TagInterface {
+		name := themesDark[theme]
 		// Mark current theme as active
 		active := lo.Ternary(currentTheme == theme, " active", "")
 		// Build URL with proper query parameter handling

@@ -17,6 +17,32 @@ func New() *Template {
 
 // ToHTML generates the complete HTML page
 func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
+	styleURLs := []string{}
+	styleURLs = append(styleURLs, "https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0/dist/css/tabler.min.css")
+	styleURLs = append(styleURLs, "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css")
+	styleURLs = append(styleURLs, dashboard.GetStyleURLs()...)
+	styleURLs = lo.Uniq(styleURLs)
+
+	styles := []string{}
+	if style := templateStyle(); style != "" {
+		styles = append(styles, style)
+	}
+	styles = append(styles, dashboard.GetStyles()...)
+	styles = append(styles, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');")
+	styles = lo.Uniq(styles)
+
+	scriptURLs := []string{}
+	scriptURLs = append(scriptURLs, "https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0/dist/js/tabler.min.js")
+	scriptURLs = append(scriptURLs, dashboard.GetScriptURLs()...)
+	scriptURLs = lo.Uniq(scriptURLs)
+
+	scripts := []string{}
+	if script := templateScript(); script != "" {
+		scripts = append(scripts, script)
+	}
+	scripts = append(scripts, dashboard.GetScripts()...)
+	scripts = lo.Uniq(scripts)
+
 	// Create a new webpage
 	webpage := hb.Webpage()
 
@@ -32,24 +58,32 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	webpage.Meta(hb.Meta().Attr("charset", "utf-8"))
 	webpage.Meta(hb.Meta().Attr("name", "viewport").Attr("content", "width=device-width, initial-scale=1, viewport-fit=cover"))
 
-	// Add Tabler CSS
-	webpage.AddStyleURL("https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0/dist/css/tabler.min.css")
-	webpage.AddStyleURL("https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css")
-
-	// Add Google Fonts
-	webpage.AddStyle("@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');")
-
-	// Add custom styles
-	if style := templateStyle(); style != "" {
-		webpage.AddStyle(style)
+	// Add styles URLs
+	for _, styleURL := range styleURLs {
+		if styleURL != "" {
+			webpage.AddStyleURL(styleURL)
+		}
 	}
 
-	// Add Tabler JS
-	webpage.AddScriptURL("https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0/dist/js/tabler.min.js")
+	// Add styles
+	for _, style := range styles {
+		if style != "" {
+			webpage.AddStyle(style)
+		}
+	}
 
-	// Add custom scripts
-	if script := templateScript(); script != "" {
-		webpage.AddScript(script)
+	// Add scripts URLs
+	for _, scriptURL := range scriptURLs {
+		if scriptURL != "" {
+			webpage.AddScriptURL(scriptURL)
+		}
+	}
+
+	// Add scripts
+	for _, script := range scripts {
+		if script != "" {
+			webpage.AddScript(script)
+		}
 	}
 
 	// Set HTML attributes

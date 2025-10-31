@@ -1,6 +1,8 @@
 package dashboard
 
 import (
+	"net/http"
+
 	"github.com/dracory/dashboard/shared"
 	"github.com/dracory/dashboard/templates/adminlte"
 	"github.com/dracory/dashboard/templates/bootstrap"
@@ -439,6 +441,23 @@ func (d *dashboard) GetTheme() string {
 
 func (d *dashboard) SetTheme(theme string) {
 	d.theme = theme
+}
+
+// SetHTTPRequest updates dashboard settings based on the provided HTTP request.
+// Currently it derives the theme from the context (set by ThemeMiddleware) or cookie.
+func (d *dashboard) SetHTTPRequest(r *http.Request) {
+	if r == nil {
+		return
+	}
+
+	if themeName, ok := r.Context().Value(shared.ThemeNameContextKey{}).(string); ok && themeName != "" {
+		d.SetTheme(themeName)
+		return
+	}
+
+	if themeName := ThemeNameRetrieveFromCookie(r); themeName != "" {
+		d.SetTheme(themeName)
+	}
 }
 
 // GetThemeHandlerUrl returns the URL for the theme handler endpoint

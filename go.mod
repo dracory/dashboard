@@ -5,8 +5,8 @@ go 1.24.5
 require (
 	github.com/dracory/cdn v1.8.0
 	github.com/dracory/hb v1.88.0
+	github.com/dracory/req v0.1.0
 	github.com/gouniverse/icons v1.3.1
-	github.com/gouniverse/utils v1.45.4
 	github.com/samber/lo v1.51.0
 )
 
@@ -21,6 +21,7 @@ require (
 	github.com/gouniverse/envenc v0.10.0 // indirect
 	github.com/gouniverse/hb v1.87.0 // indirect
 	github.com/gouniverse/uid v1.5.0 // indirect
+	github.com/gouniverse/utils v1.45.4 // indirect
 	github.com/gouniverse/webserver v0.1.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible // indirect
@@ -33,5 +34,5 @@ require (
 	golang.org/x/net v0.41.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/term v0.32.0 // indirect
-	golang.org/x/text v0.26.0 // indirect
+	golang.org/x/text v0.27.0 // indirect
 )

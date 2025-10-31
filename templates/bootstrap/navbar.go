@@ -29,6 +29,9 @@ func topNavigation(dashboard types.DashboardInterface) string {
 	navbarTextColor := dashboard.GetNavbarTextColor()
 	navbarBackgroundColor := dashboard.GetNavbarBackgroundColor()
 	navbarBackgroundColorMode := dashboard.GetNavbarBackgroundColorMode()
+	if navbarTextColor == "" {
+		navbarTextColor = defaultNavbarTextColor(navbarBackgroundColor, navbarBackgroundColorMode)
+	}
 	user := dashboard.GetUser()
 
 	dropdownUser := navbarDropdownUser(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode, *user, dashboard.GetMenuUserItems())

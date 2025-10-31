@@ -30,7 +30,7 @@ func topNavigation(dashboard types.DashboardInterface) string {
 	navbarBackgroundColor := dashboard.GetNavbarBackgroundColor()
 	navbarBackgroundColorMode := dashboard.GetNavbarBackgroundColorMode()
 	if navbarTextColor == "" {
-		navbarTextColor = defaultNavbarTextColor(navbarBackgroundColor, navbarBackgroundColorMode)
+		navbarTextColor = defaultNavbarTextColor(navbarBackgroundColor, navbarBackgroundColorMode, dashboard.GetTheme())
 	}
 	user := dashboard.GetUser()
 
@@ -341,7 +341,7 @@ func navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBac
 
 	button := hb.Button().
 		ID("buttonTheme").
-		Class(buttonTheme + " dropdown-toggle d-flex align-items-center justify-content-center").
+		Class(buttonTheme+" dropdown-toggle d-flex align-items-center justify-content-center").
 		Style("background:none;border:0px;padding:0.375rem;").
 		Style("gap:0.25rem;").
 		StyleIf(hasNavbarTextColor, "color:"+navbarTextColor).

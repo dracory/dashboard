@@ -36,7 +36,7 @@ func navbarButtonThemeClass(navbarBackgroundColor, navbarBackgroundColorMode str
 	)
 }
 
-func defaultNavbarTextColor(navbarBackgroundColor, navbarBackgroundColorMode string) string {
+func defaultNavbarTextColor(navbarBackgroundColor, navbarBackgroundColorMode, theme string) string {
 	if navbarBackgroundColorMode != "" {
 		switch navbarBackgroundColorMode {
 		case "light", "warning", "info", "white":
@@ -54,6 +54,13 @@ func defaultNavbarTextColor(navbarBackgroundColor, navbarBackgroundColorMode str
 			}
 			return "#ffffff"
 		}
+	}
+
+	if theme != "" {
+		if isThemeDark(theme) {
+			return "#ffffff"
+		}
+		return "#212529"
 	}
 
 	return ""

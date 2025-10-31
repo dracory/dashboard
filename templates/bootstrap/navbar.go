@@ -341,8 +341,9 @@ func navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBac
 
 	button := hb.Button().
 		ID("buttonTheme").
-		Class(buttonTheme+" dropdown-toggle").
-		Style("background:none;border:0px;").
+		Class(buttonTheme + " dropdown-toggle d-flex align-items-center justify-content-center").
+		Style("background:none;border:0px;padding:0.375rem;").
+		Style("gap:0.25rem;").
 		StyleIf(hasNavbarTextColor, "color:"+navbarTextColor).
 		Data("bs-toggle", "dropdown").
 		Children([]hb.TagInterface{
@@ -350,7 +351,7 @@ func navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBac
 		})
 
 	return hb.Div().
-		Class("dropdown").
+		Class("dropdown d-flex align-items-center").
 		Child(button).
 		Child(hb.UL().
 			Class(buttonTheme+" dropdown-menu dropdown-menu-dark").

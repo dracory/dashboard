@@ -1,10 +1,10 @@
 module github.com/dracory/dashboard
 
-go 1.24.0
+go 1.24.5
 
 require (
-	github.com/gouniverse/cdn v1.6.0
-	github.com/gouniverse/hb v1.87.0
+	github.com/dracory/cdn v1.8.0
+	github.com/dracory/hb v1.88.0
 	github.com/gouniverse/icons v1.3.1
 	github.com/gouniverse/utils v1.45.4
 	github.com/samber/lo v1.51.0
@@ -15,9 +15,11 @@ require (
 	github.com/dromara/carbon/v2 v2.6.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gouniverse/api v1.6.0 // indirect
+	github.com/gouniverse/cdn v1.6.0 // indirect
 	github.com/gouniverse/crypto v0.2.0 // indirect
 	github.com/gouniverse/dataobject v1.3.0 // indirect
 	github.com/gouniverse/envenc v0.10.0 // indirect
+	github.com/gouniverse/hb v1.87.0 // indirect
 	github.com/gouniverse/uid v1.5.0 // indirect
 	github.com/gouniverse/webserver v0.1.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect

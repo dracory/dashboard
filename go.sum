@@ -2,6 +2,10 @@ github.com/darkoatanasovski/htmltags v1.0.0 h1:EP3O8c3vcEIotu9Dp6lDq8OWor4rYSf4m
 github.com/darkoatanasovski/htmltags v1.0.0/go.mod h1:FKYjT6COoJLfTjWbOcFW21/GCl8rHvgBQNZS2KpfPMU=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
+github.com/dracory/cdn v1.8.0 h1:3GC1qtqCMnamw/6OmeXkh5F8pn6Ab2CduRTVKEPP4Vg=
+github.com/dracory/cdn v1.8.0/go.mod h1:A5Dhmy44OsG5+hhdcXqpYtoBLYjbDP3I5XXa7ta54a8=
+github.com/dracory/hb v1.88.0 h1:PpxQ9IGTy/L8fZ2iQxTUhieB6u16sluuw/TNxYUcHPs=
+github.com/dracory/hb v1.88.0/go.mod h1:ixoy4T+Vr3HADrxkt5MhXQnkOWo0NSuN5WYPXfKjZCs=
 github.com/dromara/carbon/v2 v2.6.9 h1:kx4D7qqLmNkKRLYo/2n1owtu/A1hfPs4WTGYC2tUFFA=
 github.com/dromara/carbon/v2 v2.6.9/go.mod h1:7GXqCUplwN1s1b4whGk2zX4+g4CMCoDIZzmjlyt0vLY=
 github.com/fatih/color v1.6.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=

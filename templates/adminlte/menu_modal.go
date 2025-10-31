@@ -2,7 +2,7 @@ package adminlte
 
 import (
 	"github.com/dracory/dashboard/types"
-	"github.com/gouniverse/hb"
+	"github.com/dracory/hb"
 )
 
 // menuModal generates the modal menu HTML

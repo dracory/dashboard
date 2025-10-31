@@ -5,7 +5,7 @@ import (
 
 	"github.com/dracory/dashboard/shared"
 	"github.com/dracory/dashboard/types"
-	"github.com/gouniverse/hb"
+	"github.com/dracory/hb"
 	"github.com/gouniverse/icons"
 	"github.com/samber/lo"
 )

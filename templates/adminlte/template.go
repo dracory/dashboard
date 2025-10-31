@@ -3,7 +3,7 @@ package adminlte
 import (
 	"github.com/dracory/dashboard/templates/shared"
 	"github.com/dracory/dashboard/types"
-	"github.com/gouniverse/hb"
+	"github.com/dracory/hb"
 )
 
 // Template implements the types.TemplateInterface for AdminLTE-based templates

@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dracory/dashboard/types"
-	"github.com/gouniverse/hb"
+	"github.com/dracory/hb"
 )
 
 func topNavigation(dashboard types.DashboardInterface) *hb.Tag {

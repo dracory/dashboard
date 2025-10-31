@@ -1,10 +1,10 @@
 package bootstrap
 
 import (
+	"github.com/dracory/cdn"
 	"github.com/dracory/dashboard/templates/shared"
 	"github.com/dracory/dashboard/types"
-	"github.com/gouniverse/cdn"
-	"github.com/gouniverse/hb"
+	"github.com/dracory/hb"
 )
 
 // Template implements the types.TemplateInterface for Bootstrap-based templates

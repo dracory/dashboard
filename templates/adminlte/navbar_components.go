@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/dracory/dashboard/types"
-	"github.com/gouniverse/hb"
+	"github.com/dracory/hb"
 )
 
 // navbarMessagesDropdown creates a messages dropdown menu

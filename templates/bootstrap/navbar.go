@@ -6,7 +6,6 @@ import (
 	"github.com/dracory/dashboard/shared"
 	"github.com/dracory/dashboard/types"
 	"github.com/dracory/hb"
-	"github.com/gouniverse/icons"
 	"github.com/samber/lo"
 )
 
@@ -154,7 +153,7 @@ func buttonOffcanvasToggle(buttonTheme string, hasNavbarTextColor bool, navbarTe
 		StyleIf(hasNavbarTextColor, "color: "+navbarTextColor+";").
 		Data("bs-toggle", "offcanvas").
 		Data("bs-target", "#OffcanvasMenu").
-		Child(icons.Icon("bi-list", 24, 24, "").Style(iconStyle)).
+		Child(hb.I().Class("bi bi-list").Style(iconStyle)).
 		ChildIf(dashboard.GetMenuShowText(), hb.Span().
 			Class("d-none d-md-inline-block").
 			HTML("Menu"))
@@ -169,7 +168,7 @@ func buttonMenuToggle(buttonTheme string, hasNavbarTextColor bool, dashboard typ
 		Data("bs-toggle", "modal").
 		Data("bs-target", "#ModalDashboardMenu").
 		Children([]hb.TagInterface{
-			icons.Icon("bi-list", 24, 24, "").Style(iconStyle),
+			hb.I().Class("bi bi-list").Style(iconStyle),
 			hb.Span().
 				Class("d-none d-md-inline-block").
 				HTML("Menu"),
@@ -201,7 +200,7 @@ func navbarDropdownUser(
 				Type(hb.TYPE_BUTTON).
 				Data("bs-toggle", "dropdown").
 				Children([]hb.TagInterface{
-					icons.Icon("bi-person", 24, 24, "").Style(iconStyle),
+					hb.I().Class("bi bi-person").Style(iconStyle),
 					hb.Span().
 						Class("d-none d-md-inline-block").
 						Text(userName).
@@ -249,7 +248,7 @@ func navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor
 		Data("bs-toggle", "dropdown").
 		Aria("expanded", "false").
 		Child(hb.Span().Class("d-flex align-items-center").Children([]hb.TagInterface{
-			icons.Icon("bi-grid-3x3-gap-fill", 24, 24, "").Style(iconStyle),
+			hb.I().Class("bi bi-grid-3x3-gap-fill").Style(iconStyle),
 		}))
 
 	dropdownMenu := hb.Div().

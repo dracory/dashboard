@@ -5,6 +5,7 @@ import (
 	"github.com/dracory/dashboard/templates/shared"
 	"github.com/dracory/dashboard/types"
 	"github.com/dracory/hb"
+	"github.com/samber/lo"
 )
 
 // Template implements the types.TemplateInterface for Bootstrap-based templates
@@ -22,27 +23,25 @@ func (t *Template) layout(dashboard types.DashboardInterface) string {
 	return layout.ToHTML()
 }
 
-// ToHTML generates the complete HTML for the dashboard page
-func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
-	// Create a new webpage
-	webpage := hb.Webpage()
-
-	// Set the page title
-	webpage.SetTitle(dashboard.GetTitle())
-
-	// Add favicon
-	if favicon := shared.Favicon(); favicon != "" {
-		webpage.SetFavicon(favicon)
-	}
+func (t *Template) getStylesAndScripts(dashboard types.DashboardInterface) (
+	styleURLs []string,
+	scriptURLs []string,
+	styles []string,
+	scripts []string,
+) {
+	styleURLs = make([]string, 0)
+	scriptURLs = make([]string, 0)
+	styles = make([]string, 0)
+	scripts = make([]string, 0)
 
 	// Add CSS
 	if style := templateStyle(); style != "" {
-		webpage.AddStyle(style)
+		styles = append(styles, style)
 	}
 
 	// Add JavaScript
 	if script := templateScript(); script != "" {
-		webpage.AddScript(script)
+		scripts = append(scripts, script)
 	}
 
 	// Add theme CSS or default Bootstrap CSS
@@ -56,29 +55,63 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 
 		if isLightTheme || isDarkTheme {
 			// Use Bootswatch theme
-			webpage.AddStyleURL("https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/" + themeName + "/bootstrap.min.css")
+			styleURLs = append(styleURLs, "https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/"+themeName+"/bootstrap.min.css")
 		} else {
 			// Fallback to default Bootstrap
-			webpage.AddStyleURL(cdn.BootstrapCss_5_3_3())
+			styleURLs = append(styleURLs, cdn.BootstrapCss_5_3_3())
 		}
 	} else {
 		// Use default Bootstrap
-		webpage.AddStyleURL(cdn.BootstrapCss_5_3_3())
+		styleURLs = append(styleURLs, cdn.BootstrapCss_5_3_3())
 	}
 
 	// Add Bootstrap Icons
-	webpage.AddStyleURL(cdn.BootstrapIconsCss_1_11_3())
+	styleURLs = append(styleURLs, cdn.BootstrapIconsCss_1_11_3())
 
 	// Add Bootstrap JS Bundle with Popper
-	webpage.AddScriptURL(cdn.BootstrapJs_5_3_3())
+	scriptURLs = append(scriptURLs, cdn.BootstrapJs_5_3_3())
 
-	// Add custom CSS if any
-	for _, style := range dashboard.GetStyles() {
+	styleURLs = append(styleURLs, dashboard.GetStyleURLs()...)
+	scriptURLs = append(scriptURLs, dashboard.GetScriptURLs()...)
+
+	styles = append(styles, dashboard.GetStyles()...)
+	scripts = append(scripts, dashboard.GetScripts()...)
+
+	return lo.Uniq(styleURLs), lo.Uniq(scriptURLs), lo.Uniq(styles), lo.Uniq(scripts)
+}
+
+// ToHTML generates the complete HTML for the dashboard page
+func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
+	styleURLs, scriptURLs, styles, scripts := t.getStylesAndScripts(dashboard)
+
+	// Create a new webpage
+	webpage := hb.Webpage()
+
+	// Set the page title
+	webpage.SetTitle(dashboard.GetTitle())
+
+	// Add favicon
+	if favicon := shared.Favicon(); favicon != "" {
+		webpage.SetFavicon(favicon)
+	}
+
+	// Add CSS URLs
+	for _, styleURL := range styleURLs {
+		webpage.AddStyleURL(styleURL)
+	}
+
+	// Add JavaScript URLs
+	for _, scriptURL := range scriptURLs {
+		webpage.AddScriptURL(scriptURL)
+	}
+
+	// Add CSS
+	for _, style := range styles {
 		webpage.AddStyle(style)
 	}
 
-	// Add custom scripts if any
-	for _, script := range dashboard.GetScripts() {
+	// Add JavaScript
+	for _, script := range scripts {
 		webpage.AddScript(script)
 	}
 

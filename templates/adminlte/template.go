@@ -4,6 +4,7 @@ import (
 	"github.com/dracory/dashboard/templates/shared"
 	"github.com/dracory/dashboard/types"
 	"github.com/dracory/hb"
+	"github.com/samber/lo"
 )
 
 // Template implements the types.TemplateInterface for AdminLTE-based templates
@@ -56,8 +57,59 @@ func (t *Template) layout(dashboard types.DashboardInterface) *hb.Tag {
 	return contentWrapper
 }
 
+func (t *Template) getStylesAndScripts(dashboard types.DashboardInterface) (
+	styleURLs []string,
+	scriptURLs []string,
+	styles []string,
+	scripts []string,
+) {
+	styleURLs = make([]string, 0)
+	scriptURLs = make([]string, 0)
+	styles = make([]string, 0)
+	scripts = make([]string, 0)
+
+	// Add CSS
+	if style := templateStyle(); style != "" {
+		styles = append(styles, style)
+	}
+
+	// Add JavaScript
+	if script := templateScript(); script != "" {
+		scripts = append(scripts, script)
+	}
+
+	// AdminLTE CSS
+	styleURLs = append(styleURLs, "https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css")
+	// Font Awesome
+	styleURLs = append(styleURLs, "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css")
+	// Google Font: Source Sans Pro
+	styleURLs = append(styleURLs, "https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback")
+	// jQuery
+	scriptURLs = append(scriptURLs, "https://code.jquery.com/jquery-3.6.0.min.js")
+	// Bootstrap 4 JS Bundle with Popper
+	scriptURLs = append(scriptURLs, "https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js")
+	// overlayScrollbars
+	scriptURLs = append(scriptURLs, "https://cdn.jsdelivr.net/npm/overlayscrollbars@1.13.1/js/jquery.overlayScrollbars.min.js")
+	// AdminLTE JS
+	scriptURLs = append(scriptURLs, "https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js")
+	// Initialize AdminLTE with default options
+	scripts = append(scripts, "$(document).ready(function() { $('body').addClass('sidebar-mini'); });")
+
+	styles = append(styles, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');")
+
+	styleURLs = append(styleURLs, dashboard.GetStyleURLs()...)
+	scriptURLs = append(scriptURLs, dashboard.GetScriptURLs()...)
+
+	styles = append(styles, dashboard.GetStyles()...)
+	scripts = append(scripts, dashboard.GetScripts()...)
+
+	return lo.Uniq(styleURLs), lo.Uniq(scriptURLs), lo.Uniq(styles), lo.Uniq(scripts)
+}
+
 // ToHTML generates the complete HTML for the dashboard page
 func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
+	styleURLs, scriptURLs, styles, scripts := t.getStylesAndScripts(dashboard)
+
 	// Create a new webpage
 	webpage := hb.Webpage()
 
@@ -67,33 +119,32 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	// Add favicon
 	webpage.SetFavicon(shared.Favicon())
 
-	// Add AdminLTE CSS
-	webpage.AddStyleURL("https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/css/adminlte.min.css")
+	// Add styles URLs
+	for _, styleURL := range styleURLs {
+		if styleURL != "" {
+			webpage.AddStyleURL(styleURL)
+		}
+	}
 
-	// Add Font Awesome
-	webpage.AddStyleURL("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css")
+	// Add styles
+	for _, style := range styles {
+		if style != "" {
+			webpage.AddStyle(style)
+		}
+	}
 
-	// Add Google Font: Source Sans Pro
-	webpage.AddStyleURL("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback")
+	// Add scripts URLs
+	for _, scriptURL := range scriptURLs {
+		if scriptURL != "" {
+			webpage.AddScriptURL(scriptURL)
+		}
+	}
 
-	// Add jQuery (required for Bootstrap and AdminLTE)
-	webpage.AddScriptURL("https://code.jquery.com/jquery-3.6.0.min.js")
-
-	// Add Bootstrap 4 JS Bundle with Popper (required for AdminLTE)
-	webpage.AddScriptURL("https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js")
-
-	// Add overlayScrollbars (required by AdminLTE)
-	webpage.AddScriptURL("https://cdn.jsdelivr.net/npm/overlayscrollbars@1.13.1/js/jquery.overlayScrollbars.min.js")
-
-	// Add AdminLTE JS
-	webpage.AddScriptURL("https://cdn.jsdelivr.net/npm/admin-lte@3.2.0/dist/js/adminlte.min.js")
-
-	// Initialize AdminLTE with default options
-	webpage.AddScript("$(document).ready(function() { $('body').addClass('sidebar-mini'); });")
-
-	// Add our custom scripts
-	if script := templateScript(); script != "" {
-		webpage.AddScript(script)
+	// Add scripts
+	for _, script := range scripts {
+		if script != "" {
+			webpage.AddScript(script)
+		}
 	}
 
 	// Apply theme classes to body
@@ -137,13 +188,18 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	wrapper.Child(t.layout(dashboard))
 
 	// Add footer
-	footer := hb.NewFooter().Class("main-footer")
-	footer.Child(hb.NewDiv().Class("float-right d-none d-sm-block").Child(
-		hb.NewDiv().Style("font-size: 85%;").Text("AdminLTE v3.2.0"),
-	))
-	footer.Child(hb.NewStrong().Text("Copyright &copy; 2023").Child(
-		hb.NewA().Href("#").Text("AdminLTE.io"),
-	).Text(". All rights reserved."))
+	footer := hb.NewFooter().
+		Class("main-footer").
+		Child(hb.NewDiv().
+			Class("float-right d-none d-sm-block").
+			Child(
+				hb.NewDiv().Style("font-size: 85%;").Text("AdminLTE v3.2.0"),
+			)).
+		Child(hb.NewStrong().
+			Text("Copyright &copy; 2023").
+			Child(
+				hb.NewA().Href("#").Text("AdminLTE.io"),
+			).Text(". All rights reserved."))
 
 	wrapper.Child(footer)
 
@@ -161,9 +217,6 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 			webpage.Body().Child(modal)
 		}
 	}
-
-	// Initialize AdminLTE with default options
-	webpage.AddScript("$(document).ready(function() { $('body').addClass('sidebar-mini'); });")
 
 	// Generate the final HTML
 	return webpage.ToHTML()

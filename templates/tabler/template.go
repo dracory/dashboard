@@ -15,33 +15,45 @@ func New() *Template {
 	return &Template{}
 }
 
-// ToHTML generates the complete HTML page
-func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
-	styleURLs := []string{}
-	styleURLs = append(styleURLs, "https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0/dist/css/tabler.min.css")
-	styleURLs = append(styleURLs, "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css")
-	styleURLs = append(styleURLs, dashboard.GetStyleURLs()...)
-	styleURLs = lo.Uniq(styleURLs)
+func (t *Template) getStylesAndScripts(dashboard types.DashboardInterface) (
+	styleURLs []string,
+	scriptURLs []string,
+	styles []string,
+	scripts []string,
+) {
+	styleURLs = make([]string, 0)
+	scriptURLs = make([]string, 0)
+	styles = make([]string, 0)
+	scripts = make([]string, 0)
 
-	styles := []string{}
+	// Add CSS
 	if style := templateStyle(); style != "" {
 		styles = append(styles, style)
 	}
-	styles = append(styles, dashboard.GetStyles()...)
-	styles = append(styles, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');")
-	styles = lo.Uniq(styles)
 
-	scriptURLs := []string{}
-	scriptURLs = append(scriptURLs, "https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0/dist/js/tabler.min.js")
-	scriptURLs = append(scriptURLs, dashboard.GetScriptURLs()...)
-	scriptURLs = lo.Uniq(scriptURLs)
-
-	scripts := []string{}
+	// Add JavaScript
 	if script := templateScript(); script != "" {
 		scripts = append(scripts, script)
 	}
+
+	styleURLs = append(styleURLs, "https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0/dist/css/tabler.min.css")
+	styleURLs = append(styleURLs, "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css")
+	scriptURLs = append(scriptURLs, "https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0/dist/js/tabler.min.js")
+
+	styles = append(styles, "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');")
+
+	styleURLs = append(styleURLs, dashboard.GetStyleURLs()...)
+	scriptURLs = append(scriptURLs, dashboard.GetScriptURLs()...)
+
+	styles = append(styles, dashboard.GetStyles()...)
 	scripts = append(scripts, dashboard.GetScripts()...)
-	scripts = lo.Uniq(scripts)
+
+	return lo.Uniq(styleURLs), lo.Uniq(scriptURLs), lo.Uniq(styles), lo.Uniq(scripts)
+}
+
+// ToHTML generates the complete HTML page
+func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
+	styleURLs, scriptURLs, styles, scripts := t.getStylesAndScripts(dashboard)
 
 	// Create a new webpage
 	webpage := hb.Webpage()

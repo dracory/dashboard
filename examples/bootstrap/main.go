@@ -38,9 +38,15 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 
 	// If no theme in query, try to get from cookie
 	if theme == "" {
+		// Default theme when no query parameter is provided
+		theme = "bootstrap"
+
 		cookie, err := r.Cookie("theme")
-		// Use cookie value if available, otherwise default to bootstrap
-		theme = lo.Ternary(err == nil && cookie != nil && cookie.Value != "", cookie.Value, "bootstrap")
+		if err == nil && cookie != nil {
+			if value := cookie.Value; value != "" {
+				theme = value
+			}
+		}
 	}
 
 	// Create a new dashboard instance

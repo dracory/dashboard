@@ -442,5 +442,7 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 
 	// Write the HTML response
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Write([]byte(html))
+	if _, err := w.Write([]byte(html)); err != nil {
+		http.Error(w, "failed to write response", http.StatusInternalServerError)
+	}
 }

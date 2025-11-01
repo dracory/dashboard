@@ -275,5 +275,7 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 
 	// Set the content type and write the response
 	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(htmlOutput))
+	if _, err := w.Write([]byte(htmlOutput)); err != nil {
+		http.Error(w, "failed to write response", http.StatusInternalServerError)
+	}
 }

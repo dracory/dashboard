@@ -83,6 +83,10 @@ func (t *Template) getStylesAndScripts(dashboard types.DashboardInterface) (
 // ToHTML generates the complete HTML for the dashboard page
 func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	styleURLs, scriptURLs, styles, scripts := t.getStylesAndScripts(dashboard)
+	favicon := dashboard.GetFaviconURL()
+	if favicon == "" {
+		favicon = shared.Favicon()
+	}
 
 	// Create a new webpage
 	webpage := hb.Webpage()
@@ -91,9 +95,7 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	webpage.SetTitle(dashboard.GetTitle())
 
 	// Add favicon
-	if favicon := shared.Favicon(); favicon != "" {
-		webpage.SetFavicon(favicon)
-	}
+	webpage.SetFavicon(favicon)
 
 	// Add CSS URLs
 	for _, styleURL := range styleURLs {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dracory/dashboard/templates/shared"
 	"github.com/dracory/dashboard/types"
 	"github.com/dracory/hb"
 	"github.com/samber/lo"
@@ -54,6 +55,10 @@ func (t *Template) getStylesAndScripts(dashboard types.DashboardInterface) (
 // ToHTML generates the complete HTML page
 func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	styleURLs, scriptURLs, styles, scripts := t.getStylesAndScripts(dashboard)
+	favicon := dashboard.GetFaviconURL()
+	if favicon == "" {
+		favicon = shared.Favicon()
+	}
 
 	// Create a new webpage
 	webpage := hb.Webpage()
@@ -62,9 +67,7 @@ func (t *Template) ToHTML(dashboard types.DashboardInterface) string {
 	webpage.SetTitle(dashboard.GetTitle())
 
 	// Add favicon
-	if favicon := favicon(); favicon != "" {
-		webpage.SetFavicon(favicon)
-	}
+	webpage.SetFavicon(favicon)
 
 	// Add meta tags
 	webpage.Meta(hb.Meta().Attr("charset", "utf-8"))

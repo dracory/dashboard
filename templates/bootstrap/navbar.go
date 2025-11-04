@@ -15,7 +15,6 @@ import (
 // Returns a string.
 func topNavigation(dashboard types.DashboardInterface) string {
 	hasNavbarBackgroundColor := lo.Ternary(dashboard.GetNavbarBackgroundColor() == "", false, true)
-	hasNavbarTextColor := lo.Ternary(dashboard.GetNavbarTextColor() == "", false, true)
 
 	hasLogoImage := lo.Ternary(dashboard.GetLogoImageURL() != "", true, false)
 	hasLogoRawHTML := lo.Ternary(dashboard.GetLogoRawHtml() != "", true, false)
@@ -31,6 +30,7 @@ func topNavigation(dashboard types.DashboardInterface) string {
 	if navbarTextColor == "" {
 		navbarTextColor = defaultNavbarTextColor(navbarBackgroundColor, navbarBackgroundColorMode, dashboard.GetTheme())
 	}
+	hasNavbarTextColor := navbarTextColor != ""
 	user := dashboard.GetUser()
 
 	dropdownUser := navbarDropdownUser(iconStyle, navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode, *user, dashboard.GetMenuUserItems())
@@ -38,7 +38,7 @@ func topNavigation(dashboard types.DashboardInterface) string {
 	dropdownThemeSwitch := navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBackgroundColorMode, dashboard.GetTheme(), dashboard.GetThemeHandlerUrl())
 
 	buttonTheme := navbarButtonThemeClass(navbarBackgroundColor, navbarBackgroundColorMode)
-	buttonMenuToggle := buttonMenuToggle(buttonTheme, hasNavbarTextColor, dashboard, iconStyle)
+	buttonMenuToggle := buttonMenuToggle(buttonTheme, hasNavbarTextColor, navbarTextColor, dashboard, iconStyle)
 	buttonOffcanvasToggle := buttonOffcanvasToggle(buttonTheme, hasNavbarTextColor, navbarTextColor, iconStyle, dashboard)
 
 	buttonMainMenu := buttonOffcanvasToggle
@@ -160,11 +160,11 @@ func buttonOffcanvasToggle(buttonTheme string, hasNavbarTextColor bool, navbarTe
 	return buttonOffcanvasToggle
 }
 
-func buttonMenuToggle(buttonTheme string, hasNavbarTextColor bool, dashboard types.DashboardInterface, iconStyle string) *hb.Tag {
+func buttonMenuToggle(buttonTheme string, hasNavbarTextColor bool, navbarTextColor string, dashboard types.DashboardInterface, iconStyle string) *hb.Tag {
 	buttonMenuToggle := hb.Button().
 		Class("btn "+buttonTheme).
 		Style("background: none; border:none;").
-		StyleIf(hasNavbarTextColor, "color: "+dashboard.GetNavbarTextColor()+";").
+		StyleIf(hasNavbarTextColor, "color: "+navbarTextColor+";").
 		Data("bs-toggle", "modal").
 		Data("bs-target", "#ModalDashboardMenu").
 		Children([]hb.TagInterface{
@@ -203,8 +203,7 @@ func navbarDropdownUser(
 					hb.I().Class("bi bi-person").Style(iconStyle),
 					hb.Span().
 						Class("d-none d-md-inline-block").
-						Text(userName).
-						Style("margin-right:10px;"),
+						Text(userName),
 				}),
 			hb.UL().
 				Class("dropdown-menu dropdown-menu-dark").
@@ -242,7 +241,7 @@ func navbarDropdownQuickAccess(iconStyle, navbarTextColor, navbarBackgroundColor
 	button := hb.Button().
 		ID("ButtonQuickAccess").
 		Class("btn "+buttonTheme).
-		Style("background:none;border:0px;padding:0.375rem;").
+		Style("background:none;border:0px;").
 		StyleIf(hasNavbarTextColor, "color: "+navbarTextColor+";").
 		Type(hb.TYPE_BUTTON).
 		Data("bs-toggle", "dropdown").
@@ -340,9 +339,10 @@ func navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBac
 
 	button := hb.Button().
 		ID("buttonTheme").
-		Class(buttonTheme+" dropdown-toggle d-flex align-items-center justify-content-center").
-		Style("background:none;border:0px;padding:0.375rem;").
-		Style("gap:0.25rem;").
+		Class("btn dropdown-toggle").
+		Class(buttonTheme).
+		Style("background:none;border:0px;").
+		// Style("gap:0.25rem;").
 		StyleIf(hasNavbarTextColor, "color:"+navbarTextColor).
 		Data("bs-toggle", "dropdown").
 		Children([]hb.TagInterface{
@@ -350,7 +350,7 @@ func navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBac
 		})
 
 	return hb.Div().
-		Class("dropdown d-flex align-items-center").
+		Class("dropdown").
 		Child(button).
 		Child(hb.UL().
 			Class(buttonTheme+" dropdown-menu dropdown-menu-dark").

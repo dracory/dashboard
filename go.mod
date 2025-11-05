@@ -1,6 +1,6 @@
 module github.com/dracory/dashboard
 
-go 1.24.5
+go 1.25
 
 require (
 	github.com/dracory/cdn v1.8.0

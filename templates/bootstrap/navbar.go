@@ -353,7 +353,7 @@ func navbarDropdownThemeSwitch(navbarTextColor, navbarBackgroundColor, navbarBac
 		Class("dropdown").
 		Child(button).
 		Child(hb.UL().
-			Class(buttonTheme+" dropdown-menu dropdown-menu-dark").
+			Class(buttonTheme+" dropdown-menu dropdown-menu-dark dropdown-menu-end").
 			Children(lightDropdownItems).
 			ChildIf(
 				len(lo.Filter(darkDropdownItems, func(item hb.TagInterface, _ int) bool { return item != nil })) > 0 && len(lo.Filter(lightDropdownItems, func(item hb.TagInterface, _ int) bool { return item != nil })) > 0,
